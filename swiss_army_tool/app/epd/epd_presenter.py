@@ -24,6 +24,7 @@ class EpdPresenter(BasePresenter):
         self.view.add_subtab(self.search_presenter.view, "Search EPD")
         # Connect proxy to the view
         # self.view.set_table_model(self.proxy)
+        # self.model.load_data()
 
         self.bind()
 

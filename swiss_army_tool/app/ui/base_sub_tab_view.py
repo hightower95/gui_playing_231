@@ -6,6 +6,7 @@ from PySide6.QtWidgets import (
     QTextEdit, QFrame, QTableView, QSizePolicy
 )
 from PySide6.QtCore import Signal, Qt
+from ..core.config import UI_COLORS, UI_STYLES
 
 
 class BaseTabView(QWidget):
@@ -44,16 +45,21 @@ class BaseTabView(QWidget):
         # Add slim "Output" banner
         output_label = QLabel("Output")
         output_label.setAlignment(Qt.AlignCenter)
-        output_label.setStyleSheet("""
-            QLabel {
-                background-color: #f0f0f0;
-                font-weight: bold;
-                padding: 2px;
-                border-bottom: 1px solid #ccc;
-            }
+        output_label.setStyleSheet(f"""
+            QLabel {{
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 {UI_COLORS['section_highlight_primary']}, 
+                    stop:1 {UI_COLORS['section_highlight_secondary']});
+                color: {UI_COLORS['section_text']};
+                font-weight: {UI_STYLES['section_banner']['font_weight']};
+                font-size: {UI_STYLES['section_banner']['font_size']};
+                padding: {UI_STYLES['section_banner']['padding']};
+                border: 1px solid {UI_COLORS['section_border']};
+                border-radius: {UI_STYLES['section_banner']['border_radius']};
+            }}
         """)
         output_label.setText("Results")
-        output_label.setFixedHeight(22)
+        output_label.setFixedHeight(UI_STYLES['section_banner']['height'])
 
         # self.results_table = QTableView()
         left_layout.addWidget(output_label)
@@ -66,15 +72,41 @@ class BaseTabView(QWidget):
         # --- RIGHT: Context + Footer Pane ---
         right_splitter = QSplitter(Qt.Vertical)
 
+        # Context section with banner
+        context_frame = QFrame()
+        context_layout = QVBoxLayout(context_frame)
+        context_layout.setContentsMargins(0, 0, 0, 0)
+
+        # Add "Context" banner
+        context_label = QLabel("Context")
+        context_label.setAlignment(Qt.AlignCenter)
+        context_label.setStyleSheet(f"""
+            QLabel {{
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 {UI_COLORS['section_highlight_primary']}, 
+                    stop:1 {UI_COLORS['section_highlight_secondary']});
+                color: {UI_COLORS['section_text']};
+                font-weight: {UI_STYLES['section_banner']['font_weight']};
+                font-size: {UI_STYLES['section_banner']['font_size']};
+                padding: {UI_STYLES['section_banner']['padding']};
+                border: 1px solid {UI_COLORS['section_border']};
+                border-radius: {UI_STYLES['section_banner']['border_radius']};
+            }}
+        """)
+        context_label.setFixedHeight(UI_STYLES['section_banner']['height'])
+
         self.context_box = QTextEdit()
         self.context_box.setPlaceholderText("Context information...")
         self.context_box.setFrameShape(QFrame.StyledPanel)
+
+        context_layout.addWidget(context_label)
+        context_layout.addWidget(self.context_box)
 
         self.footer_box = QTextEdit()
         self.footer_box.setPlaceholderText("Additional details / logs...")
         self.footer_box.setFrameShape(QFrame.StyledPanel)
 
-        right_splitter.addWidget(self.context_box)
+        right_splitter.addWidget(context_frame)
         right_splitter.addWidget(self.footer_box)
         right_splitter.setSizes([400, 100])  # 80/20 vertical split
 

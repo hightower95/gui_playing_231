@@ -1,4 +1,6 @@
-from PySide6.QtWidgets import QWidget, QLineEdit, QHBoxLayout, QPushButton, QLabel, QTextEdit, QTableView, QVBoxLayout
+from PySide6.QtWidgets import (QWidget, QLineEdit, QHBoxLayout, QPushButton, QLabel,
+                               QTextEdit, QTableView, QVBoxLayout, QProgressBar, QSizePolicy,
+                               QApplication)
 from PySide6.QtCore import Signal
 from app.ui.base_sub_tab_view import BaseTabView
 
@@ -6,6 +8,8 @@ from app.ui.base_sub_tab_view import BaseTabView
 class SearchEpdView(BaseTabView):
     searchEPDTriggered = Signal(str)
     rowSelected = Signal(dict)
+    refresh_requested = Signal()
+    export_requested = Signal(str)  # file_path
 
     def __init__(self, parent=None):
         # header = QWidget()
@@ -44,37 +48,154 @@ class SearchEpdView(BaseTabView):
     def _setup_header(self):
         # Add search bar and button inside header_frame
         layout = QHBoxLayout(self.header_frame)
+
+        # Search controls
         self.search_input = QLineEdit()
+        self.search_input.setPlaceholderText("Search EPD records...")
         self.search_button = QPushButton("Search")
+
+        # Action buttons
+        self.refresh_button = QPushButton("Refresh")
+        self.export_button = QPushButton("Export")
+
+        # Progress bar for loading
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setVisible(False)
+        self.progress_bar.setMaximumHeight(20)
+
+        # Status label
+        self.status_label = QLabel("Ready")
+        self.status_label.setStyleSheet("color: gray; font-size: 10px;")
 
         # Create a container widget for the search controls
         search_container = QWidget()
         search_layout = QHBoxLayout(search_container)
         search_layout.addWidget(self.search_input)
         search_layout.addWidget(self.search_button)
+        search_layout.addWidget(self.refresh_button)
+        search_layout.addWidget(self.export_button)
 
-        # Add the container and stretch to control width
+        # Create progress container
+        progress_container = QWidget()
+        progress_layout = QVBoxLayout(progress_container)
+        progress_layout.setContentsMargins(0, 0, 0, 0)
+        progress_layout.addWidget(self.progress_bar)
+        progress_layout.addWidget(self.status_label)
+
+        # Add the containers to main layout
         layout.addWidget(search_container)
-        layout.addStretch()  # This pushes the search controls to the left
+        layout.addWidget(progress_container)
+        layout.addStretch()  # This pushes the controls to the left
 
-        # Set size policy to limit width to 45%
+        # Set size policy to limit width
         search_container.setMaximumWidth(int(self.header_frame.width() * 0.65))
+        progress_container.setMaximumWidth(200)
 
+        # Connect signals
         self.search_button.clicked.connect(self._emit_search)
         self.search_input.returnPressed.connect(self._emit_search)
         self.search_input.textChanged.connect(self._emit_search)
+        self.refresh_button.clicked.connect(self._emit_refresh)
+        self.export_button.clicked.connect(self._emit_export)
 
     def _setup_results_area(self):
         left_layout = QVBoxLayout(self.left_content_frame)
+        left_layout.setContentsMargins(0, 0, 0, 0)
+        left_layout.setSpacing(0)
+
+        # Create table with custom styling
         self.table = QTableView()
-        left_layout.addWidget(self.table)
+        self._style_table()
+
+        # Create record count label for bottom of results
+        self.record_count_label = QLabel("Ready")
+        self.record_count_label.setStyleSheet("""
+            QLabel {
+                color: gray;
+                font-size: 10px;
+                padding: 5px;
+                border-top: 1px solid #ddd;
+            }
+        """)
+        self.record_count_label.setFixedHeight(25)
+
+        # Add widgets to layout - table takes most space, count label at bottom
+        # Stretch factor 1 = takes available space
+        left_layout.addWidget(self.table, 1)
+        left_layout.addWidget(self.record_count_label)  # Fixed size at bottom
+
         self.results_box = self.left_layout
 
-        self.context_box.setPlaceholderText("Context info will appear here")
+        # Context text box
+        self.context_box = QTextEdit()
+        self.context_box.setPlaceholderText(
+            "Select an EPD record to see details here")
         self.context_box.setReadOnly(True)
+
+        # # Add to container
+        # context_layout.addWidget(context_header)
+        # context_layout.addWidget(self.context_box)
+
+        # Set the container as the context widget
+        # self.set_context_widget(context_container)
+
+        # Footer box setup
+        self.footer_box = QTextEdit()
 
         self.footer_box.setPlaceholderText("Footer info for selected EPD")
         self.footer_box.setReadOnly(True)
+
+    def _copy_context_to_clipboard(self):
+        """Copy the context box content to clipboard"""
+        clipboard = QApplication.clipboard()
+        clipboard.setText(self.context_box.toPlainText())
+
+    def _style_table(self):
+        """Apply custom styling to the table"""
+        # Import colors from config
+        from app.core.config import UI_COLORS
+
+        # Get a toned down version of the section highlight color
+        primary_color = UI_COLORS['section_highlight_primary']  # #4a90e2
+
+        # Create a lighter version for headers (increase lightness)
+        header_color = "#e8f1fa"  # Light blue, toned down from #4a90e2
+
+        self.table.setStyleSheet(f"""
+            QTableView {{
+                gridline-color: #ddd;
+                // background-color: white;
+                alternate-background-color: #f9f9f9;
+                selection-background-color: {primary_color};
+                // selection-color: white;
+            }}
+            QHeaderView::section {{
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 {header_color}, stop:1 #d4e6f7);
+                color: #2c5aa0;
+                font-weight: bold;
+                font-size: 11px;
+                padding: 6px;
+                border: 1px solid #c0d9f0;
+                border-bottom: 2px solid #a8cae8;
+            }}
+            QHeaderView::section:hover {{
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #f0f7ff, stop:1 {header_color});
+            }}
+        """)
+
+        # Set table properties for better appearance
+        self.table.setAlternatingRowColors(True)
+        self.table.setShowGrid(True)
+        self.table.horizontalHeader().setStretchLastSection(True)
+        self.table.verticalHeader().setVisible(False)  # Hide row numbers
+
+        # Make table fill the available width
+        self.table.setSizePolicy(
+            QSizePolicy().Policy.Expanding,
+            QSizePolicy().Policy.Expanding
+        )
 
     def _emit_search(self):
         text = self.search_input.text().strip()
@@ -83,8 +204,68 @@ class SearchEpdView(BaseTabView):
         self.search_input.blockSignals(False)
         self.searchEPDTriggered.emit(text)
 
+    def _emit_refresh(self):
+        """Emit refresh signal"""
+        self.refresh_requested.emit()
+
+    def _emit_export(self):
+        """Emit export signal"""
+        # In a real implementation, this would open a file dialog
+        # For now, just emit with a default path
+
+        self.export_requested.emit("epd_export.csv")
+
     def display_context(self, context_text: str):
         self.context_box.setPlainText(context_text)
 
     def display_footer(self, footer_text: str):
         self.footer_box.setPlainText(footer_text)
+
+    def show_loading(self, show: bool = True):
+        """Show/hide loading state"""
+        self.progress_bar.setVisible(show)
+        self.search_input.setEnabled(not show)
+        self.search_button.setEnabled(not show)
+        self.export_button.setEnabled(not show)
+
+        if show:
+            self.progress_bar.setRange(0, 0)  # Indeterminate progress
+            self.status_label.setText("Loading...")
+        else:
+            self.progress_bar.setRange(0, 100)
+            self.status_label.setText("Ready")
+
+    def update_loading_progress(self, progress: int, message: str):
+        """Update loading progress"""
+        self.progress_bar.setVisible(True)
+        self.progress_bar.setRange(0, 100)
+        self.progress_bar.setValue(progress)
+        self.status_label.setText(message)
+        print(f"Loading progress: {progress}% - {message}")
+        if progress >= 100:
+            # Hide progress bar after a short delay
+            from PySide6.QtCore import QTimer
+            QTimer.singleShot(1000, lambda: self.show_loading(False))
+
+    def show_error(self, error_message: str):
+        """Show error state"""
+        self.show_loading(False)
+        self.status_label.setText(f"Error: {error_message}")
+        self.status_label.setStyleSheet("color: red; font-size: 10px;")
+
+        # Reset status after 5 seconds
+        from PySide6.QtCore import QTimer
+        QTimer.singleShot(5000, self._reset_status)
+
+    def _reset_status(self):
+        """Reset status to normal"""
+        self.status_label.setText("Ready")
+        self.status_label.setStyleSheet("color: gray; font-size: 10px;")
+
+    def update_record_count(self, count: int, total: int = None):
+        """Update the record count display"""
+        if total is None:
+            self.record_count_label.setText(f"Showing {count} records")
+        else:
+            self.record_count_label.setText(
+                f"Showing {count} of {total} records")

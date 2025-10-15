@@ -30,3 +30,9 @@ class PandasTableModel(QAbstractTableModel):
         if orientation == Qt.Horizontal:
             return str(self._data.columns[section])
         return str(section + 1)
+
+    def get_record(self, row):
+        """Get a record as a dictionary for the given row"""
+        if 0 <= row < len(self._data):
+            return self._data.iloc[row].to_dict()
+        return {}

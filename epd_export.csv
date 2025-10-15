@@ -1,0 +1,6 @@
+EPD,Description,Cable,AWG,Rating (A),Pins
+EPD-001,Main harness connector,Cable 100,20,15,12
+EPD-002,Sensor branch harness,Cable 200,22,10,8
+EPD-003,Power distribution loom,Cable 100,18,25,16
+EPD-004,Signal processing unit,Cable 300,24,5,20
+EPD-005,Control module interface,Cable 150,20,12,10
