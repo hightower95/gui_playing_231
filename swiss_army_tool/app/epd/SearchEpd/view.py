@@ -3,6 +3,7 @@ from PySide6.QtWidgets import (QWidget, QLineEdit, QHBoxLayout, QPushButton, QLa
                                QApplication)
 from PySide6.QtCore import Signal
 from app.ui.base_sub_tab_view import BaseTabView
+from app.core.config import UI_COLORS
 
 
 class SearchEpdView(BaseTabView):
@@ -90,13 +91,13 @@ class SearchEpdView(BaseTabView):
 
         # Create record count label for bottom of results
         self.record_count_label = QLabel("Ready")
-        self.record_count_label.setStyleSheet("""
-            QLabel {
+        self.record_count_label.setStyleSheet(f"""
+            QLabel {{
                 color: gray;
                 font-size: 10px;
                 padding: 5px;
-                border-top: 1px solid #ddd;
-            }
+                border-top: 1px solid {UI_COLORS['dark_border']};
+            }}
         """)
         self.record_count_label.setFixedHeight(25)
 

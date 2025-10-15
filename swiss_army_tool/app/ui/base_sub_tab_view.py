@@ -50,7 +50,7 @@ class BaseTabView(QWidget):
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
                     stop:0 {UI_COLORS['section_highlight_primary']}, 
                     stop:1 {UI_COLORS['section_highlight_secondary']});
-                color: {UI_COLORS['section_text']};
+                color: {UI_COLORS['highlight_text']};
                 font-weight: {UI_STYLES['section_banner']['font_weight']};
                 font-size: {UI_STYLES['section_banner']['font_size']};
                 padding: {UI_STYLES['section_banner']['padding']};
@@ -123,12 +123,28 @@ class BaseTabView(QWidget):
         # === GLOBAL FOOTER ===
         footer_frame = QFrame()
         footer_frame.setFrameShape(QFrame.StyledPanel)
-        footer_label = QLabel("Contact Administrator for support")
-        footer_label.setFixedHeight(24)
-        footer_label.setAlignment(Qt.AlignCenter)
-        footer_label.setStyleSheet("color: gray; font-size: 10pt;")
+
+        # Build info layout
         footer_layout = QHBoxLayout(footer_frame)
-        footer_layout.addWidget(footer_label)
+        footer_layout.setContentsMargins(10, 2, 10, 2)
+
+        # Left side - Contact info
+        contact_label = QLabel("Contact Administrator for support")
+        contact_label.setStyleSheet("color: gray; font-size: 10pt;")
+
+        # Right side - Build info
+        import datetime
+        build_date = datetime.datetime.now().strftime("%Y-%m-%d")
+        build_info_label = QLabel(
+            f"Version 1.0.0 | Build Date: {build_date} | Python 3.x")
+        build_info_label.setStyleSheet(
+            f"color: {UI_COLORS['muted_text']}; font-size: 9pt;")
+        build_info_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+
+        footer_layout.addWidget(contact_label)
+        footer_layout.addStretch()
+        footer_layout.addWidget(build_info_label)
+
         footer_frame.setFixedHeight(30)
 
         # === COMPOSE ALL ===

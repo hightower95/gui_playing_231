@@ -32,36 +32,36 @@ class FilterWidget(QWidget):
         # Filter text label
         filter_text = f"{self.field_name}: {self.operator} '{self.value}'"
         self.label = QLabel(filter_text)
-        self.label.setStyleSheet("""
-            QLabel {
+        self.label.setStyleSheet(f"""
+            QLabel {{
                 background-color: transparent;
-                color: white;
+                color: {UI_COLORS['filter_pill_text']};
                 font-size: 12px;
                 font-weight: 500;
                 padding: 2px 12px;
                 border: none;
-            }
+            }}
         """)
 
         # Remove button (X) - integrated into the pill
         self.remove_btn = QPushButton("×")
         self.remove_btn.setFixedSize(24, 24)
-        self.remove_btn.setStyleSheet("""
-            QPushButton {
+        self.remove_btn.setStyleSheet(f"""
+            QPushButton {{
                 background-color: transparent;
-                color: white;
+                color: {UI_COLORS['filter_pill_text']};
                 font-weight: bold;
                 font-size: 16px;
                 border: none;
                 padding: 0px;
                 margin-right: 8px;
-            }
-            QPushButton:hover {
-                color: #ff4444;
-            }
-            QPushButton:pressed {
-                color: #cc0000;
-            }
+            }}
+            QPushButton:hover {{
+                color: {UI_COLORS['danger_color']};
+            }}
+            QPushButton:pressed {{
+                color: {UI_COLORS['danger_pressed']};
+            }}
         """)
 
         # Add widgets to container
@@ -69,14 +69,14 @@ class FilterWidget(QWidget):
         container_layout.addWidget(self.remove_btn)
 
         # Style the entire container as one unified pill
-        self.filter_container.setStyleSheet("""
-            QWidget {
-                background-color: #4a90e2;
+        self.filter_container.setStyleSheet(f"""
+            QWidget {{
+                background-color: {UI_COLORS['filter_pill_background']};
                 border-radius: 16px;
-            }
-            QWidget:hover {
-                background-color: #5ba0f2;
-            }
+            }}
+            QWidget:hover {{
+                background-color: {UI_COLORS['filter_pill_hover']};
+            }}
         """)
 
         # Add container to main layout
@@ -130,7 +130,7 @@ class IdentifyBestEpdView(BaseTabView):
         title_layout = QHBoxLayout()
         title_label = QLabel("Identify Best EPD")
         title_label.setStyleSheet(
-            "font-weight: bold; font-size: 14px; color: #2c5aa0;")
+            f"font-weight: bold; font-size: 14px; color: {UI_COLORS['section_border']};")
         title_layout.addWidget(title_label)
         title_layout.addStretch()
 
@@ -159,18 +159,18 @@ class IdentifyBestEpdView(BaseTabView):
 
         # Buttons
         self.add_filter_btn = QPushButton("Add Filter")
-        self.add_filter_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #4a90e2;
+        self.add_filter_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {UI_COLORS['section_highlight_primary']};
                 color: white;
                 border: none;
                 border-radius: 4px;
                 padding: 6px 12px;
                 font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #357abd;
-            }
+            }}
+            QPushButton:hover {{
+                background-color: {UI_COLORS['section_highlight_secondary']};
+            }}
         """)
 
         self.clear_filters_btn = QPushButton("Clear All")
@@ -236,13 +236,13 @@ class IdentifyBestEpdView(BaseTabView):
 
         # Create record count label for bottom of results
         self.record_count_label = QLabel("No filters applied")
-        self.record_count_label.setStyleSheet("""
-            QLabel {
+        self.record_count_label.setStyleSheet(f"""
+            QLabel {{
                 color: gray;
                 font-size: 10px;
                 padding: 5px;
-                border-top: 1px solid #ddd;
-            }
+                border-top: 1px solid {UI_COLORS['dark_border']};
+            }}
         """)
         self.record_count_label.setFixedHeight(25)
 
@@ -260,6 +260,31 @@ class IdentifyBestEpdView(BaseTabView):
         # Use inherited footer_box from BaseTabView
         self.footer_box.setPlaceholderText(
             "EPD recommendation details will appear here")
+
+    def _setup_filters_display(self):
+        """Setup filters display using the inherited context_box from BaseTabView"""
+        # Replace the context_box content with a custom widget for filters
+        from PySide6.QtWidgets import QScrollArea
+
+        # Create main container for filters
+        self.filters_main_container = QWidget()
+        main_layout = QVBoxLayout(self.filters_main_container)
+        main_layout.setContentsMargins(5, 5, 5, 5)
+        main_layout.setSpacing(8)
+
+        # Header for filters section
+        filters_header = QLabel("Active Filters")
+        filters_header.setStyleSheet(f"""
+            QLabel {{
+                font-weight: normal;
+                color: {UI_COLORS['muted_text']};
+                font-size: 14px;
+                padding: 2px 5px;
+                background-color: {UI_COLORS['section_label_background']};
+                border-radius: 4px;
+                margin-bottom: 1px;
+            }}
+        """)
 
     def _setup_filters_display(self):
         """Setup filters display using the inherited context_box from BaseTabView"""
@@ -292,12 +317,12 @@ class IdentifyBestEpdView(BaseTabView):
         scroll_area = QScrollArea()
         scroll_area.setWidgetResizable(True)
         scroll_area.setMaximumHeight(200)
-        scroll_area.setStyleSheet("""
-            QScrollArea { 
+        scroll_area.setStyleSheet(f"""
+            QScrollArea {{ 
                 border: none; 
-                background-color: #fafafa;
+                background-color: {UI_COLORS['light_background']};
                 border-radius: 4px;
-            }
+            }}
         """)
 
         # Container for filter pills
@@ -338,7 +363,7 @@ class IdentifyBestEpdView(BaseTabView):
         details_header.setStyleSheet(f"""
             QLabel {{
                 font-weight: normal;
-                color: #888888;
+                color: {UI_COLORS['muted_text']};
                 font-size: 14px;
                 padding: 2px 5px;
                 background-color: {UI_COLORS['section_label_background']};

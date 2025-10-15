@@ -6,19 +6,18 @@ from app.core.config import UI_COLORS
 
 # EPD-specific table styling configuration
 EPD_TABLE_STYLES = {
-    'primary_color': UI_COLORS['section_highlight_primary'],  # #4a90e2
-    'header_color': "#111214",  # Light blue, toned down from primary
+    'primary_color': UI_COLORS['section_highlight_primary'],
+    'header_color': UI_COLORS['epd_header_color'],
     'header_gradient_stop1': UI_COLORS['section_highlight_primary'],
     'header_gradient_stop2': UI_COLORS['section_highlight_primary'],
-    'header_hover_stop1': '#f0f7ff',
-    'header_hover_stop2': '#e8f1fa',
-    'header_text_color': '#2c5aa0',
-    'border_color': '#c0d9f0',
-    'border_bottom_color': '#a8cae8',
-    'gridline_color': '#ddd',
-    'alternate_row_color': "#2d2e35",
+    'header_hover_stop1': UI_COLORS['epd_header_hover_light'],
+    'header_hover_stop2': UI_COLORS['epd_header_hover_dark'],
+    'header_text_color': UI_COLORS['section_border'],
+    'border_color': UI_COLORS['epd_border_light'],
+    'border_bottom_color': UI_COLORS['epd_border_dark'],
+    'gridline_color': UI_COLORS['epd_gridline'],
+    'alternate_row_color': UI_COLORS['epd_alternate_row'],
 }
-# "#121212"
 
 # Common table style string template
 EPD_TABLE_STYLESHEET = """
@@ -70,11 +69,11 @@ def apply_epd_table_styling(table_view):
 
 # EPD-specific filter widget styles
 EPD_FILTER_STYLES = {
-    'filter_background': '#e8f1fa',
-    'filter_border': '#4a90e2',
-    'filter_text_color': '#2c5aa0',
-    'remove_button_color': '#ff6b6b',
-    'remove_button_hover': '#ff5252',
+    'filter_background': UI_COLORS['epd_header_hover_dark'],
+    'filter_border': UI_COLORS['filter_pill_background'],
+    'filter_text_color': UI_COLORS['section_border'],
+    'remove_button_color': UI_COLORS['remove_button'],
+    'remove_button_hover': UI_COLORS['remove_button_hover'],
 }
 
 EPD_FILTER_WIDGET_STYLESHEET = """
