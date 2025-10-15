@@ -4,6 +4,19 @@ EPD Module Configuration - Shared styling and settings for all EPD views
 from app.core.config import UI_COLORS
 
 
+# Default columns to display in EPD results tables
+# Columns not in this list will be hidden by default
+# Order in this list determines display order (left to right)
+DEFAULT_VISIBLE_COLUMNS = [
+    "EPD",
+    "Description",
+    "Cable",
+    "AWG",
+    "Rating (A)",
+    "Pins",
+]
+
+
 # EPD-specific table styling configuration
 EPD_TABLE_STYLES = {
     'primary_color': UI_COLORS['section_highlight_primary'],

@@ -1,6 +1,27 @@
 """
 Configuration settings for the Swiss Army Tool application
 """
+from enum import Enum
+
+
+class FilterOperator(Enum):
+    """Available filter operators for EPD field filtering"""
+    CONTAINS = "contains"
+    EQUALS = "equals"
+    GREATER_THAN = "greater than"
+    GREATER_THAN_OR_EQUAL = "greater than or equal"
+    LESS_THAN = "less than"
+    LESS_THAN_OR_EQUAL = "less than or equal"
+    STARTS_WITH = "starts with"
+    ENDS_WITH = "ends with"
+    NOT_EQUALS = "not equals"
+    NOT_CONTAINS = "not contains"
+
+
+def get_all_operators():
+    """Get all operator values as a list for UI dropdowns"""
+    return [op.value for op in FilterOperator]
+
 
 # UI Color Scheme
 UI_COLORS = {

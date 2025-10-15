@@ -4,7 +4,8 @@ from PySide6.QtWidgets import (QWidget, QLineEdit, QHBoxLayout, QPushButton, QLa
 from PySide6.QtCore import Signal, Qt
 from app.ui.base_sub_tab_view import BaseTabView
 from app.ui.table_context_menu_mixin import TableContextMenuMixin
-from app.core.config import UI_COLORS, UI_STYLES
+from app.core.config import UI_COLORS, UI_STYLES, FilterOperator, get_all_operators
+from app.epd.IdentifyBestEpd.config import FIELD_OPERATOR_DEFAULTS
 
 
 class FilterWidget(QWidget):
@@ -143,14 +144,18 @@ class IdentifyBestEpdView(BaseTabView, TableContextMenuMixin):
         self.field_combo = QComboBox()
         self.field_combo.addItems(["AWG", "Cable", "Description", "EPD"])
         self.field_combo.setMinimumWidth(100)
+        
+        # Connect field change to update default operator
+        self.field_combo.currentTextChanged.connect(self._on_field_changed)
 
         # Operator selector
         operator_label = QLabel("Operator:")
         self.operator_combo = QComboBox()
-        self.operator_combo.addItems(["equals", "not equals", "contains", "not contains",
-                                      "less than", "greater than", "less than or equal",
-                                      "greater than or equal"])
+        self.operator_combo.addItems(get_all_operators())
         self.operator_combo.setMinimumWidth(120)
+        
+        # Set initial default operator based on first field
+        self._set_default_operator_for_field(self.field_combo.currentText())
 
         # Value input
         value_label = QLabel("Value:")
@@ -458,6 +463,21 @@ class IdentifyBestEpdView(BaseTabView, TableContextMenuMixin):
         # Update status
         self.status_label.setText(
             f"{len(self.active_filters)} filter(s) applied")
+
+    def _on_field_changed(self, field_name):
+        """Handle field selection change to set intelligent default operator"""
+        self._set_default_operator_for_field(field_name)
+
+    def _set_default_operator_for_field(self, field_name):
+        """Set the default operator based on the field type using config"""
+        # Get default operator from config
+        default_operator = FIELD_OPERATOR_DEFAULTS.get(field_name)
+        
+        if default_operator:
+            # Find and set the operator
+            index = self.operator_combo.findText(default_operator)
+            if index >= 0:
+                self.operator_combo.setCurrentIndex(index)
 
     def _add_filter_to_layout(self, filter_widget):
         """Add a filter widget to the layout - one per line"""

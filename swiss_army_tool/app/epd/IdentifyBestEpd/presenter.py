@@ -1,5 +1,6 @@
 from PySide6.QtCore import QSortFilterProxyModel, Qt, Signal, QObject, QTimer
 from app.epd.IdentifyBestEpd.view import IdentifyBestEpdView
+from app.epd.epd_config import DEFAULT_VISIBLE_COLUMNS
 from app.presenters.pandas_table_model import PandasTableModel
 import pandas as pd
 
@@ -155,12 +156,30 @@ class IdentifyBestEpdPresenter(QObject):
         self.table_model = PandasTableModel(data)
         self.proxy.setSourceModel(self.table_model)
 
+        # Apply column visibility settings
+        self._apply_column_visibility()
+
         # Connect selection signal now that we have data
         if self.view.table.selectionModel():
             self.view.table.selectionModel().selectionChanged.connect(self.on_row_selected)
 
         # Update view statistics
         self._update_view_statistics()
+
+    def _apply_column_visibility(self):
+        """Apply default column visibility settings from config"""
+        if self.table_model is None:
+            return
+
+        # Get all columns from the dataframe
+        all_columns = self.table_model._data.columns.tolist()
+
+        # Hide columns that are not in DEFAULT_VISIBLE_COLUMNS
+        for col_index, col_name in enumerate(all_columns):
+            if col_name not in DEFAULT_VISIBLE_COLUMNS:
+                self.view.table.setColumnHidden(col_index, True)
+            else:
+                self.view.table.setColumnHidden(col_index, False)
 
     def on_filter_added(self, field: str, operator: str, value: str):
         """Handle filter addition"""
@@ -207,6 +226,11 @@ class IdentifyBestEpdPresenter(QObject):
     def _apply_current_filters(self):
         """Apply all current filters to the data"""
         if self.df is None or not self.active_filters:
+            if len(self.active_filters) == 0 and self.df is not None:
+                self.filtered_df = self.df.copy()
+                if self.table_model:
+                    self.table_model.update(self.filtered_df)
+                    self._update_view_statistics()
             return
 
         try:

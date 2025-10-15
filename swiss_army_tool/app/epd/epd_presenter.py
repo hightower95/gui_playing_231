@@ -15,11 +15,20 @@ class EpdPresenter(BasePresenter):
         super().__init__(context, self.view, self.model, title="EPD Tools")
 
         self.bind()
+        
+        # Auto-start data loading when GUI is loaded
+        self._auto_load_data()
 
     def bind(self):
         """Connect any top-level EPD module signals"""
         # The view creates its own sub-presenters and handles their signals
         pass
+    
+    def _auto_load_data(self):
+        """Automatically start loading EPD data in background"""
+        # Use QTimer to delay loading slightly so UI can render first
+        from PySide6.QtCore import QTimer
+        QTimer.singleShot(100, self.model.load_async)
 
     def start_loading(self):
         """Start loading data for the EPD module"""

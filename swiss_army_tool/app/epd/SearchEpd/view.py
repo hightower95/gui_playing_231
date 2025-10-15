@@ -89,7 +89,7 @@ class SearchEpdView(BaseTabView, TableContextMenuMixin):
         # Create table with custom styling
         self.table = QTableView()
         self._style_table()
-        
+
         # Enable context menu for right-click using mixin
         self.setup_table_context_menu(self.table)
 

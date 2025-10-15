@@ -1,34 +1,64 @@
 """
-EPD Model - Data management for EPD analysis
+EPD Model - Data management for EPD analysis with proper threading support
 """
 from typing import Dict, List, Any, Optional
-from PySide6.QtCore import QTimer, Signal
+from PySide6.QtCore import QObject, Signal, QThread, QMutex, QMutexLocker
 from app.core.base_model import BaseModel
-# from app.core.app_context import AppContext
 import pandas as pd
+import time
 
 
-class EpdModel(BaseModel):
-    """Model for managing EPD (Electronic Parts Data) with async loading support"""
-
-    # Additional signals for loading process
-    loading_progress = Signal(int, str)  # progress_percent, status_message
-    loading_failed = Signal(str)  # error_message
-    data_filtered = Signal(object)  # filtered dataframe
-
-    def __init__(self, context):
-        super().__init__(context)
-        self.data = None
-        self.is_loading = False
-        # Don't load data immediately - wait for explicit load request
-
-    def _initialize_data(self):
-        """Initialize base model data (called by BaseModel)"""
-        # Base model initialization - can be empty for EPD model
-        self._data = {}
-
-    def _initialize_sample_data(self):
-        """Initialize sample EPD data (private method)"""
+class EpdDataWorker(QObject):
+    """Worker class for loading EPD data in a separate thread"""
+    
+    # Signals to communicate with main thread
+    progress = Signal(int, str)  # progress_percent, status_message
+    finished = Signal(object)  # loaded dataframe
+    error = Signal(str)  # error_message
+    
+    def __init__(self):
+        super().__init__()
+        self._is_cancelled = False
+    
+    def cancel(self):
+        """Cancel the loading operation"""
+        self._is_cancelled = True
+    
+    def run(self):
+        """Execute the data loading in background thread"""
+        try:
+            # Step 1: Initialize connection
+            if self._is_cancelled:
+                return
+            self.progress.emit(20, "Connecting to EPD database...")
+            time.sleep(0.3)  # Simulate network delay
+            
+            # Step 2: Query data
+            if self._is_cancelled:
+                return
+            self.progress.emit(50, "Querying EPD records...")
+            time.sleep(0.4)  # Simulate query time
+            
+            # Step 3: Process data
+            if self._is_cancelled:
+                return
+            self.progress.emit(75, "Processing EPD data...")
+            
+            # Load the actual data
+            data = self._load_sample_data()
+            time.sleep(0.2)  # Simulate processing time
+            
+            # Complete
+            if self._is_cancelled:
+                return
+            self.progress.emit(100, "EPD data loaded successfully")
+            self.finished.emit(data)
+            
+        except Exception as e:
+            self.error.emit(f"Data loading failed: {str(e)}")
+    
+    def _load_sample_data(self) -> pd.DataFrame:
+        """Load sample EPD data (private method)"""
         # In real life, this would load from Excel or a database
         sample_data = [
             {"EPD": "EPD-001", "Description": "Main harness connector",
@@ -44,157 +74,223 @@ class EpdModel(BaseModel):
         ]
         return pd.DataFrame(sample_data)
 
+
+class EpdModel(BaseModel):
+    """Model for managing EPD (Electronic Parts Data) with thread-safe async loading"""
+
+    # Additional signals for loading process
+    loading_progress = Signal(int, str)  # progress_percent, status_message
+    loading_failed = Signal(str)  # error_message
+    data_filtered = Signal(object)  # filtered dataframe
+
+    def __init__(self, context):
+        super().__init__(context)
+        self.data = None
+        self.is_loading = False
+        
+        # Thread-safe data access
+        self._data_mutex = QMutex()
+        
+        # Worker thread components
+        self._worker = None
+        self._thread = None
+
+    def _initialize_data(self):
+        """Initialize base model data (called by BaseModel)"""
+        # Base model initialization - can be empty for EPD model
+        self._data = {}
+
     def load_async(self):
-        """Start asynchronous data loading"""
+        """Start asynchronous data loading in a separate thread"""
         if self.is_loading:
+            print("Already loading data...")
             return
 
         self.is_loading = True
         self.loading_progress.emit(0, "Starting EPD data load...")
 
-        # Simulate async loading with QTimer
-        QTimer.singleShot(200, self._load_step_1)
+        # Create worker and thread
+        self._worker = EpdDataWorker()
+        self._thread = QThread()
+        
+        # Move worker to thread
+        self._worker.moveToThread(self._thread)
+        
+        # Connect signals
+        self._worker.progress.connect(self._on_loading_progress)
+        self._worker.finished.connect(self._on_loading_finished)
+        self._worker.error.connect(self._on_loading_error)
+        
+        # Connect thread lifecycle
+        self._thread.started.connect(self._worker.run)
+        self._thread.finished.connect(self._thread.deleteLater)
+        
+        # Start the thread
+        self._thread.start()
 
-    def _load_step_1(self):
-        """Loading step 1: Initialize connection"""
-        try:
-            self.loading_progress.emit(20, "Connecting to EPD database...")
-            QTimer.singleShot(300, self._load_step_2)
-        except Exception as e:
-            self._handle_loading_error(f"Connection failed: {str(e)}")
+    def _on_loading_progress(self, progress: int, message: str):
+        """Handle progress updates from worker thread"""
+        self.loading_progress.emit(progress, message)
 
-    def _load_step_2(self):
-        """Loading step 2: Query data"""
-        try:
-            self.loading_progress.emit(50, "Querying EPD records...")
-            QTimer.singleShot(400, self._load_step_3)
-        except Exception as e:
-            self._handle_loading_error(f"Query failed: {str(e)}")
-
-    def _load_step_3(self):
-        """Loading step 3: Process data"""
-        try:
-            self.loading_progress.emit(75, "Processing EPD data...")
-            # Load the actual data
-            self.data = self._initialize_sample_data()
-            QTimer.singleShot(200, self._load_complete)
-        except Exception as e:
-            self._handle_loading_error(f"Data processing failed: {str(e)}")
-
-    def _load_complete(self):
-        """Complete the loading process"""
-        self.loading_progress.emit(100, "EPD data loaded successfully")
+    def _on_loading_finished(self, data: pd.DataFrame):
+        """Handle successful data loading from worker thread"""
+        # Thread-safe data assignment
+        with QMutexLocker(self._data_mutex):
+            self.data = data
+        
         self.is_loading = False
-
+        
         # Emit data_loaded signal from BaseModel
         self.data_loaded.emit(self.data)
-
+        
         # Update internal data storage
         self.set_data('epd_records', self.data.to_dict('records'))
         self.set_data('record_count', len(self.data))
+        
+        # Cleanup thread
+        self._cleanup_thread()
 
-    def _handle_loading_error(self, error_message: str):
-        """Handle loading errors"""
+    def _on_loading_error(self, error_message: str):
+        """Handle loading errors from worker thread"""
         self.is_loading = False
         self.loading_failed.emit(error_message)
         print(f"EPD Model loading error: {error_message}")
+        
+        # Cleanup thread
+        self._cleanup_thread()
+
+    def _cleanup_thread(self):
+        """Cleanup worker thread after completion"""
+        if self._thread and self._thread.isRunning():
+            self._thread.quit()
+            self._thread.wait()
+        
+        self._thread = None
+        self._worker = None
 
     def get_all(self):
-        """Return full dataset."""
-        if self.data is None:
-            return pd.DataFrame()  # Return empty DataFrame if no data loaded
-        return self.data.copy()
+        """Return full dataset (thread-safe)."""
+        with QMutexLocker(self._data_mutex):
+            if self.data is None:
+                return pd.DataFrame()  # Return empty DataFrame if no data loaded
+            return self.data.copy()
 
     def filter(self, text: str):
-        """Return filtered rows matching text in any column."""
-        if self.data is None:
-            return pd.DataFrame()
+        """Return filtered rows matching text in any column (thread-safe)."""
+        with QMutexLocker(self._data_mutex):
+            if self.data is None:
+                return pd.DataFrame()
 
-        if not text or not text.strip():
-            filtered_data = self.get_all()
-        else:
-            try:
-                mask = self.data.astype(str).apply(
-                    lambda row: row.str.contains(text, case=False, na=False).any(), axis=1
-                )
-                filtered_data = self.data[mask]
-            except Exception as e:
-                print(f"Filter error: {e}")
-                filtered_data = pd.DataFrame()
+            if not text or not text.strip():
+                filtered_data = self.data.copy()
+            else:
+                try:
+                    mask = self.data.astype(str).apply(
+                        lambda row: row.str.contains(text, case=False, na=False).any(), axis=1
+                    )
+                    filtered_data = self.data[mask].copy()
+                except Exception as e:
+                    print(f"Filter error: {e}")
+                    filtered_data = pd.DataFrame()
 
-        # Emit filtered data signal
+        # Emit filtered data signal (outside mutex lock)
         self.data_filtered.emit(filtered_data)
         return filtered_data
 
     def get_record_by_epd(self, epd_id: str) -> Optional[Dict]:
-        """Get a specific EPD record by ID"""
-        if self.data is None:
-            return None
+        """Get a specific EPD record by ID (thread-safe)"""
+        with QMutexLocker(self._data_mutex):
+            if self.data is None:
+                return None
 
-        try:
-            matches = self.data[self.data['EPD'] == epd_id]
-            if not matches.empty:
-                return matches.iloc[0].to_dict()
-        except Exception as e:
-            print(f"Error retrieving EPD record {epd_id}: {e}")
+            try:
+                matches = self.data[self.data['EPD'] == epd_id]
+                if not matches.empty:
+                    return matches.iloc[0].to_dict()
+            except Exception as e:
+                print(f"Error retrieving EPD record {epd_id}: {e}")
 
         return None
 
     def get_records_by_cable(self, cable_type: str) -> pd.DataFrame:
-        """Get all EPD records for a specific cable type"""
-        if self.data is None:
-            return pd.DataFrame()
+        """Get all EPD records for a specific cable type (thread-safe)"""
+        with QMutexLocker(self._data_mutex):
+            if self.data is None:
+                return pd.DataFrame()
 
-        try:
-            return self.data[self.data['Cable'] == cable_type]
-        except Exception as e:
-            print(f"Error filtering by cable {cable_type}: {e}")
-            return pd.DataFrame()
+            try:
+                return self.data[self.data['Cable'] == cable_type].copy()
+            except Exception as e:
+                print(f"Error filtering by cable {cable_type}: {e}")
+                return pd.DataFrame()
 
     def get_statistics(self) -> Dict[str, Any]:
-        """Get dataset statistics"""
-        if self.data is None:
-            return {'total_records': 0, 'loaded': False}
+        """Get dataset statistics (thread-safe)"""
+        with QMutexLocker(self._data_mutex):
+            if self.data is None:
+                return {'total_records': 0, 'loaded': False}
 
-        try:
-            stats = {
-                'total_records': len(self.data),
-                'unique_cables': self.data['Cable'].nunique() if 'Cable' in self.data.columns else 0,
-                'unique_epds': self.data['EPD'].nunique() if 'EPD' in self.data.columns else 0,
-                'avg_awg': self.data['AWG'].mean() if 'AWG' in self.data.columns else 0,
-                'loaded': True
-            }
-            return stats
-        except Exception as e:
-            print(f"Error calculating statistics: {e}")
-            return {'total_records': 0, 'loaded': False, 'error': str(e)}
+            try:
+                stats = {
+                    'total_records': len(self.data),
+                    'unique_cables': self.data['Cable'].nunique() if 'Cable' in self.data.columns else 0,
+                    'unique_epds': self.data['EPD'].nunique() if 'EPD' in self.data.columns else 0,
+                    'avg_awg': self.data['AWG'].mean() if 'AWG' in self.data.columns else 0,
+                    'loaded': True
+                }
+                return stats
+            except Exception as e:
+                print(f"Error calculating statistics: {e}")
+                return {'total_records': 0, 'loaded': False, 'error': str(e)}
 
     def is_data_loaded(self) -> bool:
-        """Check if data is loaded"""
-        return self.data is not None and not self.data.empty
+        """Check if data is loaded (thread-safe)"""
+        with QMutexLocker(self._data_mutex):
+            return self.data is not None and not self.data.empty
 
     def refresh_data(self):
         """Refresh data from source"""
-        self.data = None  # Clear existing data
-        self.load_async()  # Reload
+        # Cancel any ongoing load
+        if self._worker:
+            self._worker.cancel()
+        
+        # Clear existing data
+        with QMutexLocker(self._data_mutex):
+            self.data = None
+        
+        # Reload
+        self.load_async()
 
     def export_data(self, file_path: str = None) -> bool:
-        """Export data to file"""
-        if self.data is None:
-            return False
+        """Export data to file (thread-safe)"""
+        with QMutexLocker(self._data_mutex):
+            if self.data is None:
+                return False
 
-        try:
-            if file_path:
-                if file_path.endswith('.csv'):
-                    self.data.to_csv(file_path, index=False)
-                elif file_path.endswith('.xlsx'):
-                    self.data.to_excel(file_path, index=False)
-                else:
-                    return False
-            return True
-        except Exception as e:
-            print(f"Export error: {e}")
-            return False
+            try:
+                if file_path:
+                    if file_path.endswith('.csv'):
+                        self.data.to_csv(file_path, index=False)
+                    elif file_path.endswith('.xlsx'):
+                        self.data.to_excel(file_path, index=False)
+                    else:
+                        return False
+                return True
+            except Exception as e:
+                print(f"Export error: {e}")
+                return False
+    
+    def cleanup(self):
+        """Cleanup resources before deletion"""
+        # Cancel any ongoing operations
+        if self._worker:
+            self._worker.cancel()
+        
+        # Wait for thread to finish
+        if self._thread and self._thread.isRunning():
+            self._thread.quit()
+            self._thread.wait(5000)  # Wait max 5 seconds
+
 # class EpdModel(BaseModel):
 #     """Model for managing EPD (Electronic Parts Data) analysis data"""
 
