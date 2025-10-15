@@ -144,7 +144,7 @@ class IdentifyBestEpdView(BaseTabView, TableContextMenuMixin):
         self.field_combo = QComboBox()
         self.field_combo.addItems(["AWG", "Cable", "Description", "EPD"])
         self.field_combo.setMinimumWidth(100)
-        
+
         # Connect field change to update default operator
         self.field_combo.currentTextChanged.connect(self._on_field_changed)
 
@@ -153,7 +153,7 @@ class IdentifyBestEpdView(BaseTabView, TableContextMenuMixin):
         self.operator_combo = QComboBox()
         self.operator_combo.addItems(get_all_operators())
         self.operator_combo.setMinimumWidth(120)
-        
+
         # Set initial default operator based on first field
         self._set_default_operator_for_field(self.field_combo.currentText())
 
@@ -472,7 +472,7 @@ class IdentifyBestEpdView(BaseTabView, TableContextMenuMixin):
         """Set the default operator based on the field type using config"""
         # Get default operator from config
         default_operator = FIELD_OPERATOR_DEFAULTS.get(field_name)
-        
+
         if default_operator:
             # Find and set the operator
             index = self.operator_combo.findText(default_operator)

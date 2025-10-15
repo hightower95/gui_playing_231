@@ -10,20 +10,20 @@ import time
 
 class EpdDataWorker(QObject):
     """Worker class for loading EPD data in a separate thread"""
-    
+
     # Signals to communicate with main thread
     progress = Signal(int, str)  # progress_percent, status_message
     finished = Signal(object)  # loaded dataframe
     error = Signal(str)  # error_message
-    
+
     def __init__(self):
         super().__init__()
         self._is_cancelled = False
-    
+
     def cancel(self):
         """Cancel the loading operation"""
         self._is_cancelled = True
-    
+
     def run(self):
         """Execute the data loading in background thread"""
         try:
@@ -32,31 +32,31 @@ class EpdDataWorker(QObject):
                 return
             self.progress.emit(20, "Connecting to EPD database...")
             time.sleep(0.3)  # Simulate network delay
-            
+
             # Step 2: Query data
             if self._is_cancelled:
                 return
             self.progress.emit(50, "Querying EPD records...")
             time.sleep(0.4)  # Simulate query time
-            
+
             # Step 3: Process data
             if self._is_cancelled:
                 return
             self.progress.emit(75, "Processing EPD data...")
-            
+
             # Load the actual data
             data = self._load_sample_data()
             time.sleep(0.2)  # Simulate processing time
-            
+
             # Complete
             if self._is_cancelled:
                 return
             self.progress.emit(100, "EPD data loaded successfully")
             self.finished.emit(data)
-            
+
         except Exception as e:
             self.error.emit(f"Data loading failed: {str(e)}")
-    
+
     def _load_sample_data(self) -> pd.DataFrame:
         """Load sample EPD data (private method)"""
         # In real life, this would load from Excel or a database
@@ -87,10 +87,10 @@ class EpdModel(BaseModel):
         super().__init__(context)
         self.data = None
         self.is_loading = False
-        
+
         # Thread-safe data access
         self._data_mutex = QMutex()
-        
+
         # Worker thread components
         self._worker = None
         self._thread = None
@@ -112,19 +112,19 @@ class EpdModel(BaseModel):
         # Create worker and thread
         self._worker = EpdDataWorker()
         self._thread = QThread()
-        
+
         # Move worker to thread
         self._worker.moveToThread(self._thread)
-        
+
         # Connect signals
         self._worker.progress.connect(self._on_loading_progress)
         self._worker.finished.connect(self._on_loading_finished)
         self._worker.error.connect(self._on_loading_error)
-        
+
         # Connect thread lifecycle
         self._thread.started.connect(self._worker.run)
         self._thread.finished.connect(self._thread.deleteLater)
-        
+
         # Start the thread
         self._thread.start()
 
@@ -137,16 +137,16 @@ class EpdModel(BaseModel):
         # Thread-safe data assignment
         with QMutexLocker(self._data_mutex):
             self.data = data
-        
+
         self.is_loading = False
-        
+
         # Emit data_loaded signal from BaseModel
         self.data_loaded.emit(self.data)
-        
+
         # Update internal data storage
         self.set_data('epd_records', self.data.to_dict('records'))
         self.set_data('record_count', len(self.data))
-        
+
         # Cleanup thread
         self._cleanup_thread()
 
@@ -155,7 +155,7 @@ class EpdModel(BaseModel):
         self.is_loading = False
         self.loading_failed.emit(error_message)
         print(f"EPD Model loading error: {error_message}")
-        
+
         # Cleanup thread
         self._cleanup_thread()
 
@@ -164,7 +164,7 @@ class EpdModel(BaseModel):
         if self._thread and self._thread.isRunning():
             self._thread.quit()
             self._thread.wait()
-        
+
         self._thread = None
         self._worker = None
 
@@ -253,11 +253,11 @@ class EpdModel(BaseModel):
         # Cancel any ongoing load
         if self._worker:
             self._worker.cancel()
-        
+
         # Clear existing data
         with QMutexLocker(self._data_mutex):
             self.data = None
-        
+
         # Reload
         self.load_async()
 
@@ -279,13 +279,13 @@ class EpdModel(BaseModel):
             except Exception as e:
                 print(f"Export error: {e}")
                 return False
-    
+
     def cleanup(self):
         """Cleanup resources before deletion"""
         # Cancel any ongoing operations
         if self._worker:
             self._worker.cancel()
-        
+
         # Wait for thread to finish
         if self._thread and self._thread.isRunning():
             self._thread.quit()

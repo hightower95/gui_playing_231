@@ -167,10 +167,10 @@ class SearchEpdPresenter(QObject):
         """Apply default column visibility settings from config"""
         if self.table_model is None:
             return
-        
+
         # Get all columns from the dataframe
         all_columns = self.table_model._data.columns.tolist()
-        
+
         # Hide columns that are not in DEFAULT_VISIBLE_COLUMNS
         for col_index, col_name in enumerate(all_columns):
             if col_name not in DEFAULT_VISIBLE_COLUMNS:
