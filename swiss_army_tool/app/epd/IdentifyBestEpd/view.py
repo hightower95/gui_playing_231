@@ -3,6 +3,7 @@ from PySide6.QtWidgets import (QWidget, QLineEdit, QHBoxLayout, QPushButton, QLa
                                QApplication, QComboBox, QSpacerItem, QFrame, QFormLayout)
 from PySide6.QtCore import Signal, Qt
 from app.ui.base_sub_tab_view import BaseTabView
+from app.ui.table_context_menu_mixin import TableContextMenuMixin
 from app.core.config import UI_COLORS, UI_STYLES
 
 
@@ -103,7 +104,7 @@ class FilterWidget(QWidget):
         }
 
 
-class IdentifyBestEpdView(BaseTabView):
+class IdentifyBestEpdView(BaseTabView, TableContextMenuMixin):
     filter_added = Signal(str, str, str)  # field, operator, value
     filter_removed = Signal(object)  # filter_data
     apply_filters = Signal()
@@ -233,6 +234,9 @@ class IdentifyBestEpdView(BaseTabView):
         # Create table with custom styling
         self.table = QTableView()
         self._style_table()
+
+        # Enable context menu for right-click using mixin
+        self.setup_table_context_menu(self.table)
 
         # Create record count label for bottom of results
         self.record_count_label = QLabel("No filters applied")

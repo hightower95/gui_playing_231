@@ -3,10 +3,11 @@ from PySide6.QtWidgets import (QWidget, QLineEdit, QHBoxLayout, QPushButton, QLa
                                QApplication)
 from PySide6.QtCore import Signal
 from app.ui.base_sub_tab_view import BaseTabView
+from app.ui.table_context_menu_mixin import TableContextMenuMixin
 from app.core.config import UI_COLORS
 
 
-class SearchEpdView(BaseTabView):
+class SearchEpdView(BaseTabView, TableContextMenuMixin):
     searchEPDTriggered = Signal(str)
     rowSelected = Signal(dict)
     refresh_requested = Signal()
@@ -88,6 +89,9 @@ class SearchEpdView(BaseTabView):
         # Create table with custom styling
         self.table = QTableView()
         self._style_table()
+        
+        # Enable context menu for right-click using mixin
+        self.setup_table_context_menu(self.table)
 
         # Create record count label for bottom of results
         self.record_count_label = QLabel("Ready")
