@@ -15,13 +15,16 @@ UI_COLORS = {
     "section_green_border": "#2d7a47",
 
     # Text colors
-    "section_text": "white",
+    "highlight_text": "#d3d3d3",
+    "section_text": "#6c757d",
     "section_text_shadow": "#000000",
 
     # Background colors
     "window_background": "#f5f5f5",
     "panel_background": "#ffffff",
     "frame_border": "#d0d0d0",
+    "section_background": "#444444",
+    "section_label_background": "#121212",
 }
 
 # UI Styling

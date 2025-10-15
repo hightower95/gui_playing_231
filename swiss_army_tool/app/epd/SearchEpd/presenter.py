@@ -157,7 +157,7 @@ class SearchEpdPresenter(QObject):
             self.view.table.selectionModel().selectionChanged.connect(self.on_row_selected)
 
         # Update view statistics
-        self._update_view_statistics()    # --- Handle user search ---
+        # self._update_view_statistics()
 
     def on_search(self, text: str):
         """Handle search request"""
@@ -189,11 +189,11 @@ class SearchEpdPresenter(QObject):
 
         except Exception as e:
             print(f"Search error: {e}")
-            # --- Handle row selection ---
             self.view.show_error(f"Search failed: {str(e)}")
 
     def on_row_selected(self, selected, _):
         """Handle table row selection"""
+
         if self.df is None:
             return
 
@@ -203,6 +203,7 @@ class SearchEpdPresenter(QObject):
 
         try:
             row = indexes[0].row()
+            print("row selected")
             # Get the actual dataframe row through the proxy model
             source_row = self.proxy.mapToSource(indexes[0]).row()
             record = self.table_model.get_record(source_row)

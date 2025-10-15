@@ -26,25 +26,6 @@ class SearchEpdView(BaseTabView):
         self._setup_header()
         self._setup_results_area()
 
-        # Replace placeholder left pane with a QTableView
-
-        # self.set_results_widget(self.table)
-
-        # # Replace placeholder right panes with text boxes
-        # self.context_box = QTextEdit()
-        # self.context_box.setPlaceholderText("Context info will appear here")
-        # self.context_box.setReadOnly(True)
-        # self.set_context_widget(self.context_box)
-
-        # self.footer_box = QTextEdit()
-        # self.footer_box.setPlaceholderText("Footer info for selected EPD")
-        # self.footer_box.setReadOnly(True)
-        # self.set_right_footer_widget(self.footer_box)
-
-        # --- Connect UI signals ---
-        # self.search_button.clicked.connect(self._emit_search)
-        # self.search_input.returnPressed.connect(self._emit_search)
-
     def _setup_header(self):
         # Add search bar and button inside header_frame
         layout = QHBoxLayout(self.header_frame)
@@ -124,26 +105,12 @@ class SearchEpdView(BaseTabView):
         left_layout.addWidget(self.table, 1)
         left_layout.addWidget(self.record_count_label)  # Fixed size at bottom
 
-        self.results_box = self.left_layout
-
-        # Context text box
-        self.context_box = QTextEdit()
+        # Use the inherited context_box from BaseTabView (no need to create a new one)
         self.context_box.setPlaceholderText(
             "Select an EPD record to see details here")
-        self.context_box.setReadOnly(True)
 
-        # # Add to container
-        # context_layout.addWidget(context_header)
-        # context_layout.addWidget(self.context_box)
-
-        # Set the container as the context widget
-        # self.set_context_widget(context_container)
-
-        # Footer box setup
-        self.footer_box = QTextEdit()
-
+        # Use the inherited footer_box from BaseTabView (no need to create a new one)
         self.footer_box.setPlaceholderText("Footer info for selected EPD")
-        self.footer_box.setReadOnly(True)
 
     def _copy_context_to_clipboard(self):
         """Copy the context box content to clipboard"""
@@ -151,51 +118,9 @@ class SearchEpdView(BaseTabView):
         clipboard.setText(self.context_box.toPlainText())
 
     def _style_table(self):
-        """Apply custom styling to the table"""
-        # Import colors from config
-        from app.core.config import UI_COLORS
-
-        # Get a toned down version of the section highlight color
-        primary_color = UI_COLORS['section_highlight_primary']  # #4a90e2
-
-        # Create a lighter version for headers (increase lightness)
-        header_color = "#e8f1fa"  # Light blue, toned down from #4a90e2
-
-        self.table.setStyleSheet(f"""
-            QTableView {{
-                gridline-color: #ddd;
-                // background-color: white;
-                alternate-background-color: #f9f9f9;
-                selection-background-color: {primary_color};
-                // selection-color: white;
-            }}
-            QHeaderView::section {{
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 {header_color}, stop:1 #d4e6f7);
-                color: #2c5aa0;
-                font-weight: bold;
-                font-size: 11px;
-                padding: 6px;
-                border: 1px solid #c0d9f0;
-                border-bottom: 2px solid #a8cae8;
-            }}
-            QHeaderView::section:hover {{
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #f0f7ff, stop:1 {header_color});
-            }}
-        """)
-
-        # Set table properties for better appearance
-        self.table.setAlternatingRowColors(True)
-        self.table.setShowGrid(True)
-        self.table.horizontalHeader().setStretchLastSection(True)
-        self.table.verticalHeader().setVisible(False)  # Hide row numbers
-
-        # Make table fill the available width
-        self.table.setSizePolicy(
-            QSizePolicy().Policy.Expanding,
-            QSizePolicy().Policy.Expanding
-        )
+        """Apply custom styling to the table using shared EPD config"""
+        from app.epd.epd_config import apply_epd_table_styling
+        apply_epd_table_styling(self.table)
 
     def _emit_search(self):
         text = self.search_input.text().strip()
@@ -216,6 +141,7 @@ class SearchEpdView(BaseTabView):
         self.export_requested.emit("epd_export.csv")
 
     def display_context(self, context_text: str):
+        # print("reached")
         self.context_box.setPlainText(context_text)
 
     def display_footer(self, footer_text: str):

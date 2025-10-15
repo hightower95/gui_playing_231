@@ -85,7 +85,7 @@ class BaseTabView(QWidget):
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
                     stop:0 {UI_COLORS['section_highlight_primary']}, 
                     stop:1 {UI_COLORS['section_highlight_secondary']});
-                color: {UI_COLORS['section_text']};
+                color: {UI_COLORS['highlight_text']};
                 font-weight: {UI_STYLES['section_banner']['font_weight']};
                 font-size: {UI_STYLES['section_banner']['font_size']};
                 padding: {UI_STYLES['section_banner']['padding']};
@@ -98,6 +98,8 @@ class BaseTabView(QWidget):
         self.context_box = QTextEdit()
         self.context_box.setPlaceholderText("Context information...")
         self.context_box.setFrameShape(QFrame.StyledPanel)
+        self.context_box.setStyleSheet(
+            f"""background: {UI_COLORS['section_label_background']};""")
 
         context_layout.addWidget(context_label)
         context_layout.addWidget(self.context_box)
