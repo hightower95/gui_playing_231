@@ -1,0 +1,14 @@
+# Swiss Army Tool Requirements
+# GUI Framework
+PySide6>=6.5.0
+
+# Development dependencies (optional)
+# black>=23.0.0  # Code formatting
+# flake8>=6.0.0  # Linting
+# pytest>=7.0.0  # Testing
+
+# Additional dependencies for future features
+# pandas>=2.0.0  # Data manipulation
+# numpy>=1.24.0  # Numerical computing
+# openpyxl>=3.1.0  # Excel file support
+# xlsxwriter>=3.1.0  # Excel writing
