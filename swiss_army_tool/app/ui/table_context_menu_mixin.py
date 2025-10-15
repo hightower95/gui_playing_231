@@ -4,6 +4,7 @@ Mixin class for adding context menu functionality to table views
 from PySide6.QtWidgets import QMenu
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction
+from typing import List, Tuple, Callable, Optional
 
 
 class TableContextMenuMixin:
@@ -17,7 +18,7 @@ class TableContextMenuMixin:
                 self.setup_table_context_menu(self.table)
     """
 
-    def setup_table_context_menu(self, table_view):
+    def setup_table_context_menu(self, table_view, context_actions: Optional[List[Tuple[str, Callable]]] = None):
         """
         Enable context menu for a table view
 
@@ -27,6 +28,7 @@ class TableContextMenuMixin:
         self.table = table_view
         self.table.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.table.customContextMenuRequested.connect(self._show_context_menu)
+        self.context_actions = context_actions
 
     def _show_context_menu(self, position):
         """Show context menu on right-click in the table"""
@@ -47,6 +49,15 @@ class TableContextMenuMixin:
         open_pdf_action.triggered.connect(
             lambda: self._on_open_pdf(index, row, column))
         menu.addAction(open_pdf_action)
+
+        # Add custom context actions
+        if self.context_actions:
+            menu.addSeparator()
+            for action_name, action_callback in self.context_actions:
+                action = QAction(action_name, self)
+                action.triggered.connect(
+                    lambda _, cb=action_callback: cb(index, row, column))
+                menu.addAction(action)
 
         menu.addSeparator()
 

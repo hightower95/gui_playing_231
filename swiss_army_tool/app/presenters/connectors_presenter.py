@@ -1,25 +1,32 @@
 """
-Connectors Presenter - Business logic for connector management
+Connectors Presenter - Main coordinator for connector module (updated to new structure)
 """
-# from ..core.base_presenter import BasePresenter
-# from ..core.app_context import AppContext
-# from ..models.connectors_model import ConnectorsModel
-
-from app.tabs.connectors_view import ConnectorsView
-from app.models.connectors_model import ConnectorsModel
+from app.connector.connector_model import ConnectorModel
+from app.connector.connector_tab import ConnectorModuleView
 from app.core.base_presenter import BasePresenter
 
 
 class ConnectorsPresenter(BasePresenter):
-    def __init__(self, context):
-        self.model = ConnectorsModel(context)
-        self.view = ConnectorsView()
-        super().__init__(context, self.view, self.model, title="Search Connectors")
-        self.bind()
+    """Presenter coordinating the connector module"""
 
-    def bind(self):
-        # connect signals later
-        pass
+    def __init__(self, context):
+        # Create model
+        self.model = ConnectorModel(context)
+
+        # Create view (which contains sub-tabs)
+        self.view = ConnectorModuleView(context, self.model)
+
+        # Initialize base presenter
+        super().__init__(context, self.view, self.model, title="Connectors")
+
+        # Auto-load data on startup
+        self._auto_load_data()
+
+    def _auto_load_data(self):
+        """Auto-load connector data with slight delay"""
+        from PySide6.QtCore import QTimer
+        QTimer.singleShot(150, self.view.start_loading)
+
 
 # class ConnectorsPresenter(BasePresenter):
 #     """Presenter for connector management functionality"""
