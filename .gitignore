@@ -37,3 +37,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+# Tool configuration (contains user-specific paths and settings)
+.tool_config/
+document_scanner_cache/
+e3_caches/

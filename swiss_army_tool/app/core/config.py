@@ -91,3 +91,12 @@ APP_SETTINGS = {
     "default_window_size": (1200, 800),
     "show_maximized": True,
 }
+
+# Configuration File Names
+CONFIG_FILES = {
+    "document_scanner": "document_scanner.json",
+    "app_settings": "app_settings.json",
+}
+
+# Configuration Directory
+CONFIG_DIR = ".tool_config"

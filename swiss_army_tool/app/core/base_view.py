@@ -3,8 +3,8 @@ Base View class for all UI components
 """
 from abc import ABC, abstractmethod
 from PySide6.QtWidgets import QWidget
-from PySide6.QtCore import Signal
-from .app_context import AppContext
+# from PySide6.QtCore import Signal
+# from .app_context import AppContext
 
 
 class BaseView(QWidget):
