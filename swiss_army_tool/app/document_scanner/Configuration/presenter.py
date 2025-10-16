@@ -40,7 +40,7 @@ class ConfigurationPresenter(QObject):
 
         # Add to model (saves and loads in background)
         self.model.add_document(config)
-        
+
         print(f"✓ Document queued for loading")
         print(f"{'='*60}\n")
 
@@ -67,18 +67,20 @@ class ConfigurationPresenter(QObject):
         """
         # TODO: Implement edit functionality
         print(f"Edit document at row {row}: {config}")
-    
+
     def on_documents_changed(self, searchable_documents: list):
         """Called when model finishes loading documents - update view
-        
+
         Args:
             searchable_documents: List of SearchableDocument objects
         """
-        print(f"CONFIG: Updating view with {len(searchable_documents)} document(s)")
-        
+        print(
+            f"CONFIG: Updating view with {len(searchable_documents)} document(s)")
+
         # Clear view
-        self.view.documents_model.removeRows(0, self.view.documents_model.rowCount())
-        
+        self.view.documents_model.removeRows(
+            0, self.view.documents_model.rowCount())
+
         # Populate view with loaded documents
         configs = self.model.get_document_configs()
         for config in configs:

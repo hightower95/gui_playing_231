@@ -25,7 +25,8 @@ class MainWindow(QMainWindow):
         # Register context providers with document scanner
         # This allows the connector tab to provide additional context to search results
         connector_context = ConnectorContextProvider(self.connectors.model)
-        self.document_scanner.search_presenter.register_context_provider(connector_context)
+        self.document_scanner.search_presenter.register_context_provider(
+            connector_context)
 
         self.tabs.addTab(self.epd.view, self.epd.title)
         self.tabs.addTab(self.connectors.view, self.connectors.title)

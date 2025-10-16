@@ -20,8 +20,9 @@ class DocumentScannerModuleView(QWidget):
 
         # Create sub-presenters (pass model to them)
         self.search_presenter = SearchPresenter(context, self.model)
-        self.configuration_presenter = ConfigurationPresenter(context, self.model)
-        self.history_presenter = HistoryPresenter(context)
+        self.configuration_presenter = ConfigurationPresenter(
+            context, self.model)
+        self.history_presenter = HistoryPresenter(context, self.model)
 
         # Connect model to presenters
         self.model.documents_changed.connect(
@@ -31,8 +32,13 @@ class DocumentScannerModuleView(QWidget):
             self.configuration_presenter.on_documents_changed
         )
 
+        # Connect history to search
+        self.history_presenter.search_requested.connect(
+            self.on_history_search_requested
+        )
+
         self._setup_ui()
-        
+
         # Load saved configuration on startup
         self.start_loading()
 
@@ -54,18 +60,27 @@ class DocumentScannerModuleView(QWidget):
     def start_loading(self):
         """Start loading data - model loads documents in background thread"""
         print("Document Scanner: Starting...")
-        
+
         # Load documents from config file (happens in background thread)
         self.model.load_from_config()
-        
-        # Initialize presenters
-        current_index = self.tabs.currentIndex()
-        if current_index == 0:  # Search tab
-            self.search_presenter.start_loading()
-        elif current_index == 1:  # Configuration tab
-            self.configuration_presenter.start_loading()
-        elif current_index == 2:  # History tab
-            self.history_presenter.start_loading()
+
+        # Initialize all presenters
+        self.search_presenter.start_loading()
+        self.configuration_presenter.start_loading()
+        self.history_presenter.start_loading()
+
+    def on_history_search_requested(self, search_term: str):
+        """Handle search request from history tab
+
+        Args:
+            search_term: The search term to search for
+        """
+        # Switch to search tab
+        self.tabs.setCurrentIndex(0)
+
+        # Populate search input and trigger search
+        self.search_presenter.view.search_input.setText(search_term)
+        self.search_presenter.on_search(search_term)
 
     def get_current_presenter(self):
         """Get the presenter for the currently active tab"""

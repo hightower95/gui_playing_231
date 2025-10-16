@@ -113,7 +113,8 @@ class AddDocumentDialog(QDialog):
         # Track completion state of each step
         self.step_completed = {
             1: False,  # File selected
-            2: False,  # Document structure configured (header + search columns)
+            # Document structure configured (header + search columns)
+            2: False,
             3: False,  # Return columns selected
         }
 
@@ -317,7 +318,7 @@ class AddDocumentDialog(QDialog):
         # Special handling: Load preview when moving from Step 1 to Step 2
         if step_num == 1 and self.file_path:
             self._reload_preview()
-        
+
         # Special handling: Populate return columns list when moving from Step 2 to Step 3
         if step_num == 2:
             self._populate_return_columns()
@@ -439,20 +440,20 @@ class AddDocumentDialog(QDialog):
         """Check if step 2 can be completed"""
         search_cols = self.search_columns_list.selectedItems()
         self.step2_ok_btn.setEnabled(len(search_cols) > 0)
-    
+
     def _populate_return_columns(self):
         """Populate return columns list with all available columns"""
         self.return_columns_list.clear()
-        
+
         # Get all columns from the search columns list
         for i in range(self.search_columns_list.count()):
             col_name = self.search_columns_list.item(i).text()
             item = QListWidgetItem(col_name)
             self.return_columns_list.addItem(item)
-        
+
         # Auto-select all by default
         self.return_columns_list.selectAll()
-    
+
     def _check_step3_complete(self):
         """Check if step 3 can be completed"""
         return_cols = self.return_columns_list.selectedItems()
@@ -466,7 +467,7 @@ class AddDocumentDialog(QDialog):
 
         search_cols = [item.text()
                        for item in self.search_columns_list.selectedItems()]
-        
+
         return_cols = [item.text()
                        for item in self.return_columns_list.selectedItems()]
 
@@ -474,7 +475,7 @@ class AddDocumentDialog(QDialog):
             QMessageBox.warning(
                 self, "Error", "Please select at least one search column")
             return
-        
+
         if not return_cols:
             QMessageBox.warning(
                 self, "Error", "Please select at least one return column")

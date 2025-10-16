@@ -1,8 +1,8 @@
 """Quick test to verify config paths"""
+from app.core.config_manager import ConfigManager, DocumentScannerConfig
 import sys
 sys.path.insert(0, 'swiss_army_tool')
 
-from app.core.config_manager import ConfigManager, DocumentScannerConfig
 
 print("="*60)
 print("CONFIG PATH TEST")
@@ -10,8 +10,10 @@ print("="*60)
 print(f"CONFIG_DIR: {ConfigManager.CONFIG_DIR}")
 print(f"CONFIG_DIR (absolute): {ConfigManager.CONFIG_DIR.absolute()}")
 print(f"DOCUMENT_SCANNER_CONFIG: {ConfigManager.DOCUMENT_SCANNER_CONFIG}")
-print(f"Full path: {ConfigManager.get_config_path(ConfigManager.DOCUMENT_SCANNER_CONFIG).absolute()}")
-print(f"File exists: {ConfigManager.config_exists(ConfigManager.DOCUMENT_SCANNER_CONFIG)}")
+print(
+    f"Full path: {ConfigManager.get_config_path(ConfigManager.DOCUMENT_SCANNER_CONFIG).absolute()}")
+print(
+    f"File exists: {ConfigManager.config_exists(ConfigManager.DOCUMENT_SCANNER_CONFIG)}")
 
 print("\n" + "="*60)
 print("TESTING SAVE/LOAD")

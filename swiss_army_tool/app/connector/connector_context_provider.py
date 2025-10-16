@@ -43,26 +43,28 @@ class ConnectorContextProvider(ContextProvider):
             List of Context objects
         """
         contexts = []
-        context = Context(
-            term="Test",
-            context_owner="Connector",
-            data_context={"Test": "Hello World"}
-        )
-        contexts.append(context)
 
-        # Example: Look for part numbers in the result data
+        # Look for part numbers in the result data
+        # Check each value in the result to see if it's a connector part number
         for column, value in result.matched_row_data.items():
-            # if column.lower() in ['part number', 'part_number', 'partnumber', 'pn']:
-            # Look up part number in connector database
+            # Skip empty values
+            if not value or str(value).strip() == "":
+                continue
+
+            # Look up this value in connector database
             connector_info = self._lookup_connector(str(value).strip())
 
             if connector_info:
+                print(
+                    f"  ✓ Found connector match for '{value}' in column '{column}'")
                 context = Context(
                     term=str(value),
                     context_owner="Connector",
                     data_context=connector_info
                 )
                 contexts.append(context)
+                # Only add one context per result to avoid duplicates
+                break
 
         return contexts
 
@@ -87,12 +89,18 @@ class ConnectorContextProvider(ContextProvider):
         # Search for part number (try exact match first, then partial)
         part_number_clean = str(part_number).strip()
 
-        # Try exact match on Part Number or Part Code
+        # Try exact match on Part Number, Part Code, or Minified Part Code
         for connector in connectors:
-            if (connector.get('Part Number', '').strip() == part_number_clean or
-                connector.get('Part Code', '').strip() == part_number_clean or
-                    connector.get('Minified Part Code', '').strip() == part_number_clean):
+            part_num = connector.get('Part Number', '').strip()
+            part_code = connector.get('Part Code', '').strip()
+            mini_code = connector.get('Minified Part Code', '').strip()
 
+            # Case-insensitive exact match
+            if (part_num.lower() == part_number_clean.lower() or
+                part_code.lower() == part_number_clean.lower() or
+                    mini_code.lower() == part_number_clean.lower()):
+
+                print(f"    → Exact match found: {part_num}")
                 # Return relevant connector details
                 return {
                     'Part Number': connector.get('Part Number', 'N/A'),
@@ -106,31 +114,9 @@ class ConnectorContextProvider(ContextProvider):
                     'Status': connector.get('Database Status', 'N/A')
                 }
 
-        # Try partial match (contains)
-        part_number_lower = part_number_clean.lower()
-        for connector in connectors:
-            part_num = connector.get('Part Number', '').lower()
-            part_code = connector.get('Part Code', '').lower()
-            mini_code = connector.get('Minified Part Code', '').lower()
-
-            if (part_number_lower in part_num or
-                part_number_lower in part_code or
-                    part_number_lower in mini_code):
-
-                # Return relevant connector details
-                return {
-                    'Part Number': connector.get('Part Number', 'N/A'),
-                    'Family': connector.get('Family', 'N/A'),
-                    'Shell Type': connector.get('Shell Type', 'N/A'),
-                    'Shell Size': connector.get('Shell Size', 'N/A'),
-                    'Insert Arrangement': connector.get('Insert Arrangement', 'N/A'),
-                    'Material': connector.get('Material', 'N/A'),
-                    'Socket Type': connector.get('Socket Type', 'N/A'),
-                    'Keying': connector.get('Keying', 'N/A'),
-                    'Status': connector.get('Database Status', 'N/A')
-                }
-
-        # Not found
+        # No exact match found - don't use partial matching as it's too unreliable
+        # Partial matching would return wrong connectors (e.g., "D38999" matches all D38999 connectors)
+        print(f"    → No exact match found for '{part_number_clean}'")
         return None
 
     def is_enabled(self) -> bool:
