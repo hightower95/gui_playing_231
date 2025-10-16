@@ -241,23 +241,19 @@ class IdentifyBestEpdView(BaseTabView, TableContextMenuMixin):
         self._style_table()
 
         # Enable context menu for right-click using mixin
-        self.setup_table_context_menu(self.table)
+        self.setup_table_context_menu(
+            self.table,
+            actions=[
+                ("Open PDF", self._on_open_pdf)
+            ],
+            include_copy_row=True
+        )
 
-        # Create record count label for bottom of results
-        self.record_count_label = QLabel("No filters applied")
-        self.record_count_label.setStyleSheet(f"""
-            QLabel {{
-                color: gray;
-                font-size: 10px;
-                padding: 5px;
-                border-top: 1px solid {UI_COLORS['dark_border']};
-            }}
-        """)
-        self.record_count_label.setFixedHeight(25)
-
-        # Add widgets to layout
+        # Add table to layout - the record_count_label is inherited from BaseTabView
         left_layout.addWidget(self.table, 1)
-        left_layout.addWidget(self.record_count_label)
+
+        # Set initial text for inherited record_count_label
+        self.record_count_label.setText("No filters applied")
 
         # Setup filters display - use inherited context_box from BaseTabView
         self._setup_filters_display()
@@ -561,6 +557,33 @@ class IdentifyBestEpdView(BaseTabView, TableContextMenuMixin):
     def display_footer(self, footer_text: str):
         """Display footer information"""
         self.footer_box.setPlainText(footer_text)
+
+    def _on_open_pdf(self, index, row, column):
+        """Handle Open PDF action from context menu"""
+        model = self.table.model()
+
+        if model:
+            # Get the part number or relevant identifier from the row
+            part_number = None
+
+            # Try to find a part number column
+            for col_idx in range(model.columnCount()):
+                header_data = model.headerData(
+                    col_idx, Qt.Orientation.Horizontal)
+                if header_data and 'Part' in str(header_data):
+                    part_number = model.data(model.index(row, col_idx))
+                    break
+
+            if not part_number:
+                # Fallback to first column
+                part_number = model.data(model.index(row, 0))
+
+            # Update footer with status
+            self.footer_box.setPlainText(
+                f"Opening PDF for: {part_number} - Not yet implemented")
+            print(f"Open PDF requested for row {row}: {part_number}")
+        else:
+            self.footer_box.setPlainText("Cannot open PDF - no data available")
 
     def show_loading(self, show: bool = True):
         """Show/hide loading state"""

@@ -1,7 +1,7 @@
 """
 Mixin class for adding context menu functionality to table views
 """
-from PySide6.QtWidgets import QMenu
+from PySide6.QtWidgets import QMenu, QApplication
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction
 from typing import List, Tuple, Callable, Optional
@@ -15,20 +15,32 @@ class TableContextMenuMixin:
         class MyView(BaseTabView, TableContextMenuMixin):
             def __init__(self):
                 super().__init__()
-                self.setup_table_context_menu(self.table)
+                self.setup_table_context_menu(
+                    self.table,
+                    actions=[("Action 1", self._handler1), ("Action 2", self._handler2)],
+                    include_copy_row=True
+                )
     """
 
-    def setup_table_context_menu(self, table_view, context_actions: Optional[List[Tuple[str, Callable]]] = None):
+    def setup_table_context_menu(
+        self,
+        table_view,
+        actions: Optional[List[Tuple[str, Callable]]] = None,
+        include_copy_row: bool = True
+    ):
         """
         Enable context menu for a table view
 
         Args:
             table_view: QTableView instance to add context menu to
+            actions: List of (action_name, callback) tuples for custom menu items
+            include_copy_row: Whether to include the default "Copy Row" action
         """
         self.table = table_view
         self.table.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.table.customContextMenuRequested.connect(self._show_context_menu)
-        self.context_actions = context_actions
+        self.context_actions = actions or []
+        self.include_copy_row = include_copy_row
 
     def _show_context_menu(self, position):
         """Show context menu on right-click in the table"""
@@ -44,45 +56,30 @@ class TableContextMenuMixin:
         # Create context menu
         menu = QMenu(self)
 
-        # Add menu actions
-        open_pdf_action = QAction("Open PDF", self)
-        open_pdf_action.triggered.connect(
-            lambda: self._on_open_pdf(index, row, column))
-        menu.addAction(open_pdf_action)
+        # Add default "Copy Row" action if enabled
+        if self.include_copy_row:
+            copy_part_action = QAction("Copy Row", self)
+            copy_part_action.triggered.connect(
+                lambda: self._on_copy_row(index, row, column))
+            menu.addAction(copy_part_action)
+
+            # Add separator if there are custom actions
+            if self.context_actions:
+                menu.addSeparator()
 
         # Add custom context actions
-        if self.context_actions:
-            menu.addSeparator()
-            for action_name, action_callback in self.context_actions:
-                action = QAction(action_name, self)
-                action.triggered.connect(
-                    lambda _, cb=action_callback: cb(index, row, column))
-                menu.addAction(action)
-
-        menu.addSeparator()
-
-        # Add placeholder TBD actions
-        tbd_action1 = QAction("TBD Action 1", self)
-        tbd_action1.triggered.connect(
-            lambda: self._on_tbd_action(index, row, column, "Action 1"))
-        menu.addAction(tbd_action1)
-
-        tbd_action2 = QAction("TBD Action 2", self)
-        tbd_action2.triggered.connect(
-            lambda: self._on_tbd_action(index, row, column, "Action 2"))
-        menu.addAction(tbd_action2)
-
-        tbd_action3 = QAction("TBD Action 3", self)
-        tbd_action3.triggered.connect(
-            lambda: self._on_tbd_action(index, row, column, "Action 3"))
-        menu.addAction(tbd_action3)
+        for action_name, action_callback in self.context_actions:
+            action = QAction(action_name, self)
+            action.triggered.connect(
+                lambda _, cb=action_callback: cb(index, row, column))
+            menu.addAction(action)
 
         # Show menu at cursor position
         menu.exec(self.table.viewport().mapToGlobal(position))
 
-    def _on_open_pdf(self, index, row, column):
+    def _on_copy_row(self, index, row, column):
         """
-        Handle Open PDF action - override in subclass if needed
+        Handle Copy Row action - copies entire row as tab-separated values for Excel
 
         Args:
             index: QModelIndex of the selected cell
@@ -91,46 +88,27 @@ class TableContextMenuMixin:
         """
         model = self.table.model()
 
-        # Get column name if header is available
-        column_name = "Unknown"
-        if model and hasattr(model, 'headerData'):
-            from PySide6.QtCore import Qt
-            header_data = model.headerData(column, Qt.Orientation.Horizontal)
-            if header_data:
-                column_name = header_data
+        if not model:
+            print(f"No model available for row {row}")
+            return
 
-        # Get status label if it exists
-        if hasattr(self, 'status_label'):
-            self.status_label.setText(
-                f"Open PDF for row {row}, column '{column_name}' - Not yet implemented")
+        # Collect all column values for this row
+        row_data = []
+        for col_idx in range(model.columnCount()):
+            cell_data = model.data(model.index(row, col_idx))
+            # Convert None to empty string, otherwise use string representation
+            row_data.append(str(cell_data) if cell_data is not None else "")
 
-        print(
-            f"Open PDF requested for row: {row}, column: {column} ({column_name})")
+        # Join with tabs for Excel compatibility
+        row_text = "\t".join(row_data)
 
-    def _on_tbd_action(self, index, row, column, action_name):
-        """
-        Handle TBD placeholder actions - override in subclass if needed
+        # Copy to clipboard
+        clipboard = QApplication.clipboard()
+        clipboard.setText(row_text)
 
-        Args:
-            index: QModelIndex of the selected cell
-            row: Row number of the selected cell
-            column: Column number of the selected cell
-            action_name: Name of the action being performed
-        """
-        model = self.table.model()
+        # Update status if available
+        if hasattr(self, 'footer_box'):
+            self.footer_box.setText(
+                f"Copied row {row + 1} to clipboard ({len(row_data)} columns)")
 
-        # Get column name if header is available
-        column_name = "Unknown"
-        if model and hasattr(model, 'headerData'):
-            from PySide6.QtCore import Qt
-            header_data = model.headerData(column, Qt.Orientation.Horizontal)
-            if header_data:
-                column_name = header_data
-
-        # Get status label if it exists
-        if hasattr(self, 'status_label'):
-            self.status_label.setText(
-                f"{action_name} for row {row}, column '{column_name}' - Not yet implemented")
-
-        print(
-            f"{action_name} requested for row: {row}, column: {column} ({column_name})")
+        print(f"Copied row {row} to clipboard: {len(row_data)} columns")

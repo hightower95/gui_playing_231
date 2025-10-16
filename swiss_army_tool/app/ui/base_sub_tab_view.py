@@ -65,7 +65,21 @@ class BaseTabView(QWidget):
         left_layout.addWidget(output_label)
         self.left_content_frame = QFrame()
         self.left_content_frame.setFrameShape(QFrame.StyledPanel)
-        self.left_layout.addWidget(self.left_content_frame)
+        self.left_layout.addWidget(
+            self.left_content_frame, 1)  # Stretch factor 1
+
+        # Add record count label at bottom of left pane
+        self.record_count_label = QLabel("Ready")
+        self.record_count_label.setStyleSheet(f"""
+            QLabel {{
+                color: gray;
+                font-size: 10px;
+                padding: 5px;
+                border-top: 1px solid {UI_COLORS['dark_border']};
+            }}
+        """)
+        self.record_count_label.setFixedHeight(25)
+        left_layout.addWidget(self.record_count_label)
         # self.left_layout.setStretchFactor(self.left_content_frame, 1)
         # left_layout.addWidget(self.results_table)
 

@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import (QWidget, QLineEdit, QHBoxLayout, QPushButton, QLabel,
                                QTextEdit, QTableView, QVBoxLayout, QProgressBar, QSizePolicy,
                                QApplication)
-from PySide6.QtCore import Signal
+from PySide6.QtCore import Signal, Qt
 from app.ui.base_sub_tab_view import BaseTabView
 from app.ui.table_context_menu_mixin import TableContextMenuMixin
 from app.core.config import UI_COLORS
@@ -91,24 +91,17 @@ class SearchEpdView(BaseTabView, TableContextMenuMixin):
         self._style_table()
 
         # Enable context menu for right-click using mixin
-        self.setup_table_context_menu(self.table)
+        self.setup_table_context_menu(
+            self.table,
+            actions=[
+                ("Open PDF", self._on_open_pdf)
+            ],
+            include_copy_row=True
+        )
 
-        # Create record count label for bottom of results
-        self.record_count_label = QLabel("Ready")
-        self.record_count_label.setStyleSheet(f"""
-            QLabel {{
-                color: gray;
-                font-size: 10px;
-                padding: 5px;
-                border-top: 1px solid {UI_COLORS['dark_border']};
-            }}
-        """)
-        self.record_count_label.setFixedHeight(25)
-
-        # Add widgets to layout - table takes most space, count label at bottom
+        # Add table to layout - the record_count_label is inherited from BaseTabView
         # Stretch factor 1 = takes available space
         left_layout.addWidget(self.table, 1)
-        left_layout.addWidget(self.record_count_label)  # Fixed size at bottom
 
         # Use the inherited context_box from BaseTabView (no need to create a new one)
         self.context_box.setPlaceholderText(
@@ -192,6 +185,33 @@ class SearchEpdView(BaseTabView, TableContextMenuMixin):
         """Reset status to normal"""
         self.status_label.setText("Ready")
         self.status_label.setStyleSheet("color: gray; font-size: 10px;")
+
+    def _on_open_pdf(self, index, row, column):
+        """Handle Open PDF action from context menu"""
+        model = self.table.model()
+
+        if model:
+            # Get the part number or relevant identifier from the row
+            part_number = None
+
+            # Try to find a part number column
+            for col_idx in range(model.columnCount()):
+                header_data = model.headerData(
+                    col_idx, Qt.Orientation.Horizontal)
+                if header_data and 'Part' in str(header_data):
+                    part_number = model.data(model.index(row, col_idx))
+                    break
+
+            if not part_number:
+                # Fallback to first column
+                part_number = model.data(model.index(row, 0))
+
+            # Update status with message
+            self.status_label.setText(
+                f"Opening PDF for: {part_number} - Not yet implemented")
+            print(f"Open PDF requested for row {row}: {part_number}")
+        else:
+            self.status_label.setText("Cannot open PDF - no data available")
 
     def update_record_count(self, count: int, total: int = None):
         """Update the record count display"""

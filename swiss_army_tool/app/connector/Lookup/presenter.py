@@ -132,9 +132,8 @@ class LookupConnectorPresenter(QObject):
             return pd.DataFrame()
 
         connectors = data['connectors']
-        # Convert dict of connectors to list of records
-        records = list(connectors.values())
-        return pd.DataFrame(records)
+        # Connectors is now a list of dictionaries
+        return pd.DataFrame(connectors)
 
     def start_loading(self):
         """Start loading connector data"""
@@ -163,17 +162,38 @@ class LookupConnectorPresenter(QObject):
         # Apply filters to dataframe
         filtered_df = self.df.copy()
 
-        if filters.get('type'):
-            filtered_df = filtered_df[filtered_df['type'].isin(
-                filters['type'])]
+        # Text search filter
+        if filters.get('search_text'):
+            search_text = filters['search_text'].lower()
+            # Search across all columns
+            mask = filtered_df.apply(lambda row: row.astype(
+                str).str.lower().str.contains(search_text).any(), axis=1)
+            filtered_df = filtered_df[mask]
 
-        if filters.get('gender'):
-            filtered_df = filtered_df[filtered_df['gender'].isin(
-                filters['gender'])]
+        # Family filter
+        if filters.get('family') and filters['family'] != 'Any':
+            filtered_df = filtered_df[filtered_df['Family']
+                                      == filters['family']]
 
-        if filters.get('manufacturer'):
-            filtered_df = filtered_df[filtered_df['manufacturer'].isin(
-                filters['manufacturer'])]
+        # Shell Type filter
+        if filters.get('shell_type') and filters['shell_type'] != 'Any':
+            filtered_df = filtered_df[filtered_df['Shell Type']
+                                      == filters['shell_type']]
+
+        # Insert Arrangement filter
+        if filters.get('insert_arrangement') and filters['insert_arrangement'] != 'Any':
+            filtered_df = filtered_df[filtered_df['Insert Arrangement']
+                                      == filters['insert_arrangement']]
+
+        # Socket Type filter
+        if filters.get('socket_type') and filters['socket_type'] != 'Any':
+            filtered_df = filtered_df[filtered_df['Socket Type']
+                                      == filters['socket_type']]
+
+        # Keying filter
+        if filters.get('keying') and filters['keying'] != 'Any':
+            filtered_df = filtered_df[filtered_df['Keying']
+                                      == filters['keying']]
 
         # Update table
         self.filtered_df = filtered_df
@@ -220,12 +240,16 @@ class LookupConnectorPresenter(QObject):
         details = f"""
 Connector Details:
 ==================
-Name: {row_data.get('name', 'N/A')}
-Type: {row_data.get('type', 'N/A')}
-Gender: {row_data.get('gender', 'N/A')}
-Pin Count: {row_data.get('pin_count', 'N/A')}
-Manufacturer: {row_data.get('manufacturer', 'N/A')}
-Part Number: {row_data.get('part_number', 'N/A')}
+Part Number: {row_data.get('Part Number', 'N/A')}
+Part Code: {row_data.get('Part Code', 'N/A')}
+Material: {row_data.get('Material', 'N/A')}
+Database Status: {row_data.get('Database Status', 'N/A')}
+
+Family: {row_data.get('Family', 'N/A')}
+Shell Type: {row_data.get('Shell Type', 'N/A')}
+Insert Arrangement: {row_data.get('Insert Arrangement', 'N/A')}
+Socket Type: {row_data.get('Socket Type', 'N/A')}
+Keying: {row_data.get('Keying', 'N/A')}
 """
         self.view.context_box.setText(details.strip())
 
