@@ -1,0 +1,31 @@
+# Include documentation
+include README.md
+include LICENSE
+recursive-include docs *.md
+
+# Include all markdown documentation
+include *.md
+
+# Include configuration examples
+recursive-include .tool_config *.json
+recursive-include .tool_config *.md
+
+# Include package data
+recursive-include app *.json
+recursive-include app *.csv
+
+# Exclude cache and temporary files
+global-exclude __pycache__
+global-exclude *.py[co]
+global-exclude .DS_Store
+global-exclude *.so
+global-exclude *.dylib
+
+# Exclude development files
+exclude .gitignore
+exclude .gitattributes
+
+# Exclude test files
+recursive-exclude tests *
+recursive-exclude document_scanner_cache *
+recursive-exclude e3_caches *

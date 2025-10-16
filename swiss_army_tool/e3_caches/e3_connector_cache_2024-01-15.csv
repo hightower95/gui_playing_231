@@ -1,9 +1,0 @@
-Part Number,Part Code,Minified Part Code,Material,Database Status,Connector Type,Shell Size,Contact Arrangement,Gender,Mounting Type,Termination Style,Service Rating,Contact Material,E3 Project,E3 Sheet,E3 Device Name
-D38999/20WA98PN,D38999-20WA98PN,D3899920WA98PN,Aluminum,Active,Circular MIL-DTL-38999,20,WA98,Plug,Jam Nut Receptacle,Solder,Standard,Copper Alloy,Project_Alpha,Sheet_01,J101
-D38999/26WA35SN,D38999-26WA35SN,D3899926WA35SN,Aluminum,Active,Circular MIL-DTL-38999,26,WA35,Socket,Flange Mount,Crimp,Standard,Copper Alloy,Project_Alpha,Sheet_01,J102
-MS3470L16-10P,MS3470L16-10P,MS3470L1610P,Aluminum,Active,Circular MIL-DTL-5015,16,10,Plug,Box Mount,Solder,Standard,Copper Alloy,Project_Alpha,Sheet_02,P201
-MS3476W20-29S,MS3476W20-29S,MS3476W2029S,Aluminum,Active,Circular MIL-DTL-5015,20,29,Socket,Jam Nut Receptacle,Crimp,Standard,Copper Alloy,Project_Beta,Sheet_01,J301
-EN3645-003-12,EN3645-003-12,EN364500312,Composite,Active,Rectangular ARINC 600,3,003,Plug,Flange Mount,Crimp,Standard,Copper Alloy,Project_Beta,Sheet_02,P401
-D38999/24WE35PA,D38999-24WE35PA,D3899924WE35PA,Stainless Steel,Obsolete,Circular MIL-DTL-38999,24,WE35,Plug,Jam Nut Receptacle,Solder,Hermetic,Copper Alloy,Project_Gamma,Sheet_01,J501
-MS3476L18-11S,MS3476L18-11S,MS3476L1811S,Aluminum,Active,Circular MIL-DTL-5015,18,11,Socket,Box Mount,Crimp,Standard,Copper Alloy,Project_Gamma,Sheet_03,J502
-D38999/26WH35SN,D38999-26WH35SN,D3899926WH35SN,Aluminum,Active,Circular MIL-DTL-38999,26,WH35,Socket,Flange Mount,Crimp,Standard,Copper Alloy,Project_Delta,Sheet_01,P601
