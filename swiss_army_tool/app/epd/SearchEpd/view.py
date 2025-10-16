@@ -69,6 +69,7 @@ class SearchEpdView(BaseTabView, TableContextMenuMixin):
         layout.addWidget(search_container)
         layout.addWidget(progress_container)
         layout.addStretch()  # This pushes the controls to the left
+        layout.addWidget(self.help_label)  # Add help button from base class
 
         # Set size policy to limit width
         search_container.setMaximumWidth(int(self.header_frame.width() * 0.65))

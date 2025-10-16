@@ -53,6 +53,11 @@ class TableContextMenuMixin:
         row = index.row()
         column = index.column()
 
+        # Get number of selected rows
+        selected_rows = self.table.selectionModel(
+        ).selectedRows() if self.table.selectionModel() else []
+        num_selected = len(selected_rows)
+
         # Create context menu
         menu = QMenu(self)
 
@@ -72,6 +77,12 @@ class TableContextMenuMixin:
             action = QAction(action_name, self)
             action.triggered.connect(
                 lambda _, cb=action_callback: cb(index, row, column))
+
+            # Disable "Find Alternative" and "Find Opposite" if multiple rows selected
+            if action_name in ["Find Alternative", "Find Opposite"] and num_selected != 1:
+                action.setEnabled(False)
+                action.setToolTip("Select exactly one row to use this action")
+
             menu.addAction(action)
 
         # Show menu at cursor position
@@ -79,36 +90,66 @@ class TableContextMenuMixin:
 
     def _on_copy_row(self, index, row, column):
         """
-        Handle Copy Row action - copies entire row as tab-separated values for Excel
+        Handle Copy Row action - copies all selected rows with headers as tab-separated values for Excel
 
         Args:
             index: QModelIndex of the selected cell
-            row: Row number of the selected cell
+            row: Row number of the selected cell (not used when multiple rows selected)
             column: Column number of the selected cell
         """
         model = self.table.model()
 
         if not model:
-            print(f"No model available for row {row}")
+            print(f"No model available")
             return
 
-        # Collect all column values for this row
-        row_data = []
-        for col_idx in range(model.columnCount()):
-            cell_data = model.data(model.index(row, col_idx))
-            # Convert None to empty string, otherwise use string representation
-            row_data.append(str(cell_data) if cell_data is not None else "")
+        # Get all selected rows
+        selected_rows = self.table.selectionModel(
+        ).selectedRows() if self.table.selectionModel() else []
 
-        # Join with tabs for Excel compatibility
-        row_text = "\t".join(row_data)
+        if not selected_rows:
+            # Fallback to single row if no selection
+            selected_rows = [model.index(row, 0)]
+
+        # Get row numbers and sort them
+        row_numbers = sorted([idx.row() for idx in selected_rows])
+
+        # Get column count
+        col_count = model.columnCount()
+
+        # Build header row
+        headers = []
+        for col_idx in range(col_count):
+            header_data = model.headerData(col_idx, Qt.Horizontal)
+            headers.append(
+                str(header_data) if header_data is not None else f"Column {col_idx + 1}")
+
+        # Start with header row
+        output_lines = ["\t".join(headers)]
+
+        # Add each selected row
+        for row_num in row_numbers:
+            row_data = []
+            for col_idx in range(col_count):
+                cell_data = model.data(model.index(row_num, col_idx))
+                # Convert None to empty string, otherwise use string representation
+                row_data.append(
+                    str(cell_data) if cell_data is not None else "")
+
+            output_lines.append("\t".join(row_data))
+
+        # Join all lines with newlines
+        output_text = "\n".join(output_lines)
 
         # Copy to clipboard
         clipboard = QApplication.clipboard()
-        clipboard.setText(row_text)
+        clipboard.setText(output_text)
 
         # Update status if available
+        num_rows = len(row_numbers)
         if hasattr(self, 'footer_box'):
             self.footer_box.setText(
-                f"Copied row {row + 1} to clipboard ({len(row_data)} columns)")
+                f"Copied {num_rows} row{'s' if num_rows != 1 else ''} with headers to clipboard ({col_count} columns)")
 
-        print(f"Copied row {row} to clipboard: {len(row_data)} columns")
+        print(
+            f"Copied {num_rows} row(s) with headers to clipboard: {col_count} columns")

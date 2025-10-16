@@ -68,6 +68,7 @@ class ConnectorDataWorker(QObject):
                     'Database Status': 'Active',
                     'Family': 'D38999',
                     'Shell Type': '26 - Plug',
+                    'Shell Size': '10',
                     'Insert Arrangement': 'A - 1',
                     'Socket Type': 'Type A',
                     'Keying': 'A'
@@ -79,6 +80,7 @@ class ConnectorDataWorker(QObject):
                     'Database Status': 'Active',
                     'Family': 'D38999',
                     'Shell Type': '24 - Receptacle',
+                    'Shell Size': '12',
                     'Insert Arrangement': 'B - 2',
                     'Socket Type': 'Type B',
                     'Keying': 'B'
@@ -90,6 +92,7 @@ class ConnectorDataWorker(QObject):
                     'Database Status': 'Obsolete',
                     'Family': 'D38999',
                     'Shell Type': '20 - Receptacle B',
+                    'Shell Size': '14',
                     'Insert Arrangement': 'C - 3',
                     'Socket Type': 'Type A',
                     'Keying': 'C'
@@ -101,6 +104,7 @@ class ConnectorDataWorker(QObject):
                     'Database Status': 'Active',
                     'Family': 'VG',
                     'Shell Type': '26 - Plug',
+                    'Shell Size': '8',
                     'Insert Arrangement': 'A - 1',
                     'Socket Type': 'Type C',
                     'Keying': 'D'
@@ -112,6 +116,7 @@ class ConnectorDataWorker(QObject):
                     'Database Status': 'Active',
                     'Family': 'VG',
                     'Shell Type': '24 - Receptacle',
+                    'Shell Size': '9',
                     'Insert Arrangement': 'B - 2',
                     'Socket Type': 'Type D',
                     'Keying': 'E'
@@ -123,6 +128,7 @@ class ConnectorDataWorker(QObject):
                     'Database Status': 'Active',
                     'Family': 'D38999',
                     'Shell Type': '26 - Plug',
+                    'Shell Size': '16',
                     'Insert Arrangement': 'A - 1',
                     'Socket Type': 'Type B',
                     'Keying': 'A'
@@ -239,6 +245,132 @@ class ConnectorModel(BaseModel):
             if self.data:
                 return self.data.get('connectors', [])
             return []
+
+    def get_available_filter_options(self, selected_standards: List[str] = None) -> Dict[str, List[str]]:
+        """Get available filter options based on selected standards (thread-safe)
+
+        Args:
+            selected_standards: List of selected standard families (e.g., ['D38999', 'VG'])
+                               If None or empty, returns all options
+
+        Returns:
+            Dict with keys: shell_types, materials, shell_sizes, insert_arrangements, socket_types, keyings
+        """
+        with QMutexLocker(self._data_mutex):
+            if not self.data:
+                return {
+                    'shell_types': [],
+                    'materials': [],
+                    'shell_sizes': [],
+                    'insert_arrangements': [],
+                    'socket_types': [],
+                    'keyings': []
+                }
+
+            connectors = self.data.get('connectors', [])
+
+            # If no standards selected, get all available options
+            if not selected_standards:
+                filtered_connectors = connectors
+            else:
+                # Filter connectors to only those matching selected standards
+                filtered_connectors = [
+                    conn for conn in connectors
+                    if conn.get('Family') in selected_standards
+                ]
+
+            # Extract unique values for each filter from the filtered connectors
+            shell_types = sorted(set(
+                conn.get('Shell Type') for conn in filtered_connectors
+                if conn.get('Shell Type')
+            ))
+
+            materials = sorted(set(
+                conn.get('Material') for conn in filtered_connectors
+                if conn.get('Material')
+            ))
+
+            shell_sizes = sorted(set(
+                conn.get('Shell Size') for conn in filtered_connectors
+                if conn.get('Shell Size')
+            ), key=lambda x: int(x) if x.isdigit() else 0)
+
+            insert_arrangements = sorted(set(
+                conn.get('Insert Arrangement') for conn in filtered_connectors
+                if conn.get('Insert Arrangement')
+            ))
+
+            socket_types = sorted(set(
+                conn.get('Socket Type') for conn in filtered_connectors
+                if conn.get('Socket Type')
+            ))
+
+            keyings = sorted(set(
+                conn.get('Keying') for conn in filtered_connectors
+                if conn.get('Keying')
+            ))
+
+            return {
+                'shell_types': shell_types,
+                'materials': materials,
+                'shell_sizes': shell_sizes,
+                'insert_arrangements': insert_arrangements,
+                'socket_types': socket_types,
+                'keyings': keyings
+            }
+
+    def find_alternative(self, part_code: str) -> List[Dict[str, Any]]:
+        """Find alternative connectors for a given part code
+
+        Args:
+            part_code: The part code to find alternatives for
+
+        Returns:
+            List of alternative connector dictionaries
+        """
+        with QMutexLocker(self._data_mutex):
+            print(f"Model: Finding alternatives for {part_code}")
+
+            # DUMMY DATA - Replace with actual logic
+            dummy_alternatives = [
+                {
+                    'Part Number': 'ALT-001',
+                    'Part Code': 'ALT-D38999-001',
+                    'Material': 'Aluminum',
+                    'Reason': 'Same shell size, different keying'
+                },
+                {
+                    'Part Number': 'ALT-002',
+                    'Part Code': 'ALT-D38999-002',
+                    'Material': 'Stainless Steel',
+                    'Reason': 'Same insert arrangement'
+                }
+            ]
+
+            return dummy_alternatives
+
+    def find_opposite(self, part_code: str) -> Optional[Dict[str, Any]]:
+        """Find opposite (mating) connector for a given part code
+
+        Args:
+            part_code: The part code to find opposite for
+
+        Returns:
+            Opposite connector dictionary or None if not found
+        """
+        with QMutexLocker(self._data_mutex):
+            print(f"Model: Finding opposite for {part_code}")
+
+            # DUMMY DATA - Replace with actual logic
+            dummy_opposite = {
+                'Part Number': 'OPP-001',
+                'Part Code': 'OPP-D38999-001',
+                'Material': 'Aluminum',
+                'Shell Type': '24 - Receptacle',  # Opposite of plug
+                'Reason': 'Mating connector (plug <-> receptacle)'
+            }
+
+            return dummy_opposite
 
     def filter_connectors(self, filters: Dict) -> List[Dict]:
         """Filter connectors based on criteria (thread-safe)"""

@@ -135,6 +135,8 @@ class IdentifyBestEpdView(BaseTabView, TableContextMenuMixin):
             f"font-weight: bold; font-size: 14px; color: {UI_COLORS['section_border']};")
         title_layout.addWidget(title_label)
         title_layout.addStretch()
+        # Add help button from base class
+        title_layout.addWidget(self.help_label)
 
         # Filter input row
         filter_layout = QHBoxLayout()
