@@ -64,6 +64,7 @@ class ConnectorDataWorker(QObject):
                 {
                     'Part Number': 'D38999/26WA35PN',
                     'Part Code': 'D38999-26WA35PN',
+                    'Minified Part Code': 'D3899926WA35PN',
                     'Material': 'Aluminum',
                     'Database Status': 'Active',
                     'Family': 'D38999',
@@ -76,6 +77,7 @@ class ConnectorDataWorker(QObject):
                 {
                     'Part Number': 'D38999/24WB35SN',
                     'Part Code': 'D38999-24WB35SN',
+                    'Minified Part Code': 'D3899924WB35SN',
                     'Material': 'Stainless Steel',
                     'Database Status': 'Active',
                     'Family': 'D38999',
@@ -88,6 +90,7 @@ class ConnectorDataWorker(QObject):
                 {
                     'Part Number': 'D38999/20WC10PN',
                     'Part Code': 'D38999-20WC10PN',
+                    'Minified Part Code': 'D3899920WC10PN',
                     'Material': 'Aluminum',
                     'Database Status': 'Obsolete',
                     'Family': 'D38999',
@@ -100,6 +103,7 @@ class ConnectorDataWorker(QObject):
                 {
                     'Part Number': 'VG95234F10A001PN',
                     'Part Code': 'VG95234-F10A001PN',
+                    'Minified Part Code': 'VG95234F10A001PN',
                     'Material': 'Composite',
                     'Database Status': 'Active',
                     'Family': 'VG',
@@ -112,6 +116,7 @@ class ConnectorDataWorker(QObject):
                 {
                     'Part Number': 'VG95234F12B002SN',
                     'Part Code': 'VG95234-F12B002SN',
+                    'Minified Part Code': 'VG95234F12B002SN',
                     'Material': 'Stainless Steel',
                     'Database Status': 'Active',
                     'Family': 'VG',
@@ -124,6 +129,7 @@ class ConnectorDataWorker(QObject):
                 {
                     'Part Number': 'D38999/26WA50PN',
                     'Part Code': 'D38999-26WA50PN',
+                    'Minified Part Code': 'D3899926WA50PN',
                     'Material': 'Aluminum',
                     'Database Status': 'Active',
                     'Family': 'D38999',
@@ -132,13 +138,65 @@ class ConnectorDataWorker(QObject):
                     'Insert Arrangement': 'A - 1',
                     'Socket Type': 'Type B',
                     'Keying': 'A'
+                },
+                {
+                    'Part Number': 'MS3470L16-10P',
+                    'Part Code': 'MS3470L16-10P',
+                    'Minified Part Code': 'MS3470L1610P',
+                    'Material': 'Aluminum',
+                    'Database Status': 'Active',
+                    'Family': 'MS',
+                    'Shell Type': '26 - Plug',
+                    'Shell Size': '16',
+                    'Insert Arrangement': 'A - 10',
+                    'Socket Type': 'Type A',
+                    'Keying': 'Normal'
+                },
+                {
+                    'Part Number': 'MS3476L16-10S',
+                    'Part Code': 'MS3476L16-10S',
+                    'Minified Part Code': 'MS3476L1610S',
+                    'Material': 'Aluminum',
+                    'Database Status': 'Active',
+                    'Family': 'MS',
+                    'Shell Type': '24 - Receptacle',
+                    'Shell Size': '16',
+                    'Insert Arrangement': 'A - 10',
+                    'Socket Type': 'Type A',
+                    'Keying': 'Normal'
+                },
+                {
+                    'Part Number': 'EN3645-003-12',
+                    'Part Code': 'EN3645-003-12',
+                    'Minified Part Code': 'EN364500312',
+                    'Material': 'Composite',
+                    'Database Status': 'Active',
+                    'Family': 'EN',
+                    'Shell Type': '26 - Plug',
+                    'Shell Size': '12',
+                    'Insert Arrangement': 'B - 3',
+                    'Socket Type': 'Type B',
+                    'Keying': 'F'
+                },
+                {
+                    'Part Number': 'MIL-DTL-38999/26WA35PN',
+                    'Part Code': 'MIL-DTL-38999-26WA35PN',
+                    'Minified Part Code': 'MILDTL3899926WA35PN',
+                    'Material': 'Stainless Steel',
+                    'Database Status': 'Active',
+                    'Family': 'MIL',
+                    'Shell Type': '26 - Plug',
+                    'Shell Size': '10',
+                    'Insert Arrangement': 'A - 35',
+                    'Socket Type': 'Type A',
+                    'Keying': 'A'
                 }
             ],
-            'families': ['D38999', 'VG'],
+            'families': ['D38999', 'VG', 'MS', 'EN', 'MIL'],
             'shell_types': ['26 - Plug', '24 - Receptacle', '20 - Receptacle B'],
-            'insert_arrangements': ['A - 1', 'B - 2', 'C - 3'],
+            'insert_arrangements': ['A - 1', 'B - 2', 'C - 3', 'A - 10', 'B - 3', 'A - 35'],
             'socket_types': ['Type A', 'Type B', 'Type C', 'Type D'],
-            'keyings': ['A', 'B', 'C', 'D', 'E']
+            'keyings': ['A', 'B', 'C', 'D', 'E', 'F', 'N']
         }
 
 

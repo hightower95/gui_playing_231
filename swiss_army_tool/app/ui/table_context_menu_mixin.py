@@ -73,10 +73,22 @@ class TableContextMenuMixin:
                 menu.addSeparator()
 
         # Add custom context actions
-        for action_name, action_callback in self.context_actions:
+        for action_config in self.context_actions:
+            # Support both tuple format (old) and dict format (new)
+            if isinstance(action_config, dict):
+                action_name = action_config['text']
+                action_callback = action_config['callback']
+            else:
+                # Tuple format: (action_name, action_callback)
+                action_name, action_callback = action_config
+
             action = QAction(action_name, self)
-            action.triggered.connect(
-                lambda _, cb=action_callback: cb(index, row, column))
+            # For dict format callbacks, don't pass index/row/column
+            if isinstance(action_config, dict):
+                action.triggered.connect(action_callback)
+            else:
+                action.triggered.connect(
+                    lambda _, cb=action_callback: cb(index, row, column))
 
             # Disable "Find Alternative" and "Find Opposite" if multiple rows selected
             if action_name in ["Find Alternative", "Find Opposite"] and num_selected != 1:

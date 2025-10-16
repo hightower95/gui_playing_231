@@ -1,12 +1,14 @@
 from PySide6.QtCore import QAbstractTableModel, Qt
+from PySide6.QtGui import QColor, QBrush
 
 
 class PandasTableModel(QAbstractTableModel):
     """Adapter to show a Pandas DataFrame in a QTableView."""
 
-    def __init__(self, df):
+    def __init__(self, df, input_column_prefix="Input: "):
         super().__init__()
         self._data = df
+        self.input_column_prefix = input_column_prefix
 
     def update(self, df):
         self.beginResetModel()
@@ -20,16 +22,50 @@ class PandasTableModel(QAbstractTableModel):
         return len(self._data.columns)
 
     def data(self, index, role):
-        if not index.isValid() or role != Qt.DisplayRole:
+        if not index.isValid():
             return None
-        return str(self._data.iat[index.row(), index.column()])
+
+        if role == Qt.DisplayRole:
+            return str(self._data.iat[index.row(), index.column()])
+
+        # Color cells in input columns slightly differently
+        if role == Qt.BackgroundRole:
+            column_name = self._data.columns[index.column()]
+            if column_name.startswith(self.input_column_prefix):
+                # Light blue tint for input columns
+                return QBrush(QColor(230, 240, 255))  # Lighter blue
+
+        # Ensure text is visible in input columns
+        if role == Qt.ForegroundRole:
+            column_name = self._data.columns[index.column()]
+            if column_name.startswith(self.input_column_prefix):
+                # Dark text for input columns
+                return QBrush(QColor(0, 0, 0))  # Black text
+
+        return None
 
     def headerData(self, section, orientation, role):
-        if role != Qt.DisplayRole:
-            return None
         if orientation == Qt.Horizontal:
-            return str(self._data.columns[section])
-        return str(section + 1)
+            if role == Qt.DisplayRole:
+                return str(self._data.columns[section])
+
+            # Color input column headers differently
+            if role == Qt.BackgroundRole:
+                column_name = self._data.columns[section]
+                if column_name.startswith(self.input_column_prefix):
+                    # Blue background for input column headers
+                    return QBrush(QColor(100, 149, 237))  # Cornflower blue
+
+            # White text for input column headers
+            if role == Qt.ForegroundRole:
+                column_name = self._data.columns[section]
+                if column_name.startswith(self.input_column_prefix):
+                    return QBrush(QColor(255, 255, 255))  # White text
+
+        if role == Qt.DisplayRole and orientation == Qt.Vertical:
+            return str(section + 1)
+
+        return None
 
     def get_record(self, row):
         """Get a record as a dictionary for the given row"""
