@@ -6,7 +6,8 @@ from pathlib import Path
 
 # Read the README file
 this_directory = Path(__file__).parent
-long_description = (this_directory / "README.md").read_text(encoding='utf-8') if (this_directory / "README.md").exists() else ""
+long_description = (this_directory / "README.md").read_text(
+    encoding='utf-8') if (this_directory / "README.md").exists() else ""
 
 setup(
     name="swiss-army-tool",
@@ -17,7 +18,8 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/yourusername/swiss-army-tool",
-    packages=find_packages(exclude=["tests", "tests.*", "document_scanner_cache", "e3_caches"]),
+    packages=find_packages(
+        exclude=["tests", "tests.*", "document_scanner_cache", "e3_caches"]),
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers",

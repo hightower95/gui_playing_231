@@ -19,6 +19,8 @@ Welcome to the Swiss Army Tool documentation. This comprehensive engineering too
 - [Reload Documents Feature](RELOAD_DOCUMENTS_FEATURE.md) - Refreshing document data
 - [Collapsible Results and Context](COLLAPSIBLE_RESULTS_AND_CONTEXT.md) - Understanding the results view
 - [Debug Search Logging](DEBUG_SEARCH_LOGGING.md) - Troubleshooting searches
+- **[Compare Versions Quick Start](COMPARE_VERSIONS_QUICK_START.md)** - NEW: Compare document versions (Quick Guide)
+- **[Compare Versions Complete](COMPARE_VERSIONS.md)** - NEW: Full version comparison documentation
 
 #### Connector Management
 - [Connector Context Implementation](CONNECTOR_CONTEXT_IMPLEMENTATION.md) - Context enrichment system

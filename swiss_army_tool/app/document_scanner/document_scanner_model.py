@@ -49,7 +49,8 @@ class DocumentScannerModel(QObject):
     documents_changed = Signal(list)  # List of SearchableDocument objects
     loading_started = Signal()
     loading_finished = Signal()
-    loading_progress = Signal(int, int, str)  # current, total, file_name
+    loading_progress = Signal(int, int, str)  # current, total, message
+    search_history_changed = Signal()  # Emitted when search history is updated
 
     def __init__(self):
         super().__init__()
@@ -198,7 +199,13 @@ class DocumentScannerModel(QObject):
         # Save
         DocumentScannerConfig.save_search_history(history)
 
+        # Emit signal to notify History view
+        self.search_history_changed.emit()
+
     def clear_search_history(self):
         """Clear all search history"""
         from app.core.config_manager import DocumentScannerConfig
         DocumentScannerConfig.save_search_history([])
+
+        # Emit signal to notify History view
+        self.search_history_changed.emit()

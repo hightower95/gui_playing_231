@@ -1,15 +1,16 @@
 """
-Document Scanner Module - Main tab containing Search, Configuration, and History sub-tabs
+Document Scanner Module - Main tab containing Search, Configuration, History, and Compare Versions sub-tabs
 """
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QTabWidget
 from app.document_scanner.Search.presenter import SearchPresenter
 from app.document_scanner.Configuration.presenter import ConfigurationPresenter
 from app.document_scanner.History.presenter import HistoryPresenter
+from app.document_scanner.CompareVersions.presenter import CompareVersionsPresenter
 from app.document_scanner.document_scanner_model import DocumentScannerModel
 
 
 class DocumentScannerModuleView(QWidget):
-    """Main Document Scanner module containing Search, Configuration, and History tabs"""
+    """Main Document Scanner module containing Search, Configuration, History, and Compare Versions tabs"""
 
     def __init__(self, context):
         super().__init__()
@@ -23,6 +24,8 @@ class DocumentScannerModuleView(QWidget):
         self.configuration_presenter = ConfigurationPresenter(
             context, self.model)
         self.history_presenter = HistoryPresenter(context, self.model)
+        self.compare_versions_presenter = CompareVersionsPresenter(
+            context, self.model)
 
         # Connect model to presenters
         self.model.documents_changed.connect(
@@ -30,6 +33,11 @@ class DocumentScannerModuleView(QWidget):
         )
         self.model.documents_changed.connect(
             self.configuration_presenter.on_documents_changed
+        )
+
+        # Connect search history changes to History presenter
+        self.model.search_history_changed.connect(
+            self.history_presenter.refresh_history
         )
 
         # Connect history to search
@@ -54,6 +62,8 @@ class DocumentScannerModuleView(QWidget):
         self.tabs.addTab(self.search_presenter.view, "Search")
         self.tabs.addTab(self.configuration_presenter.view, "Configuration")
         self.tabs.addTab(self.history_presenter.view, "History")
+        self.tabs.addTab(self.compare_versions_presenter.view,
+                         "Compare Versions")
 
         layout.addWidget(self.tabs)
 
@@ -68,6 +78,7 @@ class DocumentScannerModuleView(QWidget):
         self.search_presenter.start_loading()
         self.configuration_presenter.start_loading()
         self.history_presenter.start_loading()
+        self.compare_versions_presenter.start_loading()
 
     def on_history_search_requested(self, search_term: str):
         """Handle search request from history tab
@@ -92,5 +103,7 @@ class DocumentScannerModuleView(QWidget):
             return self.configuration_presenter
         elif current_index == 2:
             return self.history_presenter
+        elif current_index == 3:
+            return self.compare_versions_presenter
 
         return None
