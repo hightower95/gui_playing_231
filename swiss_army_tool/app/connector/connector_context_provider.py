@@ -62,11 +62,36 @@ class ConnectorContextProvider(ContextProvider):
                     context_owner="Connector",
                     data_context=connector_info
                 )
+                # Add callback to switch to Lookup tab for this connector
+                part_num = connector_info.get('Part Number', '')
+                context.add_callback(
+                    "View in Lookup",
+                    lambda pn=part_num: self._switch_to_lookup_tab(pn),
+                    "Open this connector in the Connector Lookup tab"
+                )
                 contexts.append(context)
                 # Only add one context per result to avoid duplicates
                 break
 
         return contexts
+
+    def _switch_to_lookup_tab(self, part_number: str):
+        """Switch to the Connector Lookup tab and search for part number
+
+        Note: This method requires the main window reference to be set.
+        For now, it just prints a message. Implement tab switching when
+        main window reference is available.
+
+        Args:
+            part_number: The part number to search for
+        """
+        print(
+            f"TODO: Switch to Connector Lookup tab and search for '{part_number}'")
+        # TODO: Implement when main window reference is available
+        # Example implementation:
+        # self.main_window.switch_to_tab("Connector")
+        # self.connector_tab.switch_to_subtab("Lookup")
+        # self.connector_tab.lookup_view.search_input.setText(part_number)
 
     def _lookup_connector(self, part_number: str) -> dict:
         """Look up connector information by part number

@@ -52,7 +52,6 @@ class StandardInput(QLineEdit):
                 padding: 4px 8px;
                 border: 1px solid #cccccc;
                 border-radius: 3px;
-                background: white;
                 font-size: 10pt;
             }
             QLineEdit:hover {

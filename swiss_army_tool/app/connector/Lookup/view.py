@@ -1316,6 +1316,21 @@ class LookupConnectorView(BaseTabView, TableContextMenuMixin):
         left_list.clear()
         right_list.clear()
 
+        # If no items available, show "No options" message
+        if not new_items:
+            left_list.addItem("No options")
+            no_options_item = left_list.item(0)
+            if no_options_item:
+                # Make it non-selectable
+                no_options_item.setFlags(Qt.NoItemFlags)
+                # Style it as disabled/muted text
+                no_options_item.setForeground(Qt.gray)
+
+            # Re-enable signals and return early
+            left_list.blockSignals(False)
+            right_list.blockSignals(False)
+            return
+
         # Split items into two columns
         mid_point = (len(new_items) + 1) // 2
         left_items = new_items[:mid_point]

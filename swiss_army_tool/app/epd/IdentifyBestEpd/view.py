@@ -326,7 +326,7 @@ class IdentifyBestEpdView(BaseTabView, TableContextMenuMixin):
         scroll_area.setStyleSheet(f"""
             QScrollArea {{ 
                 border: none; 
-                background-color: {UI_COLORS['light_background']};
+                background-color: {UI_COLORS['section_background']};
                 border-radius: 4px;
             }}
         """)

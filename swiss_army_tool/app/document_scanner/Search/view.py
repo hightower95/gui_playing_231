@@ -2,12 +2,14 @@
 Document Scanner Search View
 """
 from PySide6.QtWidgets import (QVBoxLayout, QHBoxLayout, QPushButton,
-                               QLineEdit, QTreeView, QProgressBar, QTextEdit)
+                               QLineEdit, QTreeView, QProgressBar, QTextEdit,
+                               QWidget, QScrollArea, QFrame, QSizePolicy)
 from PySide6.QtCore import Signal, Qt
-from PySide6.QtGui import QStandardItemModel, QStandardItem
+from PySide6.QtGui import QStandardItemModel, QStandardItem, QCursor
 from app.ui.base_sub_tab_view import BaseTabView
-from app.ui.components import StandardLabel, TextStyle
-from app.document_scanner.search_result import SearchResult
+from app.ui.components import StandardLabel, TextStyle, StandardGroupBox
+from app.document_scanner.search_result import SearchResult, Context
+from app.core.config import UI_COLORS
 from typing import List, Dict
 
 
@@ -92,9 +94,36 @@ class SearchView(BaseTabView):
         # Store results for context display
         self.all_results = []  # List[SearchResult]
 
-        # Context area for result details
-        self.context_box.setPlaceholderText(
-            "Select a result to view full details...")
+        # Replace context_box with scrollable collapsible widget area
+        # Find the context_box in the parent layout and replace it
+        context_frame = self.context_box.parent()
+        context_layout_parent = context_frame.layout()
+
+        # Remove the old context_box
+        for i in range(context_layout_parent.count()):
+            item = context_layout_parent.itemAt(i)
+            if item and item.widget() == self.context_box:
+                context_layout_parent.removeWidget(self.context_box)
+                self.context_box.deleteLater()
+                break
+
+        # Create new scrollable area
+        self.context_scroll = QScrollArea()
+        self.context_scroll.setWidgetResizable(True)
+        self.context_scroll.setFrameShape(QFrame.NoFrame)
+        self.context_scroll.setStyleSheet(
+            f"background-color: {UI_COLORS['section_background']};")
+
+        self.context_content = QWidget()
+        self.context_layout = QVBoxLayout(self.context_content)
+        self.context_layout.setContentsMargins(5, 5, 5, 5)
+        self.context_layout.setSpacing(5)
+        self.context_layout.addStretch()
+
+        self.context_scroll.setWidget(self.context_content)
+
+        # Add to the context frame layout
+        context_layout_parent.addWidget(self.context_scroll)
 
     def _on_search(self):
         """Handle search button click"""
@@ -112,7 +141,7 @@ class SearchView(BaseTabView):
         self.reload_requested.emit()
 
     def _on_selection_changed(self):
-        """Handle result selection"""
+        """Handle result selection - display with collapsible contexts"""
         selection = self.results_tree.selectionModel()
         if not selection.hasSelection():
             return
@@ -125,29 +154,121 @@ class SearchView(BaseTabView):
         if not result:
             return
 
-        # Display result details
-        details = f"Search Result Details:\n\n"
-        details += f"Search Term: {result.search_term}\n"
-        details += f"Document: {result.document_name}\n"
-        details += f"Document Type: {result.document_type}\n\n"
-        details += "Matched Data:\n"
+        # Clear previous context widgets
+        self._clear_context_layout()
 
-        for key, value in result.matched_row_data.items():
-            details += f"  {key}: {value}\n"
+        # Show matched data section (always visible, not collapsible)
+        if result.matched_row_data:
+            self._create_matched_data_section(result)
 
-        # Add contexts if any
+        # Show each context as a collapsible section
         if result.has_contexts():
-            details += f"\n{'='*40}\n"
-            details += "Additional Context:\n"
-            details += f"{'='*40}\n"
-
             for ctx in result.contexts:
-                details += f"\n[{ctx.context_owner}]\n"
-                details += f"  Term: {ctx.term}\n"
-                for key, value in ctx.data_context.items():
-                    details += f"  {key}: {value}\n"
+                self._create_collapsible_context(ctx)
 
-        self.context_box.setPlainText(details)
+        # Add stretch at the end
+        self.context_layout.addStretch()
+
+    def _clear_context_layout(self):
+        """Remove all widgets from context layout"""
+        while self.context_layout.count() > 0:
+            item = self.context_layout.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+
+    def _create_matched_data_section(self, result: SearchResult):
+        """Create matched data display section - non-collapsible StandardGroupBox"""
+        group = StandardGroupBox("Matched Data", collapsible=False)
+
+        layout = QVBoxLayout()
+        layout.setContentsMargins(8, 5, 8, 5)
+        layout.setSpacing(3)
+
+        # Data rows
+        for key, value in result.matched_row_data.items():
+            row_layout = QHBoxLayout()
+            row_layout.setSpacing(5)
+
+            key_label = StandardLabel(f"{key}:", style=TextStyle.LABEL)
+            key_label.setStyleSheet("font-weight: bold;")
+            row_layout.addWidget(key_label)
+
+            value_label = StandardLabel(str(value), style=TextStyle.LABEL)
+            value_label.setWordWrap(True)
+            row_layout.addWidget(value_label, 1)
+
+            layout.addLayout(row_layout)
+
+        group.setLayout(layout)
+        self.context_layout.addWidget(group)
+
+    def _create_collapsible_context(self, context: Context):
+        """Create a collapsible context section using StandardGroupBox"""
+        # Create title with term if available
+        title = context.context_owner
+        if context.term:
+            title += f" • '{context.term}'"
+
+        # Use collapsible StandardGroupBox
+        group = StandardGroupBox(title, collapsible=True)
+
+        content_layout = QVBoxLayout()
+        content_layout.setContentsMargins(8, 5, 8, 5)
+        content_layout.setSpacing(3)
+
+        # Add data if available
+        if context.has_data():
+            for key, value in context.data_context.items():
+                row = QHBoxLayout()
+                row.setSpacing(5)
+
+                key_label = StandardLabel(f"{key}:", style=TextStyle.LABEL)
+                key_label.setStyleSheet("font-weight: bold;")
+                row.addWidget(key_label)
+
+                value_label = StandardLabel(str(value), style=TextStyle.LABEL)
+                value_label.setWordWrap(True)
+                row.addWidget(value_label, 1)
+
+                content_layout.addLayout(row)
+
+        # Add callback buttons as hyperlinks
+        if context.has_callbacks():
+            buttons_layout = QHBoxLayout()
+            buttons_layout.setSpacing(8)
+            buttons_layout.setContentsMargins(0, 5, 0, 0)
+
+            for callback_info in context.callbacks:
+                btn = QPushButton(callback_info.label)
+                btn.setCursor(QCursor(Qt.PointingHandCursor))
+                btn.setFlat(True)
+                btn.setStyleSheet("""
+                    QPushButton {
+                        color: #4a90e2;
+                        border: none;
+                        text-decoration: underline;
+                        padding: 2px 4px;
+                        font-size: 9pt;
+                        text-align: left;
+                        background: transparent;
+                    }
+                    QPushButton:hover {
+                        color: #357abd;
+                        font-weight: bold;
+                    }
+                """)
+
+                if callback_info.tooltip:
+                    btn.setToolTip(callback_info.tooltip)
+
+                btn.clicked.connect(callback_info.callback)
+                buttons_layout.addWidget(btn)
+
+            buttons_layout.addStretch()
+            content_layout.addLayout(buttons_layout)
+
+        group.setLayout(content_layout)
+        self.context_layout.addWidget(group)
 
     def show_progress(self, visible: bool):
         """Show or hide progress bar"""
@@ -160,7 +281,7 @@ class SearchView(BaseTabView):
     def clear_results(self):
         """Clear all results"""
         self.results_model.removeRows(0, self.results_model.rowCount())
-        self.context_box.clear()
+        self._clear_context_layout()
         self.all_results = []
 
     def display_results(self, results: List[SearchResult]):
