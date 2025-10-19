@@ -11,7 +11,21 @@ Welcome to the Swiss Army Tool documentation. This comprehensive engineering too
 
 ---
 
-## 🎨 UI Component Library (NEW!)
+## �️ Architecture & Development Guides
+
+### Tab Development
+- **[Tab Architecture Guide](TAB_ARCHITECTURE_GUIDE.md)** ⭐ **NEW: COMPREHENSIVE GUIDE**
+  - How to add new tabs and sub-tabs
+  - MVP architecture patterns
+  - Simple tab vs multi-sub-tab decision tree
+  - Step-by-step tutorials with complete examples
+  - Aesthetic and consistency guidelines
+  - Component usage best practices
+  - Integration checklists
+
+---
+
+## �🎨 UI Component Library (NEW!)
 
 **Essential for all UI development - standardized, reusable components with consistent styling**
 
