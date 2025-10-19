@@ -1,10 +1,11 @@
 """
 Document Scanner History View
 """
-from PySide6.QtWidgets import (QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
+from PySide6.QtWidgets import (QVBoxLayout, QHBoxLayout, QPushButton,
                                QListWidget, QListWidgetItem)
 from PySide6.QtCore import Signal, Qt
 from app.ui.base_sub_tab_view import BaseTabView
+from app.ui.components import StandardLabel, TextStyle
 from typing import List, Dict
 
 
@@ -27,13 +28,12 @@ class HistoryView(BaseTabView):
         header_layout.setContentsMargins(10, 10, 10, 10)
 
         # Title
-        title_label = QLabel("Search History")
-        title_label.setStyleSheet("font-size: 14pt; font-weight: bold;")
+        title_label = StandardLabel("Search History", style=TextStyle.TITLE)
         header_layout.addWidget(title_label)
 
         # Subtitle
-        subtitle = QLabel("Click on a search term to re-run that search")
-        subtitle.setStyleSheet("color: gray; font-size: 9pt;")
+        subtitle = StandardLabel(
+            "Click on a search term to re-run that search", style=TextStyle.NOTES)
         header_layout.addWidget(subtitle)
 
         # Button row

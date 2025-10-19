@@ -3,6 +3,7 @@ from PySide6.QtWidgets import (QWidget, QLineEdit, QHBoxLayout, QPushButton, QLa
                                QApplication)
 from PySide6.QtCore import Signal, Qt
 from app.ui.base_sub_tab_view import BaseTabView
+from app.ui.components.label import StandardLabel, TextStyle
 from app.ui.table_context_menu_mixin import TableContextMenuMixin
 from app.core.config import UI_COLORS
 
@@ -30,7 +31,21 @@ class SearchEpdView(BaseTabView, TableContextMenuMixin):
 
     def _setup_header(self):
         # Add search bar and button inside header_frame
-        layout = QHBoxLayout(self.header_frame)
+        self.header_frame.setFixedHeight(120)
+
+        layout = QVBoxLayout(self.header_frame)
+        layout.setContentsMargins(10, 10, 10, 10)
+
+        # Title row
+        title_row = QHBoxLayout()
+        title_label = StandardLabel("Search EPD", style=TextStyle.TITLE)
+        title_row.addWidget(title_label)
+        title_row.addStretch()
+        title_row.addWidget(self.help_label)  # Add help button from base class
+        layout.addLayout(title_row)
+
+        # Search controls row
+        search_row = QHBoxLayout()
 
         # Search controls
         self.search_input = QLineEdit()
@@ -47,8 +62,7 @@ class SearchEpdView(BaseTabView, TableContextMenuMixin):
         self.progress_bar.setMaximumHeight(20)
 
         # Status label
-        self.status_label = QLabel("Ready")
-        self.status_label.setStyleSheet("color: gray; font-size: 10px;")
+        self.status_label = StandardLabel("Ready", style=TextStyle.STATUS)
 
         # Create a container widget for the search controls
         search_container = QWidget()
@@ -65,11 +79,12 @@ class SearchEpdView(BaseTabView, TableContextMenuMixin):
         progress_layout.addWidget(self.progress_bar)
         progress_layout.addWidget(self.status_label)
 
-        # Add the containers to main layout
-        layout.addWidget(search_container)
-        layout.addWidget(progress_container)
-        layout.addStretch()  # This pushes the controls to the left
-        layout.addWidget(self.help_label)  # Add help button from base class
+        # Add the containers to search row
+        search_row.addWidget(search_container)
+        search_row.addWidget(progress_container)
+        search_row.addStretch()  # This pushes the controls to the left
+
+        layout.addLayout(search_row)
 
         # Set size policy to limit width
         search_container.setMaximumWidth(int(self.header_frame.width() * 0.65))
@@ -176,7 +191,6 @@ class SearchEpdView(BaseTabView, TableContextMenuMixin):
         """Show error state"""
         self.show_loading(False)
         self.status_label.setText(f"Error: {error_message}")
-        self.status_label.setStyleSheet("color: red; font-size: 10px;")
 
         # Reset status after 5 seconds
         from PySide6.QtCore import QTimer
@@ -185,7 +199,6 @@ class SearchEpdView(BaseTabView, TableContextMenuMixin):
     def _reset_status(self):
         """Reset status to normal"""
         self.status_label.setText("Ready")
-        self.status_label.setStyleSheet("color: gray; font-size: 10px;")
 
     def _on_open_pdf(self, index, row, column):
         """Handle Open PDF action from context menu"""

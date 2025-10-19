@@ -1,107 +1,25 @@
 """
 Compare Versions View - UI for comparing different versions of documents
+
+REFACTORED: Now uses standardized UI components from app.ui.components
+See docs/COMPONENT_LIBRARY.md for component documentation
 """
-from PySide6.QtWidgets import (QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
-                               QComboBox, QFrame, QTableWidget, QTableWidgetItem,
+from PySide6.QtWidgets import (QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem,
                                QHeaderView, QMenu, QMessageBox, QFileDialog)
 from PySide6.QtCore import Signal, Qt
-from PySide6.QtGui import QDragEnterEvent, QDropEvent
 from app.ui.base_sub_tab_view import BaseTabView
+from app.ui.components import (
+    StandardButton, ButtonRole, ButtonSize,
+    StandardLabel, TextStyle,
+    StandardComboBox, ComboSize,
+    StandardDropArea
+)
 from typing import Dict, List, Any
 import pandas as pd
 
 
-class DropArea(QFrame):
-    """Drag and drop area for custom documents"""
-
-    file_dropped = Signal(str)  # file_path
-
-    def __init__(self, label_text: str, parent=None):
-        super().__init__(parent)
-        self.label_text = label_text
-        self.file_path = None
-        self._setup_ui()
-
-    def _setup_ui(self):
-        """Setup drag-drop area"""
-        self.setAcceptDrops(True)
-        self.setFrameStyle(QFrame.Box | QFrame.Sunken)
-        self.setMinimumHeight(60)
-        self.setStyleSheet("""
-            QFrame {
-                background-color: #f0f0f0;
-                border: 2px dashed #999;
-                border-radius: 5px;
-            }
-            QFrame:hover {
-                background-color: #e8e8e8;
-                border-color: #666;
-            }
-        """)
-
-        layout = QVBoxLayout(self)
-        self.label = QLabel(self.label_text)
-        self.label.setAlignment(Qt.AlignCenter)
-        self.label.setWordWrap(True)
-        self.label.setStyleSheet(
-            "color: #333; font-weight: bold;")  # Darker text
-        layout.addWidget(self.label)
-
-    def dragEnterEvent(self, event: QDragEnterEvent):
-        """Handle drag enter"""
-        if event.mimeData().hasUrls():
-            event.acceptProposedAction()
-            self.setStyleSheet("""
-                QFrame {
-                    background-color: #d0e8ff;
-                    border: 2px solid #0078d4;
-                    border-radius: 5px;
-                }
-            """)
-
-    def dragLeaveEvent(self, event):
-        """Handle drag leave"""
-        self._reset_style()
-
-    def dropEvent(self, event: QDropEvent):
-        """Handle file drop"""
-        self._reset_style()
-
-        urls = event.mimeData().urls()
-        if urls:
-            file_path = urls[0].toLocalFile()
-            if file_path.lower().endswith(('.csv', '.xlsx', '.xls')):
-                self.file_path = file_path
-                self.label.setText(
-                    f"✓ Custom File:\n{file_path.split('/')[-1]}")
-                self.file_dropped.emit(file_path)
-                event.acceptProposedAction()
-            else:
-                QMessageBox.warning(
-                    self,
-                    "Invalid File",
-                    "Please drop a CSV or Excel file"
-                )
-
-    def _reset_style(self):
-        """Reset to default style"""
-        self.setStyleSheet("""
-            QFrame {
-                background-color: #f0f0f0;
-                border: 2px dashed #999;
-                border-radius: 5px;
-            }
-            QFrame:hover {
-                background-color: #e8e8e8;
-                border-color: #666;
-            }
-        """)
-
-    def clear(self):
-        """Clear the drop area"""
-        self.file_path = None
-        self.label.setText(self.label_text)
-        self._reset_style()
+# NOTE: Custom DropArea class removed - now using StandardDropArea from components.py
+# The StandardDropArea provides the same functionality with consistent styling
 
 
 class CompareVersionsView(BaseTabView):
@@ -182,41 +100,24 @@ class CompareVersionsView(BaseTabView):
 
         # Title and Compare button on same row
         title_row = QHBoxLayout()
-        title_label = QLabel("Compare Document Versions")
-        title_label.setStyleSheet("font-size: 14pt; font-weight: bold;")
+        title_label = StandardLabel(
+            "Compare Document Versions", style=TextStyle.TITLE)
         title_row.addWidget(title_label)
         title_row.addStretch()
 
-        # Compare button (moved to title row)
-        self.compare_btn = QPushButton("⚖️ Compare Versions")
-        self.compare_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #0078d4;
-                color: white;
-                padding: 8px 20px;
-                font-size: 11pt;
-                font-weight: bold;
-                border: none;
-                border-radius: 4px;
-            }
-            QPushButton:hover {
-                background-color: #106ebe;
-            }
-            QPushButton:disabled {
-                background-color: #cccccc;
-                color: #666666;
-            }
-        """)
+        # Compare button (standardized PRIMARY button)
+        self.compare_btn = StandardButton(
+            "⚖️ Compare Versions", role=ButtonRole.PRIMARY)
         self.compare_btn.clicked.connect(self.compare_requested)
         title_row.addWidget(self.compare_btn)
 
         header_layout.addLayout(title_row)
 
-        # Document selector - narrower width (40% of original)
+        # Document selector - narrower width (DOUBLE width = 400px)
         doc_row = QHBoxLayout()
-        doc_row.addWidget(QLabel("Document:"))
-        self.document_combo = QComboBox()
-        self.document_combo.setMaximumWidth(400)  # Limit width to about 40%
+        doc_label = StandardLabel("Document:", style=TextStyle.LABEL)
+        doc_row.addWidget(doc_label)
+        self.document_combo = StandardComboBox(size=ComboSize.DOUBLE)
         self.document_combo.currentTextChanged.connect(
             self._on_document_changed)
         doc_row.addWidget(self.document_combo)
@@ -228,8 +129,9 @@ class CompareVersionsView(BaseTabView):
 
         # Version 1
         version1_layout = QVBoxLayout()
-        version1_layout.addWidget(QLabel("Version 1:"))
-        self.version1_combo = QComboBox()
+        v1_label = StandardLabel("Version 1:", style=TextStyle.LABEL)
+        version1_layout.addWidget(v1_label)
+        self.version1_combo = StandardComboBox(size=ComboSize.SINGLE)
         self.version1_combo.currentTextChanged.connect(
             lambda v: self.version1_selected.emit(v) if v else None
         )
@@ -238,8 +140,9 @@ class CompareVersionsView(BaseTabView):
 
         # Version 2
         version2_layout = QVBoxLayout()
-        version2_layout.addWidget(QLabel("Version 2:"))
-        self.version2_combo = QComboBox()
+        v2_label = StandardLabel("Version 2:", style=TextStyle.LABEL)
+        version2_layout.addWidget(v2_label)
+        self.version2_combo = StandardComboBox(size=ComboSize.SINGLE)
         self.version2_combo.currentTextChanged.connect(
             lambda v: self.version2_selected.emit(v) if v else None
         )
@@ -248,14 +151,20 @@ class CompareVersionsView(BaseTabView):
 
         header_layout.addLayout(version_row)
 
-        # Drag-drop areas
+        # Drag-drop areas (using standardized component)
         drop_row = QHBoxLayout()
 
-        self.drop_area1 = DropArea("Drag & Drop Version 1\n(sets to 'Custom')")
+        self.drop_area1 = StandardDropArea(
+            label_text="Drag & Drop Version 1\n(sets to 'Custom')",
+            allowed_extensions=('.csv', '.xlsx', '.xls')
+        )
         self.drop_area1.file_dropped.connect(self.custom_file1_dropped)
         drop_row.addWidget(self.drop_area1)
 
-        self.drop_area2 = DropArea("Drag & Drop Version 2\n(sets to 'Custom')")
+        self.drop_area2 = StandardDropArea(
+            label_text="Drag & Drop Version 2\n(sets to 'Custom')",
+            allowed_extensions=('.csv', '.xlsx', '.xls')
+        )
         self.drop_area2.file_dropped.connect(self.custom_file2_dropped)
         drop_row.addWidget(self.drop_area2)
 
@@ -267,17 +176,27 @@ class CompareVersionsView(BaseTabView):
 
         # Results header with filter/export buttons
         results_header = QHBoxLayout()
-        results_label = QLabel("Comparison Results:")
-        results_label.setStyleSheet("font-size: 10pt; font-weight: bold;")
+        results_label = StandardLabel(
+            "Comparison Results:", style=TextStyle.SUBSECTION)
         results_header.addWidget(results_label)
         results_header.addStretch()
 
-        self.filter_changes_btn = QPushButton("🔍 Filter Changes Only")
+        # Filter button (SECONDARY role, HALF_WIDTH size)
+        self.filter_changes_btn = StandardButton(
+            "🔍 Filter Changes Only",
+            role=ButtonRole.SECONDARY,
+            size=ButtonSize.HALF_WIDTH
+        )
         self.filter_changes_btn.clicked.connect(self.filter_changes_requested)
         self.filter_changes_btn.setEnabled(False)
         results_header.addWidget(self.filter_changes_btn)
 
-        self.export_btn = QPushButton("📤 Export Results")
+        # Export button (INFO role, HALF_WIDTH size)
+        self.export_btn = StandardButton(
+            "📤 Export Results",
+            role=ButtonRole.INFO,
+            size=ButtonSize.HALF_WIDTH
+        )
         self.export_btn.clicked.connect(self.export_requested)
         self.export_btn.setEnabled(False)
         results_header.addWidget(self.export_btn)
@@ -293,9 +212,11 @@ class CompareVersionsView(BaseTabView):
         self.results_table.horizontalHeader().setStretchLastSection(True)
         content_layout.addWidget(self.results_table)
 
-        # Status label
-        self.results_status = QLabel("Select document and versions to compare")
-        self.results_status.setStyleSheet("color: #666; font-style: italic;")
+        # Status label (standardized STATUS style)
+        self.results_status = StandardLabel(
+            "Select document and versions to compare",
+            style=TextStyle.STATUS
+        )
         content_layout.addWidget(self.results_status)
 
         # Update the record count label from BaseTabView
@@ -462,8 +383,8 @@ class CompareVersionsView(BaseTabView):
             color: Text color
         """
         self.results_status.setText(message)
-        self.results_status.setStyleSheet(
-            f"color: {color}; font-style: italic;")
+        # Use StandardLabel's set_color method
+        self.results_status.set_color(color)
         self.record_count_label.setText(message)
 
         # Also update footer box with timestamped log

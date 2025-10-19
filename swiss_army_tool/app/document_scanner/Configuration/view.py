@@ -9,6 +9,7 @@ from PySide6.QtWidgets import (QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
 from PySide6.QtCore import Signal, Qt
 from PySide6.QtGui import QStandardItemModel, QStandardItem, QDragEnterEvent, QDropEvent
 from app.ui.base_sub_tab_view import BaseTabView
+from app.ui.components.label import StandardLabel, TextStyle
 import pandas as pd
 from pathlib import Path
 
@@ -37,9 +38,9 @@ class DropZoneWidget(QFrame):
 
         layout = QVBoxLayout(self)
 
-        self.drop_label = QLabel("📄 Drag & drop file here\nor")
+        self.drop_label = StandardLabel(
+            "📄 Drag & drop file here\nor", style=TextStyle.SECTION)
         self.drop_label.setAlignment(Qt.AlignCenter)
-        self.drop_label.setStyleSheet("font-size: 12pt; color: gray;")
         layout.addWidget(self.drop_label)
 
         self.browse_btn = QPushButton("📁 Browse for File")
@@ -133,9 +134,7 @@ class AddDocumentDialog(QDialog):
         self.drop_zone.file_dropped.connect(self._on_file_selected)
         self.step1_group.layout().addWidget(self.drop_zone)
 
-        self.file_path_label = QLabel("")
-        self.file_path_label.setStyleSheet(
-            "color: gray; font-style: italic; margin-top: 10px;")
+        self.file_path_label = StandardLabel("", style=TextStyle.NOTES)
         self.file_path_label.setVisible(False)
         self.step1_group.layout().addWidget(self.file_path_label)
 
@@ -540,8 +539,8 @@ class ConfigurationView(BaseTabView):
         header_layout.addLayout(title_row)
 
         # Status label
-        self.status_label = QLabel("No documents configured")
-        self.status_label.setStyleSheet("color: gray; font-size: 10pt;")
+        self.status_label = StandardLabel(
+            "No documents configured", style=TextStyle.STATUS)
         header_layout.addWidget(self.status_label)
 
         # Documents table in left content

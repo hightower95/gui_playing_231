@@ -1,11 +1,12 @@
 """
 Document Scanner Search View
 """
-from PySide6.QtWidgets import (QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
+from PySide6.QtWidgets import (QVBoxLayout, QHBoxLayout, QPushButton,
                                QLineEdit, QTreeView, QProgressBar, QTextEdit)
 from PySide6.QtCore import Signal, Qt
 from PySide6.QtGui import QStandardItemModel, QStandardItem
 from app.ui.base_sub_tab_view import BaseTabView
+from app.ui.components import StandardLabel, TextStyle
 from app.document_scanner.search_result import SearchResult
 from typing import List, Dict
 
@@ -30,14 +31,14 @@ class SearchView(BaseTabView):
         header_layout.setContentsMargins(10, 10, 10, 10)
 
         # Title
-        title_label = QLabel("Document Search")
-        title_label.setStyleSheet("font-size: 14pt; font-weight: bold;")
+        title_label = StandardLabel("Document Search", style=TextStyle.TITLE)
         header_layout.addWidget(title_label)
 
         # Search input row
         search_row = QHBoxLayout()
 
-        search_row.addWidget(QLabel("Search Term:"))
+        search_row.addWidget(StandardLabel(
+            "Search Term:", style=TextStyle.LABEL))
 
         self.search_input = QLineEdit()
         self.search_input.setPlaceholderText("Enter search term...")
@@ -57,9 +58,8 @@ class SearchView(BaseTabView):
         header_layout.addLayout(search_row)
 
         # Status label
-        self.status_label = QLabel(
-            "Ready - Configure documents in Configuration tab")
-        self.status_label.setStyleSheet("color: gray; font-size: 10pt;")
+        self.status_label = StandardLabel(
+            "Ready - Configure documents in Configuration tab", style=TextStyle.STATUS)
         header_layout.addWidget(self.status_label)
 
         # Results table in left content

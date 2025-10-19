@@ -3,6 +3,7 @@ from PySide6.QtWidgets import (QWidget, QLineEdit, QHBoxLayout, QPushButton, QLa
                                QApplication, QComboBox, QSpacerItem, QFrame, QFormLayout)
 from PySide6.QtCore import Signal, Qt
 from app.ui.base_sub_tab_view import BaseTabView
+from app.ui.components import StandardLabel, TextStyle
 from app.ui.table_context_menu_mixin import TableContextMenuMixin
 from app.core.config import UI_COLORS, UI_STYLES, FilterOperator, get_all_operators
 from app.epd.IdentifyBestEpd.config import FIELD_OPERATOR_DEFAULTS
@@ -31,7 +32,7 @@ class FilterWidget(QWidget):
         container_layout.setContentsMargins(0, 0, 0, 0)
         container_layout.setSpacing(0)
 
-        # Filter text label
+        # Filter text label - using QLabel here for custom pill styling
         filter_text = f"{self.field_name}: {self.operator} '{self.value}'"
         self.label = QLabel(filter_text)
         self.label.setStyleSheet(f"""
@@ -130,9 +131,7 @@ class IdentifyBestEpdView(BaseTabView, TableContextMenuMixin):
 
         # Title row
         title_layout = QHBoxLayout()
-        title_label = QLabel("Identify Best EPD")
-        title_label.setStyleSheet(
-            f"font-weight: bold; font-size: 14px; color: {UI_COLORS['section_border']};")
+        title_label = StandardLabel("Identify Best EPD", style=TextStyle.TITLE)
         title_layout.addWidget(title_label)
         title_layout.addStretch()
         # Add help button from base class
@@ -142,7 +141,7 @@ class IdentifyBestEpdView(BaseTabView, TableContextMenuMixin):
         filter_layout = QHBoxLayout()
 
         # Field selector
-        field_label = QLabel("Field:")
+        field_label = StandardLabel("Field:", style=TextStyle.LABEL)
         self.field_combo = QComboBox()
         self.field_combo.addItems(["AWG", "Cable", "Description", "EPD"])
         self.field_combo.setMinimumWidth(100)
@@ -151,7 +150,7 @@ class IdentifyBestEpdView(BaseTabView, TableContextMenuMixin):
         self.field_combo.currentTextChanged.connect(self._on_field_changed)
 
         # Operator selector
-        operator_label = QLabel("Operator:")
+        operator_label = StandardLabel("Operator:", style=TextStyle.LABEL)
         self.operator_combo = QComboBox()
         self.operator_combo.addItems(get_all_operators())
         self.operator_combo.setMinimumWidth(120)
@@ -160,7 +159,7 @@ class IdentifyBestEpdView(BaseTabView, TableContextMenuMixin):
         self._set_default_operator_for_field(self.field_combo.currentText())
 
         # Value input
-        value_label = QLabel("Value:")
+        value_label = StandardLabel("Value:", style=TextStyle.LABEL)
         self.value_input = QLineEdit()
         self.value_input.setPlaceholderText("Enter filter value...")
         self.value_input.setMinimumWidth(150)
@@ -210,8 +209,8 @@ class IdentifyBestEpdView(BaseTabView, TableContextMenuMixin):
         self.progress_bar.setMaximumWidth(200)
 
         # Status label
-        self.status_label = QLabel("Ready - Add filters to identify best EPD")
-        self.status_label.setStyleSheet("color: gray; font-size: 10px;")
+        self.status_label = StandardLabel(
+            "Ready - Add filters to identify best EPD", style=TextStyle.STATUS)
 
         action_layout.addWidget(self.refresh_button)
         action_layout.addWidget(self.export_button)
@@ -279,7 +278,7 @@ class IdentifyBestEpdView(BaseTabView, TableContextMenuMixin):
         main_layout.setContentsMargins(5, 5, 5, 5)
         main_layout.setSpacing(8)
 
-        # Header for filters section
+        # Header for filters section - keeping QLabel for custom dark theme styling
         filters_header = QLabel("Active Filters")
         filters_header.setStyleSheet(f"""
             QLabel {{
@@ -304,7 +303,7 @@ class IdentifyBestEpdView(BaseTabView, TableContextMenuMixin):
         main_layout.setContentsMargins(5, 5, 5, 5)
         main_layout.setSpacing(8)
 
-        # Header for filters section
+        # Header for filters section - keeping QLabel for custom dark theme styling
         filters_header = QLabel("Active Filters")
         filters_header.setStyleSheet("""
             QLabel {
@@ -338,7 +337,7 @@ class IdentifyBestEpdView(BaseTabView, TableContextMenuMixin):
         self.filters_layout.setContentsMargins(8, 8, 8, 8)
         self.filters_layout.setSpacing(6)
 
-        # No filters placeholder
+        # No filters placeholder - keeping QLabel for custom dark theme styling
         self.no_filters_label = QLabel("No active filters")
         self.filters_container.setStyleSheet(f"""
             QWidget {{
@@ -365,7 +364,7 @@ class IdentifyBestEpdView(BaseTabView, TableContextMenuMixin):
         scroll_area.setWidget(self.filters_container)
         main_layout.addWidget(scroll_area)
 
-        # EPD Details section header
+        # EPD Details section header - keeping QLabel for custom dark theme styling
         details_header = QLabel("Selected EPD Details")
         details_header.setStyleSheet(f"""
             QLabel {{
@@ -382,7 +381,7 @@ class IdentifyBestEpdView(BaseTabView, TableContextMenuMixin):
         details_header.setFixedHeight(22)
         main_layout.addWidget(details_header)
 
-        # EPD details text area - matching no_filters_label styling
+        # EPD details text area - keeping QLabel for custom dark theme styling
         self.epd_details_text = QLabel(
             "Select an EPD record to see details here")
         self.epd_details_text.setWordWrap(True)

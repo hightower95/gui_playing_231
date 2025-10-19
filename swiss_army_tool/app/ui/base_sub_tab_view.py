@@ -8,6 +8,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Signal, Qt
 from PySide6.QtGui import QCursor
 from ..core.config import UI_COLORS, UI_STYLES
+from .components.label import StandardLabel, TextStyle
 
 
 class BaseTabView(QWidget):
@@ -36,6 +37,7 @@ class BaseTabView(QWidget):
         self.header_frame.setFixedHeight(80)  # approx 10% of a 800px window
 
         # Create help label (to be added by subclass in their title row)
+        # Help label - keeping QLabel for custom hover behavior and click interaction
         self.help_label = QLabel("? Help")
         self.help_label.setStyleSheet(f"""
             QLabel {{
@@ -84,19 +86,11 @@ class BaseTabView(QWidget):
         left_layout.addWidget(output_label)
         self.left_content_frame = QFrame()
         self.left_content_frame.setFrameShape(QFrame.StyledPanel)
-        self.left_layout.addWidget(
-            self.left_content_frame, 1)  # Stretch factor 1
+        left_layout.addWidget(self.left_content_frame, 1)  # Stretch factor 1
 
         # Add record count label at bottom of left pane
-        self.record_count_label = QLabel("Ready")
-        self.record_count_label.setStyleSheet(f"""
-            QLabel {{
-                color: gray;
-                font-size: 10px;
-                padding: 5px;
-                border-top: 1px solid {UI_COLORS['dark_border']};
-            }}
-        """)
+        self.record_count_label = StandardLabel(
+            "Ready", style=TextStyle.STATUS)
         self.record_count_label.setFixedHeight(25)
         left_layout.addWidget(self.record_count_label)
         # self.left_layout.setStretchFactor(self.left_content_frame, 1)

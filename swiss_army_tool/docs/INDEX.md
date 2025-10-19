@@ -9,6 +9,70 @@ Welcome to the Swiss Army Tool documentation. This comprehensive engineering too
 - [Installation Guide](#installation)
 - [Configuration Guide](#configuration)
 
+---
+
+## 🎨 UI Component Library (NEW!)
+
+**Essential for all UI development - standardized, reusable components with consistent styling**
+
+- **[Component Library Summary](COMPONENT_LIBRARY_SUMMARY.md)** ⭐ **START HERE**
+  - Complete overview of the component system
+  - Impact analysis (90% code reduction potential)
+  - Benefits for developers and users
+  - Migration strategy and timeline
+  - Success metrics
+
+- **[Component Library Reference](COMPONENT_LIBRARY.md)** 📚 **COMPLETE GUIDE**
+  - Full API documentation for all components
+  - Usage examples and visual guides
+  - Design system reference (colors, typography, spacing)
+  - Before/after migration patterns
+  - Best practices and troubleshooting
+  - 850+ lines of comprehensive documentation
+
+- **[Quick Reference Card](COMPONENT_QUICK_REF.md)** ⚡ **QUICK LOOKUP**
+  - Instant syntax reference for all components
+  - Common patterns and recipes
+  - Color palette and size charts
+  - Common mistakes to avoid
+  - Perfect for daily development
+
+- **[Migration Checklist](MIGRATION_CHECKLIST.md)** ✅ **STEP-BY-STEP GUIDE**
+  - 7-phase migration process
+  - Component-by-component replacement guides
+  - Testing and validation checklists
+  - Progress tracking
+  - Team guidelines
+
+**Component Source Code:**
+- `app/ui/components.py` - Full implementation (927 lines)
+  - StandardButton (6 role variants)
+  - StandardLabel (6 text styles)
+  - StandardComboBox (3 size variants)
+  - StandardInput (consistent text entry)
+  - StandardDropArea (drag-drop file upload)
+  - Helper functions (button rows, form rows)
+
+**Example Implementation:**
+- `app/document_scanner/CompareVersions/view.py` - First refactored view
+  - 88 lines removed (18% smaller)
+  - Zero inline styling
+  - Clean, maintainable code
+
+**Quick Start:**
+```python
+from app.ui.components import (
+    StandardButton, ButtonRole,
+    StandardLabel, TextStyle,
+    StandardComboBox, ComboSize
+)
+
+# Instead of 15 lines of styling code:
+btn = StandardButton("Save", role=ButtonRole.PRIMARY)
+```
+
+---
+
 ### Core Features
 
 #### Document Scanner

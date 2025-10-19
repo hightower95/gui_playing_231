@@ -7,6 +7,7 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushB
 from PySide6.QtCore import Signal, Qt, QSize
 from PySide6.QtGui import QCursor, QPixmap
 from app.ui.base_sub_tab_view import BaseTabView
+from app.ui.components.label import StandardLabel, TextStyle
 from app.ui.table_context_menu_mixin import TableContextMenuMixin
 from app.core.config import UI_COLORS, UI_STYLES
 from app.connector.Lookup.config import (
@@ -364,16 +365,7 @@ class LookupConnectorView(BaseTabView, TableContextMenuMixin):
         container_layout.setSpacing(3)
 
         # Create label
-        label = QLabel(label_text)
-        label.setStyleSheet(f"""
-            QLabel {{
-                font-weight: bold; 
-                color: {UI_COLORS['highlight_text']};
-                font-size: 9pt;
-                padding-bottom: 0px;
-                margin-bottom: 0px;
-            }}
-        """)
+        label = StandardLabel(label_text, style=TextStyle.LABEL)
 
         # Create dual-column multiselect
         left_list, right_list = self._create_dual_column_multiselect(items)
@@ -405,14 +397,7 @@ class LookupConnectorView(BaseTabView, TableContextMenuMixin):
         # === Title Row ===
         title_row = QHBoxLayout()
 
-        title_label = QLabel("Connector Lookup")
-        title_label.setStyleSheet(f"""
-            QLabel {{
-                font-size: 14pt;
-                font-weight: bold;
-                color: {UI_COLORS['section_border']};
-            }}
-        """)
+        title_label = StandardLabel("Connector Lookup", style=TextStyle.TITLE)
 
         title_row.addWidget(title_label)
         title_row.addStretch()
@@ -481,6 +466,7 @@ class LookupConnectorView(BaseTabView, TableContextMenuMixin):
         advanced_search_row.setContentsMargins(
             0, 15, 0, 0)  # No bottom spacing
 
+        # Advanced search toggle label - keeping QLabel for custom hover behavior
         self.advanced_search_label = QLabel(
             "▶ Advanced Search")  # Start collapsed
         self.advanced_search_label.setStyleSheet(f"""
@@ -681,6 +667,7 @@ class LookupConnectorView(BaseTabView, TableContextMenuMixin):
 
         # Right side: Image placeholder for connector pinout (only if enabled)
         if ENABLE_PINOUT_IMAGE:
+            # Pinout image container - keeping QLabel for image display with custom border
             self.pinout_image_label = QLabel("No Image")
             self.pinout_image_label.setAlignment(Qt.AlignCenter)
             self.pinout_image_label.setFixedSize(200, 200)
@@ -773,13 +760,7 @@ class LookupConnectorView(BaseTabView, TableContextMenuMixin):
         footer_layout.setSpacing(10)
 
         # Recent searches label and dropdown
-        recent_label = QLabel("Recent Searches:")
-        recent_label.setStyleSheet(f"""
-            QLabel {{
-                color: {UI_COLORS['highlight_text']};
-                font-size: 9pt;
-            }}
-        """)
+        recent_label = StandardLabel("Recent Searches:", style=TextStyle.LABEL)
 
         self.recent_searches_combo = QComboBox()
         self.recent_searches_combo.setPlaceholderText(

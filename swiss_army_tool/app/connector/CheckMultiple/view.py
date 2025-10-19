@@ -9,6 +9,7 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushB
 from PySide6.QtCore import Signal, Qt, QSize, QRect
 from PySide6.QtGui import QDragEnterEvent, QDropEvent, QCursor, QPainter, QColor
 from app.ui.base_sub_tab_view import BaseTabView
+from app.ui.components.label import StandardLabel, TextStyle
 from app.ui.table_context_menu_mixin import TableContextMenuMixin
 from app.core.config import UI_COLORS, UI_STYLES
 from app.connector.CheckMultiple.config import SUPPORTED_FILE_EXTENSIONS, PREVIEW_ROWS, BATCH_OPERATIONS
@@ -109,16 +110,9 @@ class FileUploadDialog(QDialog):
         drop_layout = QVBoxLayout(self.drop_zone)
         drop_layout.setAlignment(Qt.AlignCenter)
 
-        drop_label = QLabel("📁 Drop CSV, XLSX, or TXT file here\n\nor")
+        drop_label = StandardLabel(
+            "📁 Drop CSV, XLSX, or TXT file here\n\nor", style=TextStyle.TITLE)
         drop_label.setAlignment(Qt.AlignCenter)
-        drop_label.setStyleSheet(f"""
-            QLabel {{
-                color: {UI_COLORS['highlight_text']};
-                font-size: 14pt;
-                font-weight: bold;
-                border: none;
-            }}
-        """)
 
         self.browse_btn = QPushButton("Browse Files")
         self.browse_btn.setMinimumHeight(40)
@@ -157,14 +151,7 @@ class FileUploadDialog(QDialog):
         e3_layout = QVBoxLayout(self.e3_frame)
 
         # E3 Title
-        e3_title = QLabel("⚡ Load E3 Data")
-        e3_title.setStyleSheet(f"""
-            QLabel {{
-                font-size: 12pt;
-                font-weight: bold;
-                color: {UI_COLORS['highlight_text']};
-            }}
-        """)
+        e3_title = StandardLabel("⚡ Load E3 Data", style=TextStyle.SECTION)
         e3_layout.addWidget(e3_title)
 
         # E3 Options
@@ -183,8 +170,8 @@ class FileUploadDialog(QDialog):
         project_layout = QVBoxLayout(project_container)
         project_layout.setContentsMargins(30, 0, 0, 10)
 
-        project_label = QLabel("Select Projects:")
-        project_label.setStyleSheet(f"color: {UI_COLORS['muted_text']};")
+        project_label = StandardLabel(
+            "Select Projects:", style=TextStyle.LABEL)
         project_layout.addWidget(project_label)
 
         # Use multiselect for projects
@@ -203,15 +190,8 @@ class FileUploadDialog(QDialog):
         e3_options_layout.addWidget(project_container)
 
         # Warning label
-        self.e3_warning_label = QLabel(
-            "⚠️ This operation can take several minutes")
-        self.e3_warning_label.setStyleSheet(f"""
-            QLabel {{
-                color: orange;
-                font-style: italic;
-                margin-left: 30px;
-            }}
-        """)
+        self.e3_warning_label = StandardLabel(
+            "⚠️ This operation can take several minutes", style=TextStyle.NOTES)
         self.e3_warning_label.setVisible(False)
         e3_options_layout.addWidget(self.e3_warning_label)
 
@@ -227,8 +207,7 @@ class FileUploadDialog(QDialog):
         cache_layout = QHBoxLayout(cache_container)
         cache_layout.setContentsMargins(30, 0, 0, 0)
 
-        cache_label = QLabel("Cache File:")
-        cache_label.setStyleSheet(f"color: {UI_COLORS['muted_text']};")
+        cache_label = StandardLabel("Cache File:", style=TextStyle.LABEL)
 
         self.e3_cache_path = QLineEdit()
         self.e3_cache_path.setEnabled(False)
@@ -283,9 +262,7 @@ class FileUploadDialog(QDialog):
         layout.addWidget(self.e3_frame)
 
         # === File Info ===
-        self.file_info_label = QLabel("")
-        self.file_info_label.setStyleSheet(
-            f"color: {UI_COLORS['highlight_text']}; font-weight: bold;")
+        self.file_info_label = StandardLabel("", style=TextStyle.LABEL)
         self.file_info_label.setVisible(False)
         layout.addWidget(self.file_info_label)
 
@@ -296,9 +273,7 @@ class FileUploadDialog(QDialog):
 
         # Search column selection
         search_row = QHBoxLayout()
-        search_label = QLabel("Search Column:")
-        search_label.setStyleSheet(
-            f"font-weight: bold; color: {UI_COLORS['highlight_text']};")
+        search_label = StandardLabel("Search Column:", style=TextStyle.LABEL)
         self.search_column_combo = QComboBox()
         self.search_column_combo.setMinimumWidth(200)
         search_row.addWidget(search_label)
@@ -307,18 +282,16 @@ class FileUploadDialog(QDialog):
         column_layout.addLayout(search_row)
 
         # Context columns selection - will be shown after preview
-        context_label = QLabel(
-            "Additional Context Columns (optional): Click column headers below to select")
-        context_label.setStyleSheet(
-            f"font-weight: bold; color: {UI_COLORS['highlight_text']}; margin-top: 10px;")
+        context_label = StandardLabel(
+            "Additional Context Columns (optional): Click column headers below to select",
+            style=TextStyle.LABEL)
         context_label.setVisible(False)
         self.context_label = context_label
         column_layout.addWidget(context_label)
 
         # Selected context columns display
-        self.selected_context_label = QLabel("Selected: None")
-        self.selected_context_label.setStyleSheet(
-            f"color: {UI_COLORS['muted_text']}; margin-left: 20px; font-style: italic;")
+        self.selected_context_label = StandardLabel(
+            "Selected: None", style=TextStyle.NOTES)
         self.selected_context_label.setVisible(False)
         column_layout.addWidget(self.selected_context_label)
 
@@ -328,9 +301,8 @@ class FileUploadDialog(QDialog):
         self.selected_context_columns = set()
 
         # === Preview Area ===
-        preview_label = QLabel(f"Preview (first {PREVIEW_ROWS} rows):")
-        preview_label.setStyleSheet(
-            f"font-weight: bold; color: {UI_COLORS['highlight_text']}; margin-top: 10px;")
+        preview_label = StandardLabel(
+            f"Preview (first {PREVIEW_ROWS} rows):", style=TextStyle.LABEL)
         preview_label.setVisible(False)
         self.preview_label = preview_label
         layout.addWidget(preview_label)
@@ -679,9 +651,7 @@ class FilterDialog(QDialog):
         else:
             title_text = "Select filters to apply to opposite search:"
 
-        title = QLabel(title_text)
-        title.setStyleSheet(
-            f"font-weight: bold; font-size: 12pt; color: {UI_COLORS['highlight_text']};")
+        title = StandardLabel(title_text, style=TextStyle.SECTION)
         layout.addWidget(title)
 
         # Scrollable filter area
@@ -715,9 +685,7 @@ class FilterDialog(QDialog):
         for filter_name, filter_options in filters:
             row = QHBoxLayout()
 
-            label = QLabel(f"{filter_name}:")
-            label.setStyleSheet(
-                f"color: {UI_COLORS['highlight_text']}; font-weight: bold;")
+            label = StandardLabel(f"{filter_name}:", style=TextStyle.LABEL)
             label.setMinimumWidth(150)
 
             filter_key = filter_name.lower().replace(' ', '_')
@@ -837,14 +805,7 @@ class CheckMultipleConnectorView(BaseTabView, TableContextMenuMixin):
 
         # Title row
         title_row = QHBoxLayout()
-        title_label = QLabel("Check Multiple")
-        title_label.setStyleSheet(f"""
-            QLabel {{
-                font-size: 14pt;
-                font-weight: bold;
-                color: {UI_COLORS['section_border']};
-            }}
-        """)
+        title_label = StandardLabel("Check Multiple", style=TextStyle.TITLE)
         title_row.addWidget(title_label)
         title_row.addStretch()
         title_row.addWidget(self.help_label)
@@ -920,9 +881,8 @@ class CheckMultipleConnectorView(BaseTabView, TableContextMenuMixin):
             }}
         """)
 
-        self.file_status_label = QLabel("No file imported")
-        self.file_status_label.setStyleSheet(
-            f"color: {UI_COLORS['muted_text']};")
+        self.file_status_label = StandardLabel(
+            "No file imported", style=TextStyle.STATUS)
 
         button_row.addWidget(self.add_parts_btn)
         button_row.addWidget(self.clear_results_btn)
@@ -965,14 +925,7 @@ class CheckMultipleConnectorView(BaseTabView, TableContextMenuMixin):
         operations_layout.setContentsMargins(10, 10, 10, 10)
 
         # Title
-        ops_title = QLabel("Batch Operations")
-        ops_title.setStyleSheet(f"""
-            QLabel {{
-                font-size: 12pt;
-                font-weight: bold;
-                color: {UI_COLORS['highlight_text']};
-            }}
-        """)
+        ops_title = StandardLabel("Batch Operations", style=TextStyle.SECTION)
         operations_layout.addWidget(ops_title)
 
         # 2-column grid of buttons
