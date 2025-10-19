@@ -4,6 +4,7 @@ from app.presenters.connectors_presenter import ConnectorsPresenter
 from app.presenters.fault_presenter import FaultFindingPresenter
 from app.document_scanner import DocumentScannerModuleView
 from app.connector.connector_context_provider import ConnectorContextProvider
+from app.remote_docs import RemoteDocsPresenter
 
 
 class MainWindow(QMainWindow):
@@ -21,6 +22,7 @@ class MainWindow(QMainWindow):
         self.fault_finding = FaultFindingPresenter(
             context, self.epd.model)
         self.document_scanner = DocumentScannerModuleView(context)
+        self.remote_docs = RemoteDocsPresenter(context)
 
         # Register context providers with document scanner
         # This allows the connector tab to provide additional context to search results
@@ -32,3 +34,4 @@ class MainWindow(QMainWindow):
         self.tabs.addTab(self.connectors.view, self.connectors.title)
         self.tabs.addTab(self.fault_finding.view, self.fault_finding.title)
         self.tabs.addTab(self.document_scanner, "Document Scanner")
+        self.tabs.addTab(self.remote_docs.view, self.remote_docs.title)
