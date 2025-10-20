@@ -30,7 +30,8 @@ class QueryViewerView(QWidget):
         layout.setSpacing(10)
 
         # Header
-        header = StandardLabel("Azure DevOps Query Viewer", style=TextStyle.TITLE)
+        header = StandardLabel(
+            "Azure DevOps Query Viewer", style=TextStyle.TITLE)
         layout.addWidget(header)
 
         # Description
@@ -57,7 +58,8 @@ class QueryViewerView(QWidget):
         type_row.addWidget(StandardLabel("Query Type:", style=TextStyle.LABEL))
         self.query_type_combo = QComboBox()
         self.query_type_combo.addItems(["Saved Query (ID)", "WIQL Query"])
-        self.query_type_combo.currentTextChanged.connect(self._on_query_type_changed)
+        self.query_type_combo.currentTextChanged.connect(
+            self._on_query_type_changed)
         type_row.addWidget(self.query_type_combo)
         type_row.addStretch()
         top_layout.addLayout(type_row)
@@ -89,7 +91,8 @@ class QueryViewerView(QWidget):
         self.clear_button.clicked.connect(self._on_clear)
         button_row.addWidget(self.clear_button)
 
-        self.execute_button = StandardButton("Execute Query", role=ButtonRole.PRIMARY)
+        self.execute_button = StandardButton(
+            "Execute Query", role=ButtonRole.PRIMARY)
         self.execute_button.clicked.connect(self._on_execute)
         self.execute_button.setEnabled(False)  # Disabled until connected
         button_row.addWidget(self.execute_button)
@@ -126,19 +129,21 @@ class QueryViewerView(QWidget):
         layout.addWidget(splitter)
 
         # Initialize status
-        self.set_status("Not connected. Please enter Azure DevOps credentials.")
+        self.set_status(
+            "Not connected. Please enter Azure DevOps credentials.")
 
     def _create_connection_section(self, parent_layout):
         """Create the Azure DevOps connection section"""
         from app.ui.components import StandardGroupBox
-        
+
         conn_group = StandardGroupBox("Azure DevOps Connection")
         conn_layout = QVBoxLayout()
         conn_layout.setSpacing(8)
 
         # Organization
         org_row = QHBoxLayout()
-        org_row.addWidget(StandardLabel("Organization:", style=TextStyle.LABEL))
+        org_row.addWidget(StandardLabel(
+            "Organization:", style=TextStyle.LABEL))
         self.org_input = StandardInput(placeholder="organization-name")
         self.org_input.setToolTip("Your Azure DevOps organization name")
         org_row.addWidget(self.org_input)
@@ -158,14 +163,16 @@ class QueryViewerView(QWidget):
         self.pat_input = QLineEdit()
         self.pat_input.setPlaceholderText("Personal Access Token")
         self.pat_input.setEchoMode(QLineEdit.Password)
-        self.pat_input.setToolTip("Personal Access Token with Work Items (Read) permission")
+        self.pat_input.setToolTip(
+            "Personal Access Token with Work Items (Read) permission")
         pat_row.addWidget(self.pat_input)
         conn_layout.addLayout(pat_row)
 
         # Connect button
         connect_btn_row = QHBoxLayout()
         connect_btn_row.addStretch()
-        self.connect_button = StandardButton("Connect", role=ButtonRole.SUCCESS)
+        self.connect_button = StandardButton(
+            "Connect", role=ButtonRole.SUCCESS)
         self.connect_button.clicked.connect(self._on_connect)
         connect_btn_row.addWidget(self.connect_button)
         conn_layout.addLayout(connect_btn_row)
@@ -184,7 +191,8 @@ class QueryViewerView(QWidget):
         pat = self.pat_input.text().strip()
 
         if not org or not project or not pat:
-            self.set_connection_status("Please fill in all connection fields", is_error=True)
+            self.set_connection_status(
+                "Please fill in all connection fields", is_error=True)
             return
 
         self.connect_requested.emit(org, project, pat)
@@ -292,7 +300,8 @@ class QueryViewerView(QWidget):
         self.results_table.resizeColumnsToContents()
 
         # Update status
-        self.set_status(f"Query executed successfully. {len(rows)} row(s) returned.")
+        self.set_status(
+            f"Query executed successfully. {len(rows)} row(s) returned.")
 
     def clear_results(self):
         """Clear the results table"""

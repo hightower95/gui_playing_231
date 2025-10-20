@@ -21,7 +21,8 @@ class QueryViewerPresenter(QObject):
         self.view.clear_requested.connect(self._on_clear)
 
         # Connect model signals to view updates
-        self.model.connection_successful.connect(self._on_connection_successful)
+        self.model.connection_successful.connect(
+            self._on_connection_successful)
         self.model.connection_failed.connect(self._on_connection_failed)
         self.model.query_executed.connect(self._on_query_executed)
         self.model.error_occurred.connect(self._on_error)

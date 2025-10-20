@@ -100,13 +100,14 @@ class QueryViewerModel(QObject):
         # from azure.devops.v7_0.work_item_tracking.models import Wiql
         # wit_client = self.connection.clients.get_work_item_tracking_client()
         # query_result = wit_client.query_by_id(query_id)
-        
+
         # Placeholder implementation
         headers = ["ID", "Title", "State", "Assigned To", "Work Item Type"]
         rows = [
             ["12345", "Sample Bug", "Active", "user@example.com", "Bug"],
             ["12346", "Sample Task", "New", "user2@example.com", "Task"],
-            ["12347", "Sample Feature", "In Progress", "user@example.com", "Feature"],
+            ["12347", "Sample Feature", "In Progress",
+                "user@example.com", "Feature"],
         ]
 
         return (headers, rows)
@@ -126,14 +127,19 @@ class QueryViewerModel(QObject):
         # wiql_object = Wiql(query=wiql)
         # query_result = wit_client.query_by_wiql(wiql_object)
         # work_items = wit_client.get_work_items(ids=[item.id for item in query_result.work_items])
-        
+
         # Placeholder implementation
-        headers = ["ID", "Title", "State", "Assigned To", "Work Item Type", "Created Date"]
+        headers = ["ID", "Title", "State", "Assigned To",
+                   "Work Item Type", "Created Date"]
         rows = [
-            ["12345", "Implement feature X", "Active", "john.doe@example.com", "Bug", "2025-10-15"],
-            ["12346", "Fix login issue", "New", "jane.smith@example.com", "Bug", "2025-10-16"],
-            ["12347", "Update documentation", "Active", "john.doe@example.com", "Task", "2025-10-17"],
-            ["12348", "Add validation", "In Progress", "bob.jones@example.com", "Task", "2025-10-18"],
+            ["12345", "Implement feature X", "Active",
+                "john.doe@example.com", "Bug", "2025-10-15"],
+            ["12346", "Fix login issue", "New",
+                "jane.smith@example.com", "Bug", "2025-10-16"],
+            ["12347", "Update documentation", "Active",
+                "john.doe@example.com", "Task", "2025-10-17"],
+            ["12348", "Add validation", "In Progress",
+                "bob.jones@example.com", "Task", "2025-10-18"],
         ]
 
         return (headers, rows)
