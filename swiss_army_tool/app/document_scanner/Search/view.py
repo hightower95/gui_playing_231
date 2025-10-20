@@ -19,6 +19,7 @@ class SearchView(BaseTabView):
     # Signals
     search_requested = Signal(str)  # search_term
     reload_requested = Signal()  # reload all documents
+    open_document_requested = Signal(str)  # document_name
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -77,7 +78,11 @@ class SearchView(BaseTabView):
         self.results_tree = QTreeView()
         self.results_tree.setAlternatingRowColors(True)
         self.results_tree.setSelectionBehavior(QTreeView.SelectRows)
-        self.results_tree.setExpandsOnDoubleClick(True)
+        self.results_tree.setExpandsOnDoubleClick(
+            False)  # We'll handle double-click ourselves
+        self.results_tree.setToolTip(
+            "Double-click a result to open the source document")
+        self.results_tree.setContextMenuPolicy(Qt.CustomContextMenu)
 
         # Setup results model
         self.results_model = QStandardItemModel()
@@ -85,9 +90,12 @@ class SearchView(BaseTabView):
         self.results_tree.setModel(self.results_model)
         self.results_tree.header().setStretchLastSection(True)
 
-        # Connect selection signal
+        # Connect signals
         self.results_tree.selectionModel().selectionChanged.connect(
             self._on_selection_changed)
+        self.results_tree.doubleClicked.connect(self._on_result_double_clicked)
+        self.results_tree.customContextMenuRequested.connect(
+            self._on_context_menu)
 
         results_layout.addWidget(self.results_tree)
 
@@ -151,23 +159,118 @@ class SearchView(BaseTabView):
 
         # Check if item has user data (SearchResult object)
         result = item.data(Qt.UserRole)
-        if not result:
+
+        # Check if this is a document header (contains string, not SearchResult)
+        if isinstance(result, str) or not hasattr(result, 'matched_row_data'):
+            # Document header or other non-result item - clear context panel
+            self._clear_context_layout()
             return
 
         # Clear previous context widgets
         self._clear_context_layout()
 
-        # Show matched data section (always visible, not collapsible)
-        if result.matched_row_data:
-            self._create_matched_data_section(result)
-
         # Show each context as a collapsible section
         if result.has_contexts():
             for ctx in result.contexts:
                 self._create_collapsible_context(ctx)
+        else:
+            # Show message if no context available
+            no_context_label = StandardLabel(
+                "No additional context available for this result",
+                style=TextStyle.LABEL
+            )
+            no_context_label.setStyleSheet("color: gray; font-style: italic;")
+            self.context_layout.addWidget(no_context_label)
 
         # Add stretch at the end
         self.context_layout.addStretch()
+
+    def _on_result_double_clicked(self, index):
+        """Handle double-click on a result - open the source document
+
+        Args:
+            index: QModelIndex of the clicked item
+        """
+        item = self.results_model.itemFromIndex(index)
+        if not item:
+            return
+
+        # Check if this is a document header
+        item_type = item.data(Qt.UserRole + 1)
+        if item_type == "document_header":
+            # Document header clicked - get document name and open
+            doc_name = item.data(Qt.UserRole)
+            if doc_name:
+                print(f"📂 Double-clicked document header: {doc_name}")
+                self.open_document_requested.emit(doc_name)
+            return
+
+        # Otherwise, check if it's a result row
+        result = item.data(Qt.UserRole)
+        if result:
+            # Result row clicked - open its document
+            self._open_document(result)
+        elif item.hasChildren():
+            # Some other item with children - expand/collapse it
+            if self.results_tree.isExpanded(index):
+                self.results_tree.collapse(index)
+            else:
+                self.results_tree.expand(index)
+
+    def _open_document(self, result: SearchResult):
+        """Open the source document in the default application
+
+        Args:
+            result: SearchResult containing document information
+        """
+        print(f"📂 Double-clicked: {result.document_name}")
+
+        # Emit signal for presenter to handle (it has access to document paths)
+        self.open_document_requested.emit(result.document_name)
+
+    def _on_context_menu(self, position):
+        """Show context menu on right-click
+
+        Args:
+            position: Position where the context menu was requested
+        """
+        from PySide6.QtWidgets import QMenu
+        from PySide6.QtGui import QAction
+
+        # Get the item at the clicked position
+        index = self.results_tree.indexAt(position)
+        if not index.isValid():
+            return
+
+        item = self.results_model.itemFromIndex(index)
+        if not item:
+            return
+
+        # Check what was clicked
+        item_type = item.data(Qt.UserRole + 1)
+        result = item.data(Qt.UserRole)
+
+        # Create context menu
+        menu = QMenu(self)
+
+        if item_type == "document_header":
+            # Document header - offer to open document
+            doc_name = result  # For headers, UserRole contains the document name
+            if doc_name:
+                open_action = QAction(f"📂 Open {doc_name}", self)
+                open_action.triggered.connect(
+                    lambda: self.open_document_requested.emit(doc_name))
+                menu.addAction(open_action)
+        elif result and hasattr(result, 'document_name'):
+            # Result row - offer to open its document
+            open_action = QAction(f"📂 Open {result.document_name}", self)
+            open_action.triggered.connect(
+                lambda: self.open_document_requested.emit(result.document_name))
+            menu.addAction(open_action)
+
+        # Show menu if it has actions
+        if not menu.isEmpty():
+            menu.exec(self.results_tree.viewport().mapToGlobal(position))
 
     def _clear_context_layout(self):
         """Remove all widgets from context layout"""
@@ -175,32 +278,6 @@ class SearchView(BaseTabView):
             item = self.context_layout.takeAt(0)
             if item.widget():
                 item.widget().deleteLater()
-
-    def _create_matched_data_section(self, result: SearchResult):
-        """Create matched data display section - non-collapsible StandardGroupBox"""
-        group = StandardGroupBox("Matched Data", collapsible=False)
-
-        layout = QVBoxLayout()
-        layout.setContentsMargins(8, 5, 8, 5)
-        layout.setSpacing(3)
-
-        # Data rows
-        for key, value in result.matched_row_data.items():
-            row_layout = QHBoxLayout()
-            row_layout.setSpacing(5)
-
-            key_label = StandardLabel(f"{key}:", style=TextStyle.LABEL)
-            key_label.setStyleSheet("font-weight: bold;")
-            row_layout.addWidget(key_label)
-
-            value_label = StandardLabel(str(value), style=TextStyle.LABEL)
-            value_label.setWordWrap(True)
-            row_layout.addWidget(value_label, 1)
-
-            layout.addLayout(row_layout)
-
-        group.setLayout(layout)
-        self.context_layout.addWidget(group)
 
     def _create_collapsible_context(self, context: Context):
         """Create a collapsible context section using StandardGroupBox"""
@@ -328,6 +405,11 @@ class SearchView(BaseTabView):
             font = doc_item.font()
             font.setBold(True)
             doc_item.setFont(font)
+            # Store document name in UserRole for easy access
+            doc_item.setData(doc_name, Qt.UserRole)
+            # Mark as document header
+            doc_item.setData("document_header", Qt.UserRole + 1)
+            doc_item.setToolTip(f"Double-click to open {doc_name}")
             doc_header_items.append(doc_item)
 
             # Fill remaining columns with empty items
@@ -371,10 +453,16 @@ class SearchView(BaseTabView):
                 for idx, result in enumerate(doc_results, 1):
                     row = []
 
-                    # Row number
-                    num_item = QStandardItem(str(idx))
+                    # Row number with context indicator
+                    row_num_text = str(idx)
+                    if result.has_contexts():
+                        row_num_text += f" 🔍"  # Indicator for results with context
+                    num_item = QStandardItem(row_num_text)
                     num_item.setEditable(False)
                     num_item.setData(result, Qt.UserRole)
+                    if result.has_contexts():
+                        num_item.setToolTip(
+                            f"This result has {len(result.contexts)} context item(s)")
                     row.append(num_item)
 
                     # Data columns (only the columns for THIS document)
@@ -398,6 +486,108 @@ class SearchView(BaseTabView):
         self.results_tree.expandAll()
         for i in range(max_columns):
             self.results_tree.resizeColumnToContents(i)
+
+    def update_result(self, idx: int, result: SearchResult):
+        """Update a specific result in the display (e.g., after context enrichment)
+
+        This is more efficient than redisplaying all results when only one changes.
+
+        Args:
+            idx: Index of the result in the all_results list
+            result: Updated SearchResult object
+        """
+        # Update stored result
+        if idx < len(self.all_results):
+            self.all_results[idx] = result
+
+            # Update the tree display to show context indicator
+            self._update_tree_item_for_result(result)
+
+            # If this result is currently selected, update the context display
+            current_result = self._get_selected_result()
+            if current_result and current_result.search_id == result.search_id:
+                self._display_result_details(result)
+
+    def _get_selected_result(self) -> SearchResult:
+        """Get the currently selected result
+
+        Returns:
+            Selected SearchResult or None
+        """
+        selection = self.results_tree.selectionModel()
+        if not selection.hasSelection():
+            return None
+
+        index = selection.selectedRows()[0]
+        item = self.results_model.itemFromIndex(index)
+        return item.data(Qt.UserRole) if item else None
+
+    def _display_result_details(self, result: SearchResult):
+        """Redisplay details for a specific result (used when context updates)
+
+        Args:
+            result: SearchResult to display
+        """
+        # Clear and rebuild context display
+        self._clear_context_layout()
+
+        # Show each context as a collapsible section
+        if result.has_contexts():
+            for ctx in result.contexts:
+                self._create_collapsible_context(ctx)
+        else:
+            # Show message if no context available
+            no_context_label = StandardLabel(
+                "No additional context available for this result",
+                style=TextStyle.LABEL
+            )
+            no_context_label.setStyleSheet("color: gray; font-style: italic;")
+            self.context_layout.addWidget(no_context_label)
+
+        # Add stretch at the end
+        self.context_layout.addStretch()
+
+    def _update_tree_item_for_result(self, result: SearchResult):
+        """Update the tree item display for a result (e.g., to show context indicator)
+
+        Args:
+            result: SearchResult that was updated
+        """
+        # Walk through all items in the tree to find matching result
+        for doc_idx in range(self.results_model.rowCount()):
+            doc_item = self.results_model.item(doc_idx, 0)
+            if not doc_item:
+                continue
+
+            # Check all rows under this document
+            for row_idx in range(doc_item.rowCount()):
+                # Skip header row (row 0)
+                if row_idx == 0:
+                    continue
+
+                # Get first column item (row number column)
+                row_item = doc_item.child(row_idx, 0)
+                if not row_item:
+                    continue
+
+                # Check if this is our result
+                stored_result = row_item.data(Qt.UserRole)
+                if stored_result and stored_result.search_id == result.search_id:
+                    # Update the row number text to include context indicator
+                    current_text = row_item.text()
+                    # Remove existing emoji if present
+                    base_num = current_text.split()[0]
+
+                    if result.has_contexts():
+                        new_text = f"{base_num} 🔍"
+                        row_item.setText(new_text)
+                        row_item.setToolTip(
+                            f"This result has {len(result.contexts)} context item(s)")
+                    else:
+                        row_item.setText(base_num)
+                        row_item.setToolTip("")
+
+                    return  # Found and updated
 
     def add_result(self, search_term: str, document: str, matched_data: str):
         """DEPRECATED: Use display_results() instead

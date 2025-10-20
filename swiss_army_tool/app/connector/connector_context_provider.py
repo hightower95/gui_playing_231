@@ -48,7 +48,7 @@ class ConnectorContextProvider(ContextProvider):
         # Check each value in the result to see if it's a connector part number
         for column, value in result.matched_row_data.items():
             # Skip empty values
-            if not value or str(value).strip() == "":
+            if not value or str(value).strip() == "" or str(value).lower() == "nan":
                 continue
 
             # Look up this value in connector database
@@ -70,8 +70,7 @@ class ConnectorContextProvider(ContextProvider):
                     "Open this connector in the Connector Lookup tab"
                 )
                 contexts.append(context)
-                # Only add one context per result to avoid duplicates
-                break
+                # Note: We continue checking other columns to find all connector matches
 
         return contexts
 

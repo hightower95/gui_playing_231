@@ -3,6 +3,7 @@ Search Result Data Class
 """
 from dataclasses import dataclass, field
 from typing import Dict, Any, List, Optional, Callable
+import uuid
 
 
 @dataclass
@@ -52,6 +53,8 @@ class SearchResult:
     document_type: str
     matched_row_data: Dict[str, Any]  # Column: Value pairs from return columns
     contexts: List[Context] = None  # Additional context from other sources
+    search_id: str = field(default_factory=lambda: str(
+        uuid.uuid4()))  # Unique ID for each result
 
     def __post_init__(self):
         """Initialize contexts list if None"""
