@@ -68,7 +68,8 @@ class TabVisibilityConfig:
                     'connectors': True,
                     'fault_finding': True,
                     'document_scanner': True,
-                    'remote_docs': True
+                    'remote_docs': True,
+                    'devops': True
                 }
 
                 # Merge with saved settings
@@ -358,6 +359,13 @@ class SettingsTab(QWidget):
             lambda checked, name='remote_docs': self._on_visibility_clicked(name, checked))
         form_layout.addRow("", self.remote_docs_checkbox)
 
+        # DevOps
+        self.devops_checkbox = QCheckBox("DevOps")
+        self.devops_checkbox.setToolTip("Show/hide the DevOps tab")
+        self.devops_checkbox.clicked.connect(
+            lambda checked, name='devops': self._on_visibility_clicked(name, checked))
+        form_layout.addRow("", self.devops_checkbox)
+
         visibility_layout.addLayout(form_layout)
         visibility_group.setLayout(visibility_layout)
         layout.addWidget(visibility_group)
@@ -444,6 +452,7 @@ class SettingsTab(QWidget):
         self.fault_finding_checkbox.blockSignals(True)
         self.document_scanner_checkbox.blockSignals(True)
         self.remote_docs_checkbox.blockSignals(True)
+        self.devops_checkbox.blockSignals(True)
 
         # Set checkbox states
         self.epd_checkbox.setChecked(settings.get('epd', True))
@@ -453,6 +462,7 @@ class SettingsTab(QWidget):
         self.document_scanner_checkbox.setChecked(
             settings.get('document_scanner', True))
         self.remote_docs_checkbox.setChecked(settings.get('remote_docs', True))
+        self.devops_checkbox.setChecked(settings.get('devops', True))
 
         # Unblock signals
         self.epd_checkbox.blockSignals(False)
@@ -460,6 +470,7 @@ class SettingsTab(QWidget):
         self.fault_finding_checkbox.blockSignals(False)
         self.document_scanner_checkbox.blockSignals(False)
         self.remote_docs_checkbox.blockSignals(False)
+        self.devops_checkbox.blockSignals(False)
 
         # Load feature flags
         flags = FeatureFlagsConfig.get_all_flags()
@@ -511,7 +522,8 @@ class SettingsTab(QWidget):
             'connectors': self.connectors_checkbox,
             'fault_finding': self.fault_finding_checkbox,
             'document_scanner': self.document_scanner_checkbox,
-            'remote_docs': self.remote_docs_checkbox
+            'remote_docs': self.remote_docs_checkbox,
+            'devops': self.devops_checkbox
         }
         return checkbox_map.get(tab_name)
 
@@ -522,6 +534,7 @@ class SettingsTab(QWidget):
         self.fault_finding_checkbox.setChecked(True)
         self.document_scanner_checkbox.setChecked(True)
         self.remote_docs_checkbox.setChecked(True)
+        self.devops_checkbox.setChecked(True)
 
         QMessageBox.information(
             self,
@@ -547,6 +560,7 @@ class SettingsTab(QWidget):
             self.fault_finding_checkbox.setChecked(False)
             self.document_scanner_checkbox.setChecked(False)
             self.remote_docs_checkbox.setChecked(False)
+            self.devops_checkbox.setChecked(False)
 
     def _on_reset(self):
         """Reset all settings to defaults"""
@@ -566,7 +580,8 @@ class SettingsTab(QWidget):
                 'connectors': True,
                 'fault_finding': True,
                 'document_scanner': True,
-                'remote_docs': True
+                'remote_docs': True,
+                'devops': True
             }
             TabVisibilityConfig.set_visibility_settings(defaults)
             self._load_settings()

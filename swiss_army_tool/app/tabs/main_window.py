@@ -6,6 +6,7 @@ from app.presenters.fault_presenter import FaultFindingPresenter
 from app.document_scanner import DocumentScannerModuleView
 from app.connector.connector_context_provider import ConnectorContextProvider
 from app.remote_docs import RemoteDocsPresenter
+from app.devops import DevOpsPresenter
 from app.tabs.settings_tab import SettingsTab
 
 
@@ -54,6 +55,7 @@ class MainWindow(QMainWindow):
             ('fault_finding', self._load_fault_finding_tab, 300),
             ('remote_docs', self._load_remote_docs_tab,
              400),            # Load after 400ms
+            ('devops', self._load_devops_tab, 450),              # Load after 450ms
         ]
 
         # Schedule the first tab to load
@@ -172,6 +174,21 @@ class MainWindow(QMainWindow):
             self.tabs.insertTab(
                 position, self.remote_docs.view, self.remote_docs.title)
 
+    def _load_devops_tab(self):
+        """Load the DevOps tab"""
+        self.devops = DevOpsPresenter(self.context)
+        self.tab_registry['devops'] = {
+            'presenter': self.devops,
+            'view': self.devops.view,
+            'title': self.devops.title
+        }
+
+        # Add tab if it should be visible
+        if self.settings_tab.is_tab_visible('devops'):
+            position = self._get_tab_position('devops')
+            self.tabs.insertTab(
+                position, self.devops.view, self.devops.title)
+
     def _on_loading_complete(self):
         """Called when all tabs have been loaded"""
         print("[MainWindow] ✓ All tabs loaded successfully")
@@ -289,7 +306,7 @@ class MainWindow(QMainWindow):
         """Get the correct position to insert a tab
 
         Maintains the tab order: EPD -> Connectors -> Fault Finding -> 
-                                Document Scanner -> Remote Docs -> Settings
+                                Document Scanner -> Remote Docs -> DevOps -> Settings
 
         Args:
             tab_name: Name of tab to position
@@ -299,7 +316,7 @@ class MainWindow(QMainWindow):
         """
         # Define desired order (excluding Settings which is always last)
         tab_order = ['epd', 'connectors', 'fault_finding',
-                     'document_scanner', 'remote_docs']
+                     'document_scanner', 'remote_docs', 'devops']
 
         if tab_name not in tab_order:
             return self.tabs.count() - 1  # Before Settings tab
