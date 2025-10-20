@@ -1,4 +1,5 @@
 from PySide6.QtWidgets import QMainWindow, QTabWidget
+from PySide6.QtCore import QTimer
 from app.epd.epd_presenter import EpdPresenter
 from app.presenters.connectors_presenter import ConnectorsPresenter
 from app.presenters.fault_presenter import FaultFindingPresenter
@@ -11,89 +12,184 @@ from app.tabs.settings_tab import SettingsTab
 class MainWindow(QMainWindow):
     def __init__(self, context):
         super().__init__()
+        self.context = context
         self.setWindowTitle("Engineering Toolkit")
         self.resize(1200, 800)
 
         self.tabs = QTabWidget()
         self.setCentralWidget(self.tabs)
 
-        # Initialize Settings tab first
+        # Tab registry for managing dynamic visibility
+        self.tab_registry = {}
+
+        # Track loading state
+        self._loading_complete = False
+        self._pending_tabs = []
+
+        # Initialize Settings tab first (lightweight, always visible)
+        print("[MainWindow] Initializing Settings tab...")
         self.settings_tab = SettingsTab()
         self.settings_tab.tab_visibility_changed.connect(
             self._on_tab_visibility_changed)
         self.settings_tab.feature_flag_changed.connect(
             self._on_feature_flag_changed)
+        self.tabs.addTab(self.settings_tab, "⚙️ Settings")
 
-        # Tab registry for managing dynamic visibility
-        self.tab_registry = {}
+        # Show a loading placeholder initially
+        print("[MainWindow] Window ready, starting lazy tab loading...")
 
-        # Initialize presenters (which create their own views)
-        self.epd = EpdPresenter(context)
-        self.connectors = ConnectorsPresenter(context)
-        self.fault_finding = FaultFindingPresenter(
-            context, self.epd.model)
-        self.document_scanner = DocumentScannerModuleView(context)
-        self.remote_docs = RemoteDocsPresenter(context)
+        # Start lazy loading tabs in the background
+        self._start_lazy_loading()
 
-        # Register context providers with document scanner
-        # This allows the connector tab to provide additional context to search results
-        connector_context = ConnectorContextProvider(self.connectors.model)
-        self.document_scanner.search_presenter.register_context_provider(
-            connector_context)
+    def _start_lazy_loading(self):
+        """Initialize lazy loading sequence for tabs"""
+        # Define loading order: most commonly used tabs first
+        self._pending_tabs = [
+            ('connectors', self._load_connectors_tab, 50),      # Load immediately
+            # Load after 100ms
+            ('epd', self._load_epd_tab, 100),
+            # Load after 200ms
+            ('document_scanner', self._load_document_scanner_tab, 200),
+            # Load after 300ms
+            ('fault_finding', self._load_fault_finding_tab, 300),
+            ('remote_docs', self._load_remote_docs_tab,
+             400),            # Load after 400ms
+        ]
 
-        # Add tabs and register them
-        # EPD Tab
-        self.tab_registry['epd'] = {
-            'presenter': self.epd,
-            'view': self.epd.view,
-            'title': self.epd.title
-        }
-        self.tabs.addTab(self.epd.view, self.epd.title)
+        # Schedule the first tab to load
+        self._schedule_next_tab()
 
-        # Connectors Tab
+    def _schedule_next_tab(self):
+        """Schedule the next tab to load"""
+        if not self._pending_tabs:
+            # All tabs loaded
+            self._on_loading_complete()
+            return
+
+        tab_name, load_func, delay = self._pending_tabs.pop(0)
+
+        # Schedule this tab to load after delay
+        QTimer.singleShot(delay, lambda: self._load_tab(tab_name, load_func))
+
+    def _load_tab(self, tab_name: str, load_func):
+        """Load a tab and schedule the next one
+
+        Args:
+            tab_name: Name of the tab
+            load_func: Function to call to load the tab
+        """
+        print(f"[MainWindow] Loading {tab_name} tab...")
+
+        try:
+            # Call the loading function
+            load_func()
+            print(f"[MainWindow] ✓ {tab_name} tab loaded")
+        except Exception as e:
+            print(f"[MainWindow] ✗ Error loading {tab_name} tab: {e}")
+            import traceback
+            traceback.print_exc()
+
+        # Schedule next tab
+        self._schedule_next_tab()
+
+    def _load_connectors_tab(self):
+        """Load the Connectors tab"""
+        self.connectors = ConnectorsPresenter(self.context)
         self.tab_registry['connectors'] = {
             'presenter': self.connectors,
             'view': self.connectors.view,
             'title': self.connectors.title
         }
-        self.tabs.addTab(self.connectors.view, self.connectors.title)
 
-        # Fault Finding Tab
-        self.tab_registry['fault_finding'] = {
-            'presenter': self.fault_finding,
-            'view': self.fault_finding.view,
-            'title': self.fault_finding.title
+        # Add tab if it should be visible
+        if self.settings_tab.is_tab_visible('connectors'):
+            position = self._get_tab_position('connectors')
+            self.tabs.insertTab(
+                position, self.connectors.view, self.connectors.title)
+
+    def _load_epd_tab(self):
+        """Load the EPD tab"""
+        self.epd = EpdPresenter(self.context)
+        self.tab_registry['epd'] = {
+            'presenter': self.epd,
+            'view': self.epd.view,
+            'title': self.epd.title
         }
-        self.tabs.addTab(self.fault_finding.view, self.fault_finding.title)
 
-        # Document Scanner Tab
+        # Add tab if it should be visible
+        if self.settings_tab.is_tab_visible('epd'):
+            position = self._get_tab_position('epd')
+            self.tabs.insertTab(position, self.epd.view, self.epd.title)
+
+    def _load_document_scanner_tab(self):
+        """Load the Document Scanner tab"""
+        self.document_scanner = DocumentScannerModuleView(self.context)
         self.tab_registry['document_scanner'] = {
             'presenter': self.document_scanner,
             'view': self.document_scanner,
             'title': "Document Scanner"
         }
-        self.tabs.addTab(self.document_scanner, "Document Scanner")
 
-        # Remote Docs Tab
+        # Add tab if it should be visible
+        if self.settings_tab.is_tab_visible('document_scanner'):
+            position = self._get_tab_position('document_scanner')
+            self.tabs.insertTab(
+                position, self.document_scanner, "Document Scanner")
+
+    def _load_fault_finding_tab(self):
+        """Load the Fault Finding tab (requires EPD to be loaded first)"""
+        # Ensure EPD is loaded
+        if not hasattr(self, 'epd'):
+            print("[MainWindow] Warning: EPD not loaded yet, loading now...")
+            self._load_epd_tab()
+
+        self.fault_finding = FaultFindingPresenter(
+            self.context, self.epd.model)
+        self.tab_registry['fault_finding'] = {
+            'presenter': self.fault_finding,
+            'view': self.fault_finding.view,
+            'title': self.fault_finding.title
+        }
+
+        # Add tab if it should be visible
+        if self.settings_tab.is_tab_visible('fault_finding'):
+            position = self._get_tab_position('fault_finding')
+            self.tabs.insertTab(
+                position, self.fault_finding.view, self.fault_finding.title)
+
+    def _load_remote_docs_tab(self):
+        """Load the Remote Docs tab"""
+        self.remote_docs = RemoteDocsPresenter(self.context)
         self.tab_registry['remote_docs'] = {
             'presenter': self.remote_docs,
             'view': self.remote_docs.view,
             'title': self.remote_docs.title
         }
-        self.tabs.addTab(self.remote_docs.view, self.remote_docs.title)
 
-        # Add Settings tab at the end (always visible)
-        self.tabs.addTab(self.settings_tab, "⚙️ Settings")
+        # Add tab if it should be visible
+        if self.settings_tab.is_tab_visible('remote_docs'):
+            position = self._get_tab_position('remote_docs')
+            self.tabs.insertTab(
+                position, self.remote_docs.view, self.remote_docs.title)
 
-        # Apply initial tab visibility from saved settings
-        self._apply_initial_tab_visibility()
+    def _on_loading_complete(self):
+        """Called when all tabs have been loaded"""
+        print("[MainWindow] ✓ All tabs loaded successfully")
+        self._loading_complete = True
+
+        # Register context providers now that all tabs are loaded
+        if hasattr(self, 'connectors') and hasattr(self, 'document_scanner'):
+            connector_context = ConnectorContextProvider(self.connectors.model)
+            self.document_scanner.search_presenter.register_context_provider(
+                connector_context)
+            print("[MainWindow] ✓ Context providers registered")
 
     def _apply_initial_tab_visibility(self):
-        """Apply saved tab visibility settings on startup"""
-        # Apply visibility for all registered tabs
-        for tab_name in self.tab_registry.keys():
-            if not self.settings_tab.is_tab_visible(tab_name):
-                self._hide_tab(tab_name)
+        """Apply saved tab visibility settings on startup
+
+        Note: This is now handled during lazy loading
+        """
+        pass  # No longer needed - visibility handled in load functions
 
     def _on_tab_visibility_changed(self, tab_name: str, visible: bool):
         """Handle tab visibility change from Settings
@@ -118,9 +214,13 @@ class MainWindow(QMainWindow):
         """
         print(f"MainWindow: Feature flag changed - {flag_id} -> {enabled}")
 
-        # Notify remote docs presenter about upload flag changes
+        # Notify remote docs presenter about upload flag changes (if loaded)
         if flag_id == 'remote_docs_upload':
-            self.remote_docs.on_feature_flag_changed(flag_id, enabled)
+            if hasattr(self, 'remote_docs'):
+                self.remote_docs.on_feature_flag_changed(flag_id, enabled)
+            else:
+                print(
+                    f"[MainWindow] Remote docs not loaded yet, flag will apply when loaded")
 
     def _show_tab(self, tab_name: str):
         """Show a tab by inserting it at the correct position
