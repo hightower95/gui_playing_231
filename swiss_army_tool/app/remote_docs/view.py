@@ -105,6 +105,14 @@ class RemoteDocsView(QWidget):
         # Load initial data
         self._load_documents()
 
+    def set_upload_visible(self, visible: bool):
+        """Show or hide the upload section
+
+        Args:
+            visible: True to show upload section, False to hide
+        """
+        self.upload_group.setVisible(visible)
+
     def _load_documents(self):
         """Load available remote documents"""
         self.table.setRowCount(0)
