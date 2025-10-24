@@ -1,0 +1,61 @@
+{
+  "version": "1.0",
+  "exported_at": "2025-10-25T00:05:57.169127",
+  "document_count": 3,
+  "documents": [
+    {
+      "doc_type": "default",
+      "file_name": "doc1.txt",
+      "file_path": "C:/Users/peter/OneDrive/Documents/Coding/gui/fake_data/doc1.txt",
+      "header_row": 1,
+      "precondition": "",
+      "precondition_enabled": false,
+      "return_columns": [
+        "Cable Name",
+        " Version",
+        " Status",
+        " Part Number"
+      ],
+      "search_columns": [
+        "Cable Name"
+      ],
+      "added_date": "2025-10-16T23:42:44.159296"
+    },
+    {
+      "doc_type": "default",
+      "file_name": "doc2.txt",
+      "file_path": "C:/Users/peter/OneDrive/Documents/Coding/gui/fake_data/doc2.txt",
+      "header_row": 1,
+      "precondition": "",
+      "precondition_enabled": false,
+      "return_columns": [
+        "Cable Name",
+        " Version",
+        " Part Number"
+      ],
+      "search_columns": [
+        "Cable Name"
+      ],
+      "added_date": "2025-10-17T00:17:22.703334"
+    },
+    {
+      "doc_type": "default",
+      "file_name": "doc5.txt",
+      "file_path": "C:/Users/peter/OneDrive/Documents/Coding/gui/fake_data/doc5.txt",
+      "header_row": 1,
+      "precondition": "",
+      "precondition_enabled": false,
+      "return_columns": [
+        "Cable Name",
+        " Version",
+        " Part Number",
+        " X1-Connector",
+        " X2-Connector"
+      ],
+      "search_columns": [
+        "Cable Name"
+      ],
+      "added_date": "2025-10-17T00:23:23.547484"
+    }
+  ]
+}

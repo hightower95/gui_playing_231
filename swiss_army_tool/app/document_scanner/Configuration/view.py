@@ -110,6 +110,8 @@ class AddDocumentDialog(QDialog):
         self.file_path = None
         self.df = None
         self.config = {}
+        self.is_excel_file = False
+        self.available_sheets = []
 
         # Track completion state of each step
         self.step_completed = {
@@ -137,6 +139,57 @@ class AddDocumentDialog(QDialog):
         self.file_path_label = StandardLabel("", style=TextStyle.NOTES)
         self.file_path_label.setVisible(False)
         self.step1_group.layout().addWidget(self.file_path_label)
+
+        # Excel sheet selection (only visible for .xlsx/.xls files)
+        self.sheet_selection_layout = QHBoxLayout()
+        self.sheet_label = QLabel("Excel Sheet:")
+        self.sheet_combo = QComboBox()
+        self.sheet_combo.currentIndexChanged.connect(self._on_sheet_changed)
+        self.sheet_selection_layout.addWidget(self.sheet_label)
+        self.sheet_selection_layout.addWidget(self.sheet_combo)
+        self.sheet_selection_layout.addStretch()
+
+        self.sheet_selection_widget = QWidget()
+        self.sheet_selection_widget.setLayout(self.sheet_selection_layout)
+        self.sheet_selection_widget.setVisible(False)
+        self.step1_group.layout().addWidget(self.sheet_selection_widget)
+
+        # Document source type selection
+        source_layout = QHBoxLayout()
+        source_layout.addWidget(QLabel("Document Source:"))
+        self.source_type_combo = QComboBox()
+        self.source_type_combo.addItems(["Local File", "Cached Document"])
+        self.source_type_combo.currentIndexChanged.connect(
+            self._on_source_type_changed)
+        source_layout.addWidget(self.source_type_combo)
+        source_layout.addStretch()
+        self.step1_group.layout().addLayout(source_layout)
+
+        # Cached document metadata fields (only visible when "Cached Document" is selected)
+        self.cached_fields_group = QGroupBox("Cached Document Metadata")
+        cached_layout = QFormLayout()
+
+        self.document_version_edit = QLineEdit()
+        self.document_version_edit.setPlaceholderText(
+            "e.g., 1.0.0, 2024-10-24")
+        cached_layout.addRow("Document Version:", self.document_version_edit)
+
+        self.timestamp_edit = QLineEdit()
+        self.timestamp_edit.setPlaceholderText("e.g., 2024-10-24T10:30:00Z")
+        cached_layout.addRow("Timestamp:", self.timestamp_edit)
+
+        self.file_id_edit = QLineEdit()
+        self.file_id_edit.setPlaceholderText(
+            "e.g., unique-file-identifier-123")
+        cached_layout.addRow("File ID:", self.file_id_edit)
+
+        self.schema_version_edit = QLineEdit()
+        self.schema_version_edit.setPlaceholderText("e.g., 1.0")
+        cached_layout.addRow("Schema Version:", self.schema_version_edit)
+
+        self.cached_fields_group.setLayout(cached_layout)
+        self.cached_fields_group.setVisible(False)  # Hidden by default
+        self.step1_group.layout().addWidget(self.cached_fields_group)
 
         self.step1_ok_btn = QPushButton("✓ Confirm File")
         self.step1_ok_btn.setEnabled(False)
@@ -339,12 +392,59 @@ class AddDocumentDialog(QDialog):
     def _on_file_selected(self, file_path: str):
         """Handle file selection from drag-drop or browse"""
         self.file_path = file_path
-        self.file_path_label.setText(f"📄 Selected: {Path(file_path).name}")
+        path = Path(file_path)
+
+        # Check if it's an Excel file
+        self.is_excel_file = path.suffix.lower() in ['.xlsx', '.xls']
+
+        if self.is_excel_file:
+            # Load sheet names using pandas
+            try:
+                excel_file = pd.ExcelFile(file_path)
+                self.available_sheets = excel_file.sheet_names
+                excel_file.close()
+
+                # Populate combo box
+                self.sheet_combo.clear()
+                self.sheet_combo.addItems(self.available_sheets)
+
+                # Show sheet selection
+                self.sheet_selection_widget.setVisible(True)
+
+                self.file_path_label.setText(
+                    f"📄 Selected: {path.name} ({len(self.available_sheets)} sheet(s))"
+                )
+            except Exception as e:
+                QMessageBox.warning(
+                    self, "Error", f"Could not read Excel sheets: {e}")
+                self.file_path_label.setText(
+                    f"❌ Error reading sheets: {path.name}")
+                self.file_path_label.setStyleSheet(
+                    "color: red; font-weight: bold; margin-top: 10px;")
+                self.file_path_label.setVisible(True)
+                return
+        else:
+            # Not an Excel file, hide sheet selection
+            self.sheet_selection_widget.setVisible(False)
+            self.file_path_label.setText(f"📄 Selected: {path.name}")
+
         self.file_path_label.setStyleSheet(
             "color: green; font-weight: bold; margin-top: 10px;")
         self.file_path_label.setVisible(True)
         self.step1_ok_btn.setEnabled(True)
         self._load_file()
+
+    def _on_sheet_changed(self, index: int):
+        """Handle Excel sheet selection change"""
+        if self.is_excel_file and index >= 0:
+            # Reload the file with the new sheet
+            self._load_file()
+
+    def _on_source_type_changed(self, index: int):
+        """Handle document source type change"""
+        # Show/hide cached document fields based on selection
+        is_cached = (index == 1)  # "Cached Document" is index 1
+        self.cached_fields_group.setVisible(is_cached)
 
     def _load_file(self):
         """Load the file into dataframe"""
@@ -354,9 +454,12 @@ class AddDocumentDialog(QDialog):
         try:
             path = Path(self.file_path)
 
-            # Load based on file type - assume CSV for everything except .xlsx/.xls
+            # Load based on file type
             if path.suffix.lower() in ['.xlsx', '.xls']:
-                self.df = pd.read_excel(self.file_path, header=None)
+                # Get selected sheet name
+                sheet_name = self.sheet_combo.currentText() if self.sheet_combo.count() > 0 else 0
+                self.df = pd.read_excel(
+                    self.file_path, sheet_name=sheet_name, header=None)
             else:
                 # Try to read as CSV, fall back to tab-separated if that fails
                 try:
@@ -392,8 +495,10 @@ class AddDocumentDialog(QDialog):
 
             # Reload file with proper header row using pandas parameters
             if path.suffix.lower() in ['.xlsx', '.xls']:
+                # Get selected sheet name
+                sheet_name = self.sheet_combo.currentText() if self.sheet_combo.count() > 0 else 0
                 preview_df = pd.read_excel(
-                    self.file_path, header=header_row, nrows=20)
+                    self.file_path, sheet_name=sheet_name, header=header_row, nrows=20)
             else:
                 # Try CSV first
                 try:
@@ -480,6 +585,9 @@ class AddDocumentDialog(QDialog):
                 self, "Error", "Please select at least one return column")
             return
 
+        # Determine source type
+        is_cached = (self.source_type_combo.currentIndex() == 1)
+
         # Build configuration
         self.config = {
             'file_path': self.file_path,
@@ -489,8 +597,19 @@ class AddDocumentDialog(QDialog):
             'search_columns': search_cols,
             'return_columns': return_cols,  # User-selected return columns
             'precondition_enabled': False,
-            'precondition': ''
+            'precondition': '',
+            'sheet_name': self.sheet_combo.currentText() if self.is_excel_file else None,
+            'source_type': 'cached' if is_cached else 'local',
         }
+
+        # Add cached document metadata if applicable
+        if is_cached:
+            self.config['cached_metadata'] = {
+                'document_version': self.document_version_edit.text().strip(),
+                'timestamp': self.timestamp_edit.text().strip(),
+                'file_id': self.file_id_edit.text().strip(),
+                'schema_version': self.schema_version_edit.text().strip(),
+            }
 
         self.accept()
 
@@ -502,6 +621,7 @@ class ConfigurationView(BaseTabView):
     add_document_requested = Signal(dict)  # config
     remove_document_requested = Signal(int)  # row index
     edit_document_requested = Signal(int, dict)  # row index, config
+    export_config_requested = Signal()  # request to export configuration
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -536,6 +656,10 @@ class ConfigurationView(BaseTabView):
         self.remove_btn.setEnabled(False)
         title_row.addWidget(self.remove_btn)
 
+        self.export_btn = QPushButton("📤 Export Config")
+        self.export_btn.clicked.connect(self._on_export_config)
+        title_row.addWidget(self.export_btn)
+
         header_layout.addLayout(title_row)
 
         # Status label
@@ -555,7 +679,7 @@ class ConfigurationView(BaseTabView):
         # Setup table model FIRST
         self.documents_model = QStandardItemModel()
         self.documents_model.setHorizontalHeaderLabels([
-            'File Name', 'Type', 'Search Columns', 'Return Columns', 'Precondition'
+            'File Name', 'Source', 'Type', 'Search Columns', 'Return Columns', 'Precondition'
         ])
         self.documents_table.setModel(self.documents_model)
         self.documents_table.horizontalHeader().setStretchLastSection(True)
@@ -606,6 +730,10 @@ class ConfigurationView(BaseTabView):
         if reply == QMessageBox.Yes:
             self.remove_document_requested.emit(row)
 
+    def _on_export_config(self):
+        """Export configuration to JSON file"""
+        self.export_config_requested.emit()
+
     def _on_selection_changed(self):
         """Handle document selection"""
         has_selection = self.documents_table.selectionModel().hasSelection()
@@ -619,18 +747,25 @@ class ConfigurationView(BaseTabView):
     def _show_document_details(self, row: int):
         """Show details of selected document in context area"""
         file_name = self.documents_model.item(row, 0).text()
-        doc_type = self.documents_model.item(row, 1).text()
-        search_cols = self.documents_model.item(row, 2).text()
-        return_cols = self.documents_model.item(row, 3).text()
-        precondition = self.documents_model.item(row, 4).text()
+        source_type = self.documents_model.item(row, 1).text()
+        doc_type = self.documents_model.item(row, 2).text()
+        search_cols = self.documents_model.item(row, 3).text()
+        return_cols = self.documents_model.item(row, 4).text()
+        precondition = self.documents_model.item(row, 5).text()
+
+        # Get the actual config to show sheet name separately if it's an Excel file
+        configs = []  # We'll need access to the model's configs
+        # For now, just show the file name which includes sheet name in brackets
 
         details = (
             f"Document Configuration:\n\n"
             f"File: {file_name}\n"
+            f"Source: {source_type}\n"
             f"Type: {doc_type}\n"
             f"Search Columns: {search_cols}\n"
             f"Return Columns: {return_cols}\n"
-            f"Precondition: {precondition if precondition else 'None'}"
+            f"Precondition: {precondition if precondition else 'None'}\n\n"
+            f"Note: For Excel files, the sheet name is shown in brackets [Sheet Name]"
         )
 
         self.context_box.setPlainText(details)
@@ -641,8 +776,18 @@ class ConfigurationView(BaseTabView):
         Args:
             config: Document configuration dictionary
         """
+        # For Excel files, append sheet name to file name
+        display_name = config['file_name']
+        if config.get('sheet_name'):
+            display_name = f"{config['file_name']} [{config['sheet_name']}]"
+
+        # Get source type display
+        source_type = config.get('source_type', 'local')
+        source_display = '📁 Local' if source_type == 'local' else '💾 Cached'
+
         row = [
-            QStandardItem(config['file_name']),
+            QStandardItem(display_name),
+            QStandardItem(source_display),
             QStandardItem(config['doc_type']),
             QStandardItem(', '.join(config['search_columns'])),
             QStandardItem(', '.join(config['return_columns'])),

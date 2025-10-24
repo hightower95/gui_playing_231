@@ -1,7 +1,10 @@
 """
 Document Scanner Configuration Presenter
 """
+import json
+from pathlib import Path
 from PySide6.QtCore import QObject
+from PySide6.QtWidgets import QFileDialog, QMessageBox
 from app.document_scanner.Configuration.view import ConfigurationView
 
 
@@ -18,6 +21,7 @@ class ConfigurationPresenter(QObject):
         self.view.add_document_requested.connect(self.on_add_document)
         self.view.remove_document_requested.connect(self.on_remove_document)
         self.view.edit_document_requested.connect(self.on_edit_document)
+        self.view.export_config_requested.connect(self.on_export_config)
 
     def start_loading(self):
         """Initialize the configuration tab"""
@@ -85,3 +89,64 @@ class ConfigurationPresenter(QObject):
         configs = self.model.get_document_configs()
         for config in configs:
             self.view.add_document_row(config)
+
+    def on_export_config(self):
+        """Export current configuration to a JSON file"""
+        try:
+            # Get current configurations
+            configs = self.model.get_document_configs()
+
+            if not configs:
+                QMessageBox.information(
+                    self.view,
+                    "No Configuration",
+                    "There are no documents configured to export."
+                )
+                return
+
+            # Ask user for save location
+            file_path, _ = QFileDialog.getSaveFileName(
+                self.view,
+                "Export Configuration",
+                "document_scanner_config.json",
+                "JSON Files (*.json);;All Files (*.*)"
+            )
+
+            if not file_path:
+                return  # User cancelled
+
+            # Prepare export data
+            export_data = {
+                'version': '1.0',
+                'exported_at': self._get_timestamp(),
+                'document_count': len(configs),
+                'documents': configs
+            }
+
+            # Write to file
+            with open(file_path, 'w', encoding='utf-8') as f:
+                json.dump(export_data, f, indent=2, ensure_ascii=False)
+
+            QMessageBox.information(
+                self.view,
+                "Export Successful",
+                f"Configuration exported successfully to:\n{file_path}\n\n"
+                f"Exported {len(configs)} document(s)."
+            )
+
+            print(f"✓ Configuration exported to: {file_path}")
+
+        except Exception as e:
+            QMessageBox.critical(
+                self.view,
+                "Export Failed",
+                f"Failed to export configuration:\n{str(e)}"
+            )
+            print(f"✗ Export failed: {e}")
+            import traceback
+            traceback.print_exc()
+
+    def _get_timestamp(self):
+        """Get current timestamp in ISO format"""
+        from datetime import datetime
+        return datetime.now().isoformat()

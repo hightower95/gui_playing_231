@@ -25,6 +25,8 @@ class SearchableDocument:
         self.return_columns = config['return_columns']
         self.precondition_enabled = config.get('precondition_enabled', False)
         self.precondition = config.get('precondition', '')
+        # Excel sheet name (None for non-Excel files)
+        self.sheet_name = config.get('sheet_name', None)
 
         self.df = None  # Will hold the loaded DataFrame
         self.load_error = None
@@ -42,7 +44,10 @@ class SearchableDocument:
 
             # Load based on file type
             if self.file_path.suffix.lower() in ['.xlsx', '.xls']:
-                self.df = pd.read_excel(self.file_path, header=self.header_row)
+                # Use sheet name if provided, otherwise use first sheet (0)
+                sheet = self.sheet_name if self.sheet_name else 0
+                self.df = pd.read_excel(
+                    self.file_path, sheet_name=sheet, header=self.header_row)
             else:
                 # Try CSV first
                 try:
