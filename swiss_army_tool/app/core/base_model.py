@@ -1,64 +1,58 @@
 """
 Base Model class for data management components
+
+This is an optional base class for models. It provides:
+1. Standard initialization with AppContext access
+2. Common signals for data loading/updates
+3. Lifecycle management (cleanup method)
+
+Models are NOT required to inherit from this class. You can create
+standalone models if the base class doesn't add value for your use case.
 """
-from abc import ABC, abstractmethod
 from PySide6.QtCore import QObject, Signal
-from typing import Any, Dict, List, Optional
+from typing import Optional, Any
 from .app_context import AppContext
 
 
 class BaseModel(QObject):
-    """Base class for all model components"""
+    """
+    Base class for model components in MVP architecture.
 
-    # Common signals that models might emit
-    data_updated = Signal(object)
-    data_loaded = Signal(object)
-    data_saved = Signal(bool)
+    Provides:
+    - AppContext access for service dependencies
+    - Standard signals for data lifecycle events
+    - Optional cleanup method for resource management
+
+    Subclasses should define their own data structures and implement
+    their own load/save logic as needed.
+    """
+
+    # Common signals for data lifecycle
+    # Models can emit these when appropriate, or define their own signals
+    data_loaded = Signal(object)  # Emitted when data is successfully loaded
+    data_updated = Signal(object)  # Emitted when data changes
+    data_saved = Signal(bool)  # Emitted when data is saved (success/failure)
+    loading_started = Signal()  # Emitted when a load operation begins
+    loading_failed = Signal(str)  # Emitted when load fails (error message)
 
     def __init__(self, context: AppContext):
+        """
+        Initialize the model.
+
+        Args:
+            context: Application context for accessing services
+        """
         super().__init__()
         self.context = context
-        self._data: Dict[str, Any] = {}
-        self._initialize_data()
 
-    @abstractmethod
-    def _initialize_data(self):
-        """Initialize model data - must be implemented by subclasses"""
+    def cleanup(self):
+        """
+        Clean up resources when model is destroyed.
+
+        Override this method to:
+        - Stop background workers
+        - Cancel pending operations
+        - Close file handles
+        - Release resources
+        """
         pass
-
-    def get_data(self, key: str = None) -> Any:
-        """Get data by key, or all data if no key specified"""
-        if key is None:
-            return self._data.copy()
-        return self._data.get(key)
-
-    def set_data(self, key: str, value: Any):
-        """Set data for a specific key"""
-        self._data[key] = value
-        self.data_updated.emit({key: value})
-
-    def update_data(self, data_dict: Dict[str, Any]):
-        """Update multiple data items"""
-        self._data.update(data_dict)
-        self.data_updated.emit(data_dict)
-
-    def clear_data(self):
-        """Clear all data"""
-        self._data.clear()
-        self.data_updated.emit({})
-
-    def has_data(self, key: str) -> bool:
-        """Check if data exists for a key"""
-        return key in self._data
-
-    def load_data(self) -> bool:
-        """Load data - can be overridden by subclasses"""
-        # Default implementation - subclasses should override
-        self.data_loaded.emit(self._data)
-        return True
-
-    def save_data(self) -> bool:
-        """Save data - can be overridden by subclasses"""
-        # Default implementation - subclasses should override
-        self.data_saved.emit(True)
-        return True

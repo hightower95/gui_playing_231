@@ -11,11 +11,8 @@ class ConnectorsModel(BaseModel):
 
     def __init__(self, context: AppContext):
         super().__init__(context)
-
-    def _initialize_data(self):
-        """Initialize connectors model data"""
         # Initialize with sample connector data
-        self._data = {
+        self._connectors_data = {
             'connectors': {
                 'DB9_Male_1': {
                     'name': 'DB9_Male_1',
@@ -90,29 +87,29 @@ class ConnectorsModel(BaseModel):
 
     def get_connector_list(self) -> List[str]:
         """Get list of all connector names"""
-        return list(self._data.get('connectors', {}).keys())
+        return list(self._connectors_data.get('connectors', {}).keys())
 
     def get_connector_data(self, connector_name: str) -> Optional[Dict]:
         """Get data for a specific connector"""
-        return self._data.get('connectors', {}).get(connector_name)
+        return self._connectors_data.get('connectors', {}).get(connector_name)
 
     def has_connector(self, connector_name: str) -> bool:
         """Check if a connector exists"""
-        return connector_name in self._data.get('connectors', {})
+        return connector_name in self._connectors_data.get('connectors', {})
 
     def add_connector(self, connector_name: str, connector_data: Dict):
         """Add a new connector"""
         if self.has_connector(connector_name):
             raise ValueError(f"Connector '{connector_name}' already exists")
 
-        if 'connectors' not in self._data:
-            self._data['connectors'] = {}
+        if 'connectors' not in self._connectors_data:
+            self._connectors_data['connectors'] = {}
 
         # Ensure required fields
         connector_data.setdefault('name', connector_name)
         connector_data.setdefault('pins', {})
 
-        self._data['connectors'][connector_name] = connector_data
+        self._connectors_data['connectors'][connector_name] = connector_data
         self.data_updated.emit({
             'action': 'add_connector',
             'connector': connector_name,
@@ -124,7 +121,7 @@ class ConnectorsModel(BaseModel):
         if not self.has_connector(connector_name):
             raise ValueError(f"Connector '{connector_name}' not found")
 
-        del self._data['connectors'][connector_name]
+        del self._connectors_data['connectors'][connector_name]
         self.data_updated.emit({
             'action': 'remove_connector',
             'connector': connector_name
@@ -135,7 +132,8 @@ class ConnectorsModel(BaseModel):
         if not self.has_connector(connector_name):
             raise ValueError(f"Connector '{connector_name}' not found")
 
-        self._data['connectors'][connector_name].update(connector_data)
+        self._connectors_data['connectors'][connector_name].update(
+            connector_data)
         self.data_updated.emit({
             'action': 'update_connector',
             'connector': connector_name,
@@ -161,7 +159,7 @@ class ConnectorsModel(BaseModel):
 
     def get_connector_template(self, connector_type: str) -> Optional[Dict]:
         """Get template data for a connector type"""
-        return self._data.get('connector_templates', {}).get(connector_type)
+        return self._connectors_data.get('connector_templates', {}).get(connector_type)
 
     def auto_populate_connector(self, connector_name: str, connector_type: str):
         """Auto-populate a connector based on its type"""
@@ -247,7 +245,7 @@ class ConnectorsModel(BaseModel):
 
     def get_connector_types(self) -> List[str]:
         """Get list of available connector types"""
-        return list(self._data.get('connector_templates', {}).keys())
+        return list(self._connectors_data.get('connector_templates', {}).keys())
 
     def export_connector_data(self, connector_name: str) -> Dict:
         """Export connector data for external use"""

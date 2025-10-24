@@ -95,11 +95,6 @@ class EpdModel(BaseModel):
         self._worker = None
         self._thread = None
 
-    def _initialize_data(self):
-        """Initialize base model data (called by BaseModel)"""
-        # Base model initialization - can be empty for EPD model
-        self._data = {}
-
     def load_async(self):
         """Start asynchronous data loading in a separate thread"""
         if self.is_loading:
@@ -142,10 +137,6 @@ class EpdModel(BaseModel):
 
         # Emit data_loaded signal from BaseModel
         self.data_loaded.emit(self.data)
-
-        # Update internal data storage
-        self.set_data('epd_records', self.data.to_dict('records'))
-        self.set_data('record_count', len(self.data))
 
         # Cleanup thread
         self._cleanup_thread()
