@@ -20,9 +20,9 @@ from .main import main as _main
 def start():
     """
     Start the Productivity App GUI application.
-    
+
     This is the main entry point for running the application.
-    
+
     Example:
         >>> import productivity_app
         >>> productivity_app.start()

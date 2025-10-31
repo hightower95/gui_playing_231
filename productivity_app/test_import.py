@@ -1,6 +1,7 @@
 """
 Test script to verify productivity_app can be imported and used correctly
 """
+import productivity_app
 import sys
 import os
 
@@ -9,7 +10,6 @@ parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, parent_dir)
 
 # Test import
-import productivity_app
 
 # Test that we can access the module attributes
 print(f"✓ Successfully imported productivity_app")
