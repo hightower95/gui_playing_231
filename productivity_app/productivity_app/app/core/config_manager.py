@@ -1,19 +1,22 @@
 """
 Centralized Configuration Manager
 
-Handles all persistent configuration storage in the .tool_config directory.
+Handles all persistent configuration storage in the user's AppData directory.
+Path structure: %APPDATA%\<root_folder>\productivity_app\.tool_config\
 """
 import json
+import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional
-from app.core.config import CONFIG_DIR, CONFIG_FILES
+from app.core.config import APPDATA_ROOT_FOLDER, APP_FOLDER, CONFIG_SUBFOLDER, CONFIG_FILES
 
 
 class ConfigManager:
-    """Manages application configuration files in .tool_config directory"""
+    """Manages application configuration files in user's AppData directory"""
 
-    # Class-level config directory (relative to project root)
-    CONFIG_DIR = Path(CONFIG_DIR)
+    # Build config directory path: AppData\<root>\<app>\.tool_config
+    _appdata = Path(os.getenv('APPDATA', Path.home() / 'AppData' / 'Roaming'))
+    CONFIG_DIR = _appdata / APPDATA_ROOT_FOLDER / APP_FOLDER / CONFIG_SUBFOLDER
 
     # Configuration file names (from config.py)
     DOCUMENT_SCANNER_CONFIG = CONFIG_FILES["document_scanner"]
@@ -23,11 +26,12 @@ class ConfigManager:
     def initialize(cls):
         """Initialize the configuration directory
 
-        Creates .tool_config directory if it doesn't exist.
+        Creates the full path in AppData if it doesn't exist.
+        Example: C:\Users\username\AppData\Roaming\MyTools\productivity_app\.tool_config\
         Should be called on application startup.
         """
-        cls.CONFIG_DIR.mkdir(exist_ok=True)
-        print(f"✓ Configuration directory: {cls.CONFIG_DIR.absolute()}")
+        cls.CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+        print(f"✓ Configuration directory: {cls.CONFIG_DIR}")
 
     @classmethod
     def get_config_path(cls, config_name: str) -> Path:

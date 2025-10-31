@@ -98,5 +98,12 @@ CONFIG_FILES = {
     "app_settings": "app_settings.json",
 }
 
-# Configuration Directory
-CONFIG_DIR = ".tool_config"
+# Configuration Directory Settings
+# Top-level folder in APPDATA (can be shared between tools)
+APPDATA_ROOT_FOLDER = "MyTools"  # Change this to your shared folder name
+
+# This app's folder within the root
+APP_FOLDER = "productivity_app"
+
+# Config subfolder within the app folder
+CONFIG_SUBFOLDER = ".tool_config"

@@ -12,7 +12,7 @@ def main():
     """Main application entry point"""
     app = QApplication(sys.argv)
 
-    # Initialize configuration manager (creates .tool_config directory)
+    # Initialize configuration manager (creates AppData config directory)
     ConfigManager.initialize()
 
     # Initialize application context
