@@ -9,6 +9,7 @@ This package provides tools for:
 - Remote documentation access
 """
 
+from .main import main as _main
 import sys
 import os
 
@@ -22,7 +23,6 @@ __author__ = "Productivity App Contributors"
 __license__ = "MIT"
 
 # Import the main application function
-from .main import main as _main
 
 
 def start():
