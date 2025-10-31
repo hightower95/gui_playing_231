@@ -1,274 +1,418 @@
-# Swiss Army Tool Library - Quick Reference
+# Productivity App - Quick Start Guide
 
-## ✅ Library Conversion Complete!
+## 🚀 Quick Reference for Common Tasks
 
-The swiss_army_tool is now a proper Python library that can be installed, distributed, and used both as a standalone application and as an importable library.
+This guide provides quick commands and workflows for using and developing Productivity App.
 
-## 📦 What Was Created
+## 📦 Installation
 
-### Package Files
-- ✅ `setup.py` - Legacy setuptools configuration
-- ✅ `pyproject.toml` - Modern Python packaging standard
-- ✅ `MANIFEST.in` - Package data inclusion rules
-- ✅ `LICENSE` - MIT License
-- ✅ `.gitignore` - Git ignore rules
+### For End Users
 
-### Documentation
-- ✅ `README.md` - Main project overview
-- ✅ `INSTALL.md` - Comprehensive installation and usage guide
-- ✅ `LIBRARY_CONVERSION.md` - Details of conversion process
-- ✅ `docs/INDEX.md` - Documentation hub
-- ✅ `docs/` - All *.md files organized here
-
-### Package Structure
-- ✅ Updated `app/__init__.py` - Package metadata and exports
-
-## 🚀 How to Use
-
-### Installation
-
-#### For End Users
 ```bash
-cd swiss_army_tool
-pip install .
+# Install from PyPI (when published)
+pip install productivity-app
+
+# Run the application
+productivity-app
 ```
 
-#### For Developers
+### For Developers
+
 ```bash
-cd swiss_army_tool
-pip install -e ".[dev]"
+# Clone repository
+git clone https://github.com/yourusername/productivity-app.git
+cd productivity-app
+
+# Create virtual environment (Windows PowerShell)
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+
+# Install in editable mode with dev dependencies
+pip install -e .[dev]
 ```
 
-### Running
+## 🏃 Running the Application
 
-#### As Application
+### As Installed Command
 ```bash
-# After installation
-swiss-army-tool
+# After pip installation
+productivity-app
+```
 
-# Or directly
+### Running Directly
+```bash
+# From project directory
 python main.py
+
+# OR as a module
+python -m app.main
 ```
 
-#### As Library
+### As Library in Your Code
 ```python
-from app.core.config_manager import ConfigManager, DocumentScannerConfig
+from app.core.app_context import AppContext
+from app.core.config_manager import ConfigManager
 from app.document_scanner.document_scanner_model import DocumentScannerModel
 
 # Initialize configuration
 ConfigManager.initialize()
 
+# Create app context
+context = AppContext()
+
 # Use document scanner
-model = DocumentScannerModel()
+model = DocumentScannerModel(context)
 model.load_from_config()
 
 # Access searchable documents
 documents = model.get_searchable_documents()
 ```
 
-## 📚 Documentation
+## � Development Commands
 
-All documentation is now organized:
+### Code Formatting
+```bash
+# Format Python code with Black
+black .
 
-### Main Docs
-- **README.md** - Start here for overview
-- **INSTALL.md** - Installation and usage details
-- **LIBRARY_CONVERSION.md** - What changed
+# Sort imports with isort
+isort .
 
-### Feature Docs (in docs/)
-- Document Scanner guides
-- Connector context implementation
-- Search history
-- Configuration management
-- Bug fixes and updates
+# Do both
+black . ; isort .
+```
 
-### Quick Links
-- Installation Guide: [INSTALL.md](INSTALL.md)
-- Documentation Index: [docs/INDEX.md](docs/INDEX.md)
-- License: [LICENSE](LICENSE)
+### Running Tests
+```bash
+# Run all tests
+pytest
+
+# Run with coverage
+pytest --cov=app
+
+# Generate HTML coverage report
+pytest --cov=app --cov-report=html
+# Open htmlcov/index.html
+
+# Run specific test file
+pytest tests/test_connector/
+
+# Run tests matching pattern
+pytest -k "test_search"
+```
+
+### Code Quality Checks
+```bash
+# Lint with flake8
+flake8 app/
+
+# Type check with mypy
+mypy app/
+
+# Run all quality checks
+black --check . ; isort --check . ; flake8 app/ ; mypy app/
+```
 
 ## 🏗️ Building & Distribution
 
-### Build Package
+### Build Distribution Packages
 ```bash
+# Install build tool
 pip install build
+
+# Clean old builds
+Remove-Item -Recurse -Force build, dist, *.egg-info -ErrorAction SilentlyContinue
+
+# Build wheel and source distribution
 python -m build
+
+# Output:
+# dist/productivity_app-0.1.0-py3-none-any.whl
+# dist/productivity_app-0.1.0.tar.gz
 ```
 
-### Publish to PyPI (when ready)
+### Test Installation
 ```bash
+# Install from local wheel
+pip install dist/productivity_app-0.1.0-py3-none-any.whl
+
+# Verify installation
+productivity-app --version
+```
+
+### Publish to PyPI
+```bash
+# Install twine
 pip install twine
+
+# Check distribution
+twine check dist/*
+
+# Upload to Test PyPI first (recommended)
+twine upload --repository testpypi dist/*
+
+# Upload to Production PyPI
 twine upload dist/*
 ```
 
 ## 🔑 Key Features
 
-### As Application
-✅ Full GUI with PySide6
-✅ Connector management
-✅ Document scanner with context
-✅ Search history
-✅ EPD operations
-✅ Configuration persistence
+### Main Modules
 
-### As Library
-✅ Import and use in other projects
-✅ Access document scanner programmatically
-✅ Create custom context providers
-✅ Manage configurations via API
-✅ Extend with new modules
+#### Connector Management
+- Search and filter connectors
+- Multi-select for bulk operations
+- Recent searches history
+- Advanced filtering and grouping
 
-## 📋 Package Metadata
+#### Document Scanner
+- Load multiple document sources (CSV, Excel, TXT)
+- Excel sheet selection
+- Local and cached document types
+- Full-text search across all documents
+- Configuration export/import
 
-```python
-import app
+#### EPD (Engineering Product Data)
+- Load and display EPD data
+- Advanced search and filtering
+- Column-based grouping
+- Data export capabilities
 
-app.__version__    # "0.1.0"
-app.__author__     # "Swiss Army Tool Contributors"
-app.__license__    # "MIT"
-```
+#### Azure DevOps Integration
+- Work item queries
+- Project and sprint management
+- PAT authentication
+- Query history
 
-## 🎯 Entry Points
+#### Remote Documentation
+- Access remote documentation
+- Search documentation
+- Bookmark management
 
-After installation, these commands are available:
+## 📋 Common Workflows
 
-```bash
-# Console command
-swiss-army-tool
+### Add a New Document to Scanner
 
-# Python module
-python -m swiss_army_tool.main
-```
+1. Open Document Scanner tab
+2. Click "Add Document"
+3. Select file (CSV/Excel/TXT)
+4. For Excel: select sheet from dropdown
+5. Set document type (Local or Cached)
+6. Configure column mappings
+7. Click "Save"
 
-## 🔧 Development Tools
+### Search Across All Documents
 
-Included development dependencies:
-- **pytest** - Unit testing
-- **black** - Code formatting
-- **mypy** - Type checking
-- **flake8** - Code linting
+1. Enter search term in search box
+2. Press Enter or click Search
+3. Results show matches from all documents
+4. Click result to view details
 
-```bash
-# Format code
-black app/
+### Export Connector Data
 
-# Run tests
-pytest
+1. Open Connectors tab
+2. Select connectors using checkboxes
+3. Click "Export Selected"
+4. Choose export format
+5. Save to file
 
-# Type check
-mypy app/
+### Run Azure DevOps Query
 
-# Lint
-flake8 app/
-```
+1. Open DevOps tab
+2. Configure connection in Settings
+3. Enter WIQL query or select saved query
+4. Click "Run Query"
+5. View results in table
 
 ## 📁 Project Structure
 
 ```
-swiss_army_tool/
-├── app/                    # Main package
-│   ├── __init__.py        # Package initialization
-│   ├── connector/         # Connector management
-│   ├── document_scanner/  # Document scanning
-│   ├── core/             # Core functionality
-│   └── ...
-├── docs/                  # Documentation
-├── main.py               # Entry point
-├── setup.py              # Package setup
-├── pyproject.toml        # Modern config
-├── README.md             # Overview
-├── INSTALL.md            # Install guide
-└── LICENSE               # MIT License
+productivity-app/
+├── app/                      # Main application package
+│   ├── __init__.py          # Package initialization
+│   ├── main.py              # Application entry point
+│   ├── core/                # Core infrastructure
+│   │   ├── app_context.py
+│   │   ├── background_worker.py
+│   │   ├── base_model.py
+│   │   └── base_presenter.py
+│   ├── tabs/                # Main UI tabs
+│   │   ├── main_window.py
+│   │   └── settings_tab.py
+│   ├── connector/           # Connector management
+│   ├── document_scanner/    # Document scanning
+│   ├── epd/                 # EPD module
+│   ├── devops/              # Azure DevOps
+│   ├── remote_docs/         # Documentation viewer
+│   ├── ui/                  # UI components
+│   └── shared/              # Shared utilities
+├── docs/                    # Documentation
+│   ├── INDEX.md
+│   └── *.md                 # Feature documentation
+├── tests/                   # Test files
+├── main.py                  # Entry point script
+├── pyproject.toml           # Package configuration
+├── requirements-dev.txt     # Dev dependencies
+├── BUILD.md                 # Build instructions
+├── CONTRIBUTING.md          # Developer guide
+├── CHANGELOG.md             # Version history
+├── QUICK_START.md           # This file
+├── README.md                # Project overview
+├── LICENSE                  # MIT License
+└── MANIFEST.in              # Package data rules
 ```
 
-## ✨ What's New
+## 🔧 Git Workflow
 
-### Package Management
-- Can install via `pip install .`
-- Console script: `swiss-army-tool`
-- Proper version management
-- Dependency handling
+### Feature Development
+```bash
+# Update main branch
+git checkout main
+git pull origin main
 
-### Documentation
-- Organized in `docs/` folder
-- Comprehensive installation guide
-- API usage examples
-- Developer documentation
+# Create feature branch
+git checkout -b feature/my-new-feature
 
-### Distribution
-- Can build wheel packages
-- Can publish to PyPI
-- Professional package structure
-- MIT licensed
+# Make changes, then stage and commit
+git add .
+git commit -m "feat(module): add new feature"
 
-## 🔄 Backward Compatibility
+# Push to remote
+git push origin feature/my-new-feature
 
-✅ **100% Compatible**
-- All existing code works unchanged
-- `main.py` still works the same
-- No breaking changes
-- All features preserved
+# Create Pull Request on GitHub
+```
 
-## 📝 Next Steps
+### Bug Fix
+```bash
+# Create bug fix branch
+git checkout -b fix/bug-description
 
-### To Customize
-1. Edit `setup.py` and `pyproject.toml`:
-   - Update author name and email
-   - Update URLs (GitHub, documentation)
-   - Adjust version number
+# Fix the bug, then commit
+git add .
+git commit -m "fix(module): resolve issue with X"
 
-2. Update `README.md`:
-   - Add project-specific details
-   - Add screenshots if desired
-   - Update installation instructions
+# Push and create PR
+git push origin fix/bug-description
+```
 
-### To Publish
-1. Create GitHub repository
-2. Test installation locally
-3. Build packages: `python -m build`
-4. Test on TestPyPI first
-5. Publish to PyPI
+### Commit Message Format
+```
+<type>(<scope>): <subject>
 
-### To Develop
-1. Install dev dependencies: `pip install -e ".[dev]"`
-2. Create tests in `tests/` directory
-3. Set up CI/CD pipeline
-4. Add code coverage
+<body>
+
+<footer>
+```
+
+**Types**: feat, fix, docs, style, refactor, test, chore
 
 ## 🐛 Troubleshooting
 
-### Can't Import Module
+### Application Won't Start
 ```bash
-# Make sure you installed it
-cd swiss_army_tool
+# Check Python version
+python --version  # Should be 3.8+
+
+# Reinstall
+pip uninstall productivity-app
+pip install productivity-app
+```
+
+### Import Errors
+```bash
+# Ensure installed in dev mode
+pip install -e .[dev]
+
+# Check for missing dependencies
+pip check
+```
+
+### Qt Platform Plugin Error
+```bash
+# Reinstall PySide6
+pip install --force-reinstall PySide6
+```
+
+### Tests Failing
+```bash
+# Update test dependencies
+pip install --upgrade pytest pytest-qt pytest-cov
+
+# Clear cache
+Remove-Item -Recurse -Force .pytest_cache
+
+# Run with verbose output
+pytest -v
+```
+
+### Build Fails
+```bash
+# Update build tools
+pip install --upgrade build setuptools wheel
+
+# Clean old builds
+Remove-Item -Recurse -Force build, dist, *.egg-info
+
+# Rebuild
+python -m build
+```
+
+### Module Not Found After Install
+```bash
+# Ensure you're in correct directory
+cd path\to\productivity-app
+
+# Reinstall
 pip install -e .
 ```
 
-### Missing Dependencies
+## � Documentation
+
+- **[BUILD.md](BUILD.md)** - Comprehensive build and distribution guide
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** - Development guidelines and code style
+- **[CHANGELOG.md](CHANGELOG.md)** - Version history and changes
+- **[README.md](README.md)** - Project overview and features
+- **[docs/INDEX.md](docs/INDEX.md)** - Documentation hub
+- **[LICENSE](LICENSE)** - MIT License
+
+### Feature Documentation (docs/)
+- Document Scanner implementation
+- Connector context and search
+- Azure DevOps integration
+- EPD viewer guide
+- Configuration management
+
+## 🔗 Useful Links
+
+- **Repository**: https://github.com/yourusername/productivity-app
+- **Issues**: https://github.com/yourusername/productivity-app/issues
+- **Discussions**: https://github.com/yourusername/productivity-app/discussions
+- **PyPI**: https://pypi.org/project/productivity-app (when published)
+
+## 📋 Quick Command Reference
+
 ```bash
-pip install -r requirements.txt
+# Install
+pip install productivity-app          # From PyPI
+pip install -e .[dev]                 # Dev mode
+
+# Run
+productivity-app                      # Installed command
+python main.py                        # Direct
+
+# Develop
+black .                               # Format
+isort .                               # Sort imports
+pytest --cov=app                      # Test
+flake8 app/                          # Lint
+mypy app/                            # Type check
+
+# Build
+python -m build                       # Build package
+twine check dist/*                    # Validate
+twine upload dist/*                   # Publish
+
+# Clean
+Remove-Item -Recurse -Force build, dist, *.egg-info, __pycache__, .pytest_cache
 ```
-
-### Console Command Not Found
-```bash
-# Reinstall with pip
-pip install -e .
-```
-
-## 📞 Support
-
-- Documentation: See `docs/INDEX.md`
-- Installation Issues: See `INSTALL.md`
-- Feature Guides: See `docs/*.md` files
-
-## 🎉 Success!
-
-Your swiss_army_tool is now:
-- ✅ A proper Python package
-- ✅ Installable via pip
-- ✅ Usable as a library
-- ✅ Ready for distribution
-- ✅ Well documented
-- ✅ Development-ready
-
-Happy coding! 🚀

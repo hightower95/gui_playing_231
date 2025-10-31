@@ -1,34 +1,39 @@
 [build-system]
-requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
+requires = ["setuptools>=65.0", "wheel", "setuptools_scm[toml]>=7.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "swiss-army-tool"
+name = "productivity-app"
 version = "0.1.0"
-description = "A comprehensive engineering toolkit for connector management, EPD operations, and document scanning"
+description = "A comprehensive productivity toolkit for connector management, EPD operations, document scanning, and Azure DevOps integration"
 readme = "README.md"
 requires-python = ">=3.8"
 license = {text = "MIT"}
 authors = [
     {name = "Your Name", email = "your.email@example.com"}
 ]
+keywords = ["productivity", "engineering", "connectors", "epd", "document-scanner", "devops"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
     "Intended Audience :: Manufacturing",
+    "Intended Audience :: End Users/Desktop",
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: Scientific/Engineering",
+    "Topic :: Office/Business",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Operating System :: OS Independent",
+    "Environment :: X11 Applications :: Qt",
 ]
 dependencies = [
-    "PySide6>=6.0.0",
-    "pandas>=1.3.0",
+    "PySide6>=6.4.0",
+    "pandas>=1.5.0",
     "openpyxl>=3.0.0",
 ]
 
@@ -36,33 +41,82 @@ dependencies = [
 dev = [
     "pytest>=7.0.0",
     "pytest-qt>=4.0.0",
-    "black>=22.0.0",
-    "flake8>=4.0.0",
-    "mypy>=0.950",
+    "pytest-cov>=4.0.0",
+    "black>=23.0.0",
+    "flake8>=6.0.0",
+    "mypy>=1.0.0",
+    "isort>=5.12.0",
+    "pylint>=2.17.0",
+    "build>=0.10.0",
+    "twine>=4.0.0",
+]
+docs = [
+    "sphinx>=5.0.0",
+    "sphinx-rtd-theme>=1.0.0",
 ]
 
 [project.urls]
-Homepage = "https://github.com/yourusername/swiss-army-tool"
-Documentation = "https://github.com/yourusername/swiss-army-tool/docs"
-Repository = "https://github.com/yourusername/swiss-army-tool"
-"Bug Tracker" = "https://github.com/yourusername/swiss-army-tool/issues"
+Homepage = "https://github.com/yourusername/productivity-app"
+Documentation = "https://github.com/yourusername/productivity-app/docs"
+Repository = "https://github.com/yourusername/productivity-app"
+"Bug Tracker" = "https://github.com/yourusername/productivity-app/issues"
+Changelog = "https://github.com/yourusername/productivity-app/blob/main/CHANGELOG.md"
 
 [project.scripts]
-swiss-army-tool = "app.main:main"
+productivity-app = "app.main:main"
 
 [tool.setuptools.packages.find]
-exclude = ["tests*", "document_scanner_cache*", "e3_caches*"]
+where = ["."]
+include = ["app*"]
+exclude = ["tests*", "document_scanner_cache*", "e3_caches*", "*.pyc", "__pycache__"]
 
 [tool.setuptools.package-data]
-"*" = ["*.md", "*.json", "*.csv"]
+app = ["*.json", "*.csv", "*.md"]
 
 [tool.black]
 line-length = 100
-target-version = ['py38', 'py39', 'py310', 'py311']
+target-version = ['py38', 'py39', 'py310', 'py311', 'py312']
 include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+  | \.venv
+  | \.tox
+  | build
+  | dist
+  | __pycache__
+  | \.eggs
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 100
+skip_gitignore = true
 
 [tool.mypy]
 python_version = "3.8"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = false
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
+addopts = "-v --cov=app --cov-report=term-missing --cov-report=html"
+
+[tool.coverage.run]
+source = ["app"]
+omit = ["*/tests/*", "*/__pycache__/*", "*/e3_caches/*", "*/document_scanner_cache/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+]
