@@ -107,3 +107,9 @@ APP_FOLDER = "productivity_app"
 
 # Config subfolder within the app folder
 CONFIG_SUBFOLDER = ".tool_config"
+
+# Import local overrides if they exist (not tracked by git)
+try:
+    from app.core.local_config import *
+except ImportError:
+    pass  # No local config, use defaults above

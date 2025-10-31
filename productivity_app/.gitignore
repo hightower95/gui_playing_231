@@ -138,6 +138,11 @@ document_scanner_cache/*.csv
 e3_caches/*.csv
 .tool_config/*.json
 !.tool_config/README.md
+app_data/
+.venv-test/
+
+# Machine-specific configuration (DO NOT COMMIT)
+**/local_config.py
 
 # Backup files
 *.bak
