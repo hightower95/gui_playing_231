@@ -9,6 +9,14 @@ This package provides tools for:
 - Remote documentation access
 """
 
+import sys
+import os
+
+# Add the app directory to the Python path so 'app' imports work
+_package_dir = os.path.dirname(__file__)
+if _package_dir not in sys.path:
+    sys.path.insert(0, _package_dir)
+
 __version__ = "0.1.0"
 __author__ = "Productivity App Contributors"
 __license__ = "MIT"

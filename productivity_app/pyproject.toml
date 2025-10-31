@@ -67,12 +67,11 @@ productivity-app = "productivity_app:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["productivity_app", "productivity_app.*", "app*"]
+include = ["productivity_app", "productivity_app.*"]
 exclude = ["tests*", "document_scanner_cache*", "e3_caches*", "*.pyc", "__pycache__"]
 
 [tool.setuptools.package-data]
-productivity_app = ["*.json", "*.csv", "*.md"]
-app = ["*.json", "*.csv", "*.md"]
+productivity_app = ["**/*.json", "**/*.csv", "**/*.md"]
 
 [tool.black]
 line-length = 100
