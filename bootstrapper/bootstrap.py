@@ -53,7 +53,7 @@ class SetupWizard(tk.Tk):
         self.build_ui()
 
     def setup_logging(self):
-        """Setup logging to file and console"""
+        """Setup logging to file only (no console output)"""
         # Save logs in bootstrapper/logs folder
         log_dir = Path(__file__).parent / "logs"
         log_dir.mkdir(exist_ok=True)
@@ -63,8 +63,8 @@ class SetupWizard(tk.Tk):
             level=logging.INFO,
             format='%(asctime)s - %(levelname)s - %(message)s',
             handlers=[
-                logging.FileHandler(log_file),
-                logging.StreamHandler()
+                logging.FileHandler(log_file)
+                # Removed StreamHandler() to prevent console window
             ]
         )
         self.logger = logging.getLogger(__name__)
