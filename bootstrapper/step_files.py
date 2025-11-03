@@ -13,12 +13,12 @@ class FilesStep:
         self.file_labels = {}
         self.required_files = ["start_app.pyw", "update_app.bat"]
         self.app_name = self.load_app_name()
-    
+
     def load_app_name(self):
         """Load app name from config.ini"""
         config = configparser.ConfigParser()
         config_file = Path(__file__).parent / "config.ini"
-        
+
         try:
             config.read(config_file)
             return config.get('Settings', 'app_name', fallback='My Application')
@@ -79,7 +79,7 @@ class FilesStep:
     def create_files(self):
         """Create launcher files for the application"""
         install_dir = Path(self.wizard.install_path.get())
-        
+
         # Get the library path from the library step
         library_path = self.wizard.library_step.main_library_path
         library_name = library_path.name
@@ -155,12 +155,15 @@ pause
             file_path = install_dir / fname
             if not file_path.exists():
                 try:
-                    file_path.write_text(templates.get(fname, f"# {{fname}}\\n"))
-                    lbl.config(text=f"✅ {{fname}} (created)", foreground="green")
+                    file_path.write_text(
+                        templates.get(fname, f"# {{fname}}\\n"))
+                    lbl.config(
+                        text=f"✅ {{fname}} (created)", foreground="green")
                     created.append(fname)
                     self.wizard.log(f"Created file: {{fname}}")
                 except Exception as e:
-                    self.wizard.log(f"Failed to create {{fname}}: {{e}}", "error")
+                    self.wizard.log(
+                        f"Failed to create {{fname}}: {{e}}", "error")
 
         if created:
             messagebox.showinfo("Files Created",
