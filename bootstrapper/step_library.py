@@ -33,6 +33,10 @@ class LibraryStep:
         config_file = Path(__file__).parent / "config.ini"
 
         config.read(config_file)
+
+        # Get venv directory name from config
+        self.venv_dir_name = config.get('Paths', 'venv_dir', fallback='.venv')
+
         # Get main library path from config
         main_library_str = config.get(
             'Dependencies', 'core_libraries', fallback='')
@@ -111,8 +115,14 @@ class LibraryStep:
     def execute(self):
         """Install the library"""
         install_dir = Path(self.wizard.install_path.get())
-        venv_python = install_dir / \
-            (".venv/Scripts/python.exe" if os.name == "nt" else ".venv/bin/python")
+        venv_python = install_dir / self.venv_dir_name / \
+            ("Scripts/python.exe" if os.name == "nt" else "bin/python")
+
+        self.wizard.log("=== Starting Step 4: Library Installation ===")
+        self.wizard.log(f"Install directory: {install_dir}")
+        self.wizard.log(f"Virtual environment Python: {venv_python}")
+        self.wizard.log(f"Main library path: {self.main_library_path}")
+        self.wizard.log(f"Additional packages: {self.additional_packages}")
 
         try:
             if not venv_python.exists():
@@ -131,24 +141,45 @@ class LibraryStep:
             self.wizard.log(
                 f"Installing main library from {self.main_library_path}")
 
+            # Use CREATE_NO_WINDOW only if not in debug mode
+            creation_flags = 0 if self.wizard.debug_mode else CREATE_NO_WINDOW
+            capture_output = not self.wizard.debug_mode  # Don't capture if in debug mode
+            self.wizard.log(
+                f"Debug mode: {self.wizard.debug_mode}, using creation_flags: {creation_flags}, capture_output: {capture_output}")
+
             result = subprocess.run(
                 [str(venv_python), "-m", "pip", "install",
                  str(self.main_library_path)],
-                capture_output=True,
+                capture_output=capture_output,
                 text=True,
                 timeout=300,
-                creationflags=CREATE_NO_WINDOW
+                creationflags=creation_flags
             )
+
+            # Log pip output for debugging (only if we captured it)
+            if capture_output:
+                if result.stdout:
+                    self.wizard.log(f"Pip stdout: {result.stdout}")
+                if result.stderr:
+                    self.wizard.log(f"Pip stderr: {result.stderr}")
 
             if result.returncode != 0:
                 self.wizard.log(
-                    f"Main library installation failed: {result.stderr}", "error")
+                    f"Main library installation failed with return code: {result.returncode}", "error")
+                self.wizard.log(
+                    f"Command: {' '.join([str(venv_python), '-m', 'pip', 'install', str(self.main_library_path)])}", "error")
+
+                # Show error message, using stderr only if we captured it
+                error_msg = result.stderr[:
+                                          50] if capture_output and result.stderr else f"Return code: {result.returncode}"
                 self.install_status.config(
-                    text=f"❌ Install failed: {result.stderr[:50]}", foreground="red")
+                    text=f"❌ Install failed: {error_msg}", foreground="red")
                 self.wizard.step_status["library"] = False
                 return
 
             self.wizard.log("Main library installed successfully")
+            self.wizard.log(
+                f"Installation command: {' '.join([str(venv_python), '-m', 'pip', 'install', str(self.main_library_path)])}")
 
             # Step 2: Install additional packages if specified
             if self.additional_packages:
@@ -160,18 +191,31 @@ class LibraryStep:
                 result = subprocess.run(
                     [str(venv_python), "-m", "pip", "install"] +
                     self.additional_packages,
-                    capture_output=True,
+                    capture_output=capture_output,
                     text=True,
                     timeout=300,
-                    creationflags=CREATE_NO_WINDOW
+                    creationflags=creation_flags
                 )
+
+                # Log additional packages output for debugging (only if we captured it)
+                if capture_output:
+                    if result.stdout:
+                        self.wizard.log(
+                            f"Additional packages pip stdout: {result.stdout}")
+                    if result.stderr:
+                        self.wizard.log(
+                            f"Additional packages pip stderr: {result.stderr}")
 
                 if result.returncode != 0:
                     self.wizard.log(
-                        f"Additional packages warning: {result.stderr}", "warning")
+                        f"Additional packages installation failed with return code: {result.returncode}", "warning")
+                    self.wizard.log(
+                        f"Additional packages command: {' '.join([str(venv_python), '-m', 'pip', 'install'] + self.additional_packages)}", "warning")
                 else:
                     self.wizard.log(
                         "Additional packages installed successfully")
+                    self.wizard.log(
+                        f"Additional packages command: {' '.join([str(venv_python), '-m', 'pip', 'install'] + self.additional_packages)}")
 
             # Success!
             installed_list = [self.main_library_path.name] + \
@@ -179,6 +223,13 @@ class LibraryStep:
             self.install_status.config(
                 text=f"✅ Installed: {', '.join(installed_list)}", foreground="green")
             self.wizard.step_status["library"] = True
+            self.wizard.log(
+                "=== Step 4: Library Installation Completed Successfully ===")
+
+            # Trigger Step 5 to check if it can auto-create files
+            if hasattr(self.wizard.files_step, 'auto_create_files'):
+                self.wizard.after(
+                    1000, self.wizard.files_step.auto_create_files)
 
         except subprocess.TimeoutExpired:
             self.wizard.log("Installation timed out", "error")
@@ -195,3 +246,58 @@ class LibraryStep:
             self.install_btn.config(state=tk.NORMAL)
             self.wizard.running_step = False
             self.wizard.update_progress()
+
+    def auto_detect(self):
+        """Auto-detect if libraries are already installed"""
+        # Check DEV section for simulation first
+        config = configparser.ConfigParser()
+        config_file = Path(__file__).parent / "config.ini"
+
+        try:
+            config.read(config_file)
+            if config.getboolean('DEV', 'simulate_library_complete', fallback=False):
+                self.install_status.config(
+                    text="✅ Libraries (simulated)", foreground="orange")
+                self.wizard.step_status["library"] = True
+                self.wizard.log(
+                    "DEV: Simulating library installation completion")
+
+                # Trigger Step 5 to check if it can auto-create files (same as real completion)
+                if hasattr(self.wizard.files_step, 'auto_create_files'):
+                    self.wizard.after(
+                        1000, self.wizard.files_step.auto_create_files)
+                return
+        except Exception:
+            pass  # Continue with normal detection if config read fails
+
+        install_dir = Path(self.wizard.install_path.get())
+        venv_python = install_dir / self.venv_dir_name / \
+            ("Scripts/python.exe" if os.name == "nt" else "bin/python")
+
+        if not venv_python.exists():
+            self.install_status.config(
+                text="❓ Virtual environment not found", foreground="gray")
+            self.wizard.step_status["library"] = False
+            return
+
+        try:
+            # Check if main library is installed
+            result = subprocess.run([
+                str(venv_python), "-c", f"import {self.main_library_path}"
+            ], capture_output=True, text=True, timeout=10)
+
+            if result.returncode == 0:
+                self.install_status.config(
+                    text="✅ Libraries already installed", foreground="green")
+                self.wizard.step_status["library"] = True
+                self.wizard.log("Auto-detected existing library installation")
+            else:
+                self.install_status.config(
+                    text="❓ Libraries not installed", foreground="gray")
+                self.wizard.step_status["library"] = False
+
+        except (subprocess.TimeoutExpired, Exception) as e:
+            self.wizard.log(f"Auto-detect library error: {e}", "warning")
+            self.install_status.config(
+                text="❓ Could not verify installation", foreground="gray")
+            self.wizard.step_status["library"] = False

@@ -8,11 +8,25 @@ import configparser
 class FilesStep:
     def __init__(self, wizard):
         self.wizard = wizard
-        self.check_files_btn = None
-        self.create_files_btn = None
-        self.file_labels = {}
-        self.required_files = ["start_app.pyw", "update_app.bat"]
+        self.status_label = None
+        self.success_label = None
+        self.required_files = ["run_app.pyw",
+                               "launch_config.ini", "update.pyw", "about.pyw"]
         self.app_name = self.load_app_name()
+        self.library_name = self.load_library_name()
+        self.help_page = self.load_help_page()
+        self.venv_dir_name = self.load_venv_dir_name()
+
+    def load_venv_dir_name(self):
+        """Load venv directory name from config.ini"""
+        config = configparser.ConfigParser()
+        config_file = Path(__file__).parent / "config.ini"
+
+        try:
+            config.read(config_file)
+            return config.get('Paths', 'venv_dir', fallback='.venv')
+        except Exception:
+            return '.venv'
 
     def load_app_name(self):
         """Load app name from config.ini"""
@@ -25,78 +39,122 @@ class FilesStep:
         except Exception:
             return 'My Application'
 
+    def load_library_name(self):
+        """Load library name from config.ini"""
+        config = configparser.ConfigParser()
+        config_file = Path(__file__).parent / "config.ini"
+
+        try:
+            config.read(config_file)
+            return config.get('Dependencies', 'core_libraries', fallback='my_library')
+        except Exception:
+            return 'my_library'
+
+    def load_help_page(self):
+        """Load help page URL from config.ini"""
+        config = configparser.ConfigParser()
+        config_file = Path(__file__).parent / "config.ini"
+
+        try:
+            config.read(config_file)
+            return config.get('URLs', 'help_page', fallback='https://example.com/help')
+        except Exception:
+            return 'https://example.com/help'
+
     def build_ui(self, parent):
-        """Build the UI for file verification"""
+        """Build the UI for file creation"""
         frame = ttk.Frame(parent)
         frame.pack(fill="x")
 
-        self.check_files_btn = ttk.Button(frame, text="Check Files",
-                                          command=self.check_files)
-        self.check_files_btn.pack(anchor="w", pady=(0, 5))
+        # Status label for auto-creation
+        self.status_label = ttk.Label(
+            frame, text=self.get_waiting_message(), foreground="gray")
+        self.status_label.pack(anchor="w", pady=(0, 10))
 
-        for fname in self.required_files:
-            lbl = ttk.Label(frame, text=f"⏸ {fname}", foreground="gray")
-            lbl.pack(anchor="w")
-            self.file_labels[fname] = lbl
+        # Success message (initially hidden)
+        self.success_label = ttk.Label(
+            frame, text="", foreground="green", font=("", 11, "bold"))
+        self.success_label.pack(anchor="w", pady=(5, 10))
 
-        # Add "Create missing files" button
-        self.create_files_btn = ttk.Button(frame, text="Create Missing Files",
-                                           command=self.create_files, state=tk.DISABLED)
-        self.create_files_btn.pack(anchor="w", pady=(5, 0))
+        # Auto-create files if all prerequisites are complete
+        if self.all_prerequisites_complete():
+            self.auto_create_files()
 
-    def check_files(self):
-        """Check if required files exist"""
-        if not self.wizard.step_status["library"]:
-            messagebox.showwarning("Step 4 Required",
-                                   "Please complete Step 4 (Install library) first.")
+    def all_prerequisites_complete(self):
+        """Check if all prerequisite steps (1-4) are complete"""
+        required_steps = ["folder", "venv", "pyirc", "library"]
+        return all(self.wizard.step_status.get(step, False) for step in required_steps)
+
+    def get_waiting_message(self):
+        """Get appropriate waiting message based on which steps are incomplete"""
+        incomplete_steps = []
+        step_names = {
+            "folder": "Step 1 (Folder)",
+            "venv": "Step 2 (Virtual Environment)",
+            "pyirc": "Step 3 (PyIRC)",
+            "library": "Step 4 (Library)"
+        }
+
+        for step, name in step_names.items():
+            if not self.wizard.step_status.get(step, False):
+                incomplete_steps.append(name)
+
+        if not incomplete_steps:
+            return "✅ All prerequisites complete!"
+        elif len(incomplete_steps) == 1:
+            return f"⏸ Waiting for {incomplete_steps[0]} to complete..."
+        else:
+            return f"⏸ Waiting for steps: {', '.join(incomplete_steps)}"
+
+    def refresh_status(self):
+        """Refresh the status display based on current step completion"""
+        if hasattr(self, 'status_label') and self.status_label:
+            if self.all_prerequisites_complete():
+                # Don't auto-trigger if files are already created
+                if not self.wizard.step_status.get("files", False):
+                    self.auto_create_files()
+            else:
+                self.status_label.config(
+                    text=self.get_waiting_message(), foreground="gray")
+
+    def auto_create_files(self):
+        """Automatically create required files"""
+        if not self.all_prerequisites_complete():
+            if self.status_label:
+                self.status_label.config(
+                    text=self.get_waiting_message(), foreground="gray")
             return
 
-        install_dir = Path(self.wizard.install_path.get())
-        all_present = True
-        missing_files = []
+        # Update status
+        if self.status_label:
+            self.status_label.config(
+                text="🔧 Creating application files...", foreground="blue")
 
-        for fname, lbl in self.file_labels.items():
-            file_path = install_dir / fname
-            exists = file_path.exists()
-            if exists:
-                lbl.config(text=f"✅ {fname}", foreground="green")
-                self.wizard.log(f"File found: {fname}")
-            else:
-                lbl.config(text=f"❌ {fname} (missing)", foreground="red")
-                self.wizard.log(f"File missing: {fname}", "warning")
-                all_present = False
-                missing_files.append(fname)
+        # Create files immediately
+        self.wizard.after(500, self.create_files_silently)
 
-        self.wizard.step_status["files"] = all_present
+    def create_files_silently(self):
+        """Silently create files and show success message"""
+        self.create_files(show_dialog=False)
 
-        if not all_present:
-            self.create_files_btn.config(state=tk.NORMAL)
-        else:
-            self.create_files_btn.config(state=tk.DISABLED)
-
-        self.wizard.update_progress()
-
-    def create_files(self):
+    def create_files(self, show_dialog=True):
         """Create launcher files for the application"""
         install_dir = Path(self.wizard.install_path.get())
 
-        # Get the library path from the library step
-        library_path = self.wizard.library_step.main_library_path
-        library_name = library_path.name
-
-        # Template for start_app.pyw (GUI launcher, no console)
-        start_app_template = f'''"""
-{self.app_name} Launcher
-Auto-updates and starts the application without console window
+        # Template for run_app.pyw (main launcher)
+        run_app_template = f'''"""
+{self.app_name} Main Launcher
+Upgrades library and runs the application
 """
 import subprocess
 import sys
 from pathlib import Path
+import configparser
 
 def main():
     # Get paths
-    install_dir = Path(__file__).parent
-    venv_python = install_dir / ".venv" / "Scripts" / "python.exe"
+    app_dir = Path(__file__).parent
+    venv_python = app_dir / "{self.venv_dir_name}" / "Scripts" / "python.exe"
     
     if not venv_python.exists():
         import tkinter as tk
@@ -106,22 +164,42 @@ def main():
         messagebox.showerror("Error", f"Python not found at {{venv_python}}")
         return
     
-    # Windows flag to hide console
+    # Load debug setting from bootstrap config
+    bootstrap_config = configparser.ConfigParser()
+    bootstrap_config_file = app_dir / "bootstrapper" / "config.ini"
+    debug_mode = False
+    if bootstrap_config_file.exists():
+        bootstrap_config.read(bootstrap_config_file)
+        debug_str = bootstrap_config.get('Settings', 'debug', fallback='false')
+        debug_mode = debug_str.lower() in ('true', '1', 'yes', 'on')
+    
+    # Windows flag to hide console (only if not in debug mode)
     CREATE_NO_WINDOW = 0x08000000
+    creation_flags = 0 if debug_mode else CREATE_NO_WINDOW
+    capture_output = not debug_mode  # Don't capture output if in debug mode
     
     try:
-        # Step 1: Update the library (silent, in background)
+        # Step 1: Upgrade the library
         subprocess.run(
-            [str(venv_python), "-m", "pip", "install", "--upgrade", "-e", str(install_dir / "{library_name}")],
-            capture_output=True,
-            creationflags=CREATE_NO_WINDOW
+            [str(venv_python), "-m", "pip", "install", "--upgrade", "{self.library_name}"],
+            capture_output=capture_output,
+            creationflags=creation_flags
         )
         
-        # Step 2: Start the application
-        subprocess.run(
-            [str(venv_python), "-m", "{library_name}"],
-            creationflags=CREATE_NO_WINDOW
-        )
+        # Step 2: Load launch config
+        config = configparser.ConfigParser()
+        config_file = app_dir / "launch_config.ini"
+        if config_file.exists():
+            config.read(config_file)
+            # Get launch_config as a dictionary
+            launch_config = dict(config['DEFAULT']) if config.has_section('DEFAULT') else {{}}
+        else:
+            launch_config = {{}}
+        
+        # Step 3: Import and run the library
+        import {self.library_name}
+        {self.library_name}.run(launch_config)
+        
     except Exception as e:
         import tkinter as tk
         from tkinter import messagebox
@@ -133,40 +211,201 @@ if __name__ == "__main__":
     main()
 '''
 
-        # Template for update_app.bat (console updater for manual updates)
-        update_app_template = f'''@echo off
-echo Updating {self.app_name}...
-cd /d "%~dp0"
-call .venv\\Scripts\\activate.bat
-pip install --upgrade pip
-pip install --upgrade -e "{library_name}"
-echo.
-echo Update complete!
-pause
+        # Template for launch_config.ini
+        launch_config_template = f'''[DEFAULT]
+# Configuration settings for {self.app_name}
+debug_mode = false
+
+
+
 '''
 
-        templates = {{
-            "start_app.pyw": start_app_template,
-            "update_app.bat": update_app_template
-        }}
+        # Template for update.pyw (standalone updater)
+        update_template = f'''"""
+{self.app_name} Updater
+Standalone updater utility
+"""
+import subprocess
+import sys
+from pathlib import Path
+import tkinter as tk
+from tkinter import messagebox, ttk
+
+def main():
+    # Create update window
+    root = tk.Tk()
+    root.title("{self.app_name} Updater")
+    root.geometry("400x200")
+    root.resizable(False, False)
+    
+    # Center the window
+    root.eval('tk::PlaceWindow . center')
+    
+    ttk.Label(root, text="Updating {self.app_name}...", font=("", 12)).pack(pady=20)
+    
+    progress = ttk.Progressbar(root, length=300, mode='indeterminate')
+    progress.pack(pady=10)
+    progress.start()
+    
+    status_label = ttk.Label(root, text="Starting update...")
+    status_label.pack(pady=10)
+    
+    def update_library():
+        app_dir = Path(__file__).parent
+        venv_python = app_dir / "{self.venv_dir_name}" / "Scripts" / "python.exe"
+        
+        if not venv_python.exists():
+            messagebox.showerror("Error", f"Python not found at {{venv_python}}")
+            root.destroy()
+            return
+        
+        try:
+            status_label.config(text="Updating {self.library_name}...")
+            root.update()
+            
+            # Load debug setting from bootstrap config
+            bootstrap_config = configparser.ConfigParser()
+            bootstrap_config_file = app_dir / "bootstrapper" / "config.ini"
+            debug_mode = False
+            if bootstrap_config_file.exists():
+                bootstrap_config.read(bootstrap_config_file)
+                debug_str = bootstrap_config.get('Settings', 'debug', fallback='false')
+                debug_mode = debug_str.lower() in ('true', '1', 'yes', 'on')
+            
+            # Use CREATE_NO_WINDOW only if not in debug mode
+            creation_flags = 0 if debug_mode else 0x08000000
+            capture_output = not debug_mode  # Don't capture output if in debug mode
+            
+            result = subprocess.run(
+                [str(venv_python), "-m", "pip", "install", "--upgrade", "{self.library_name}"],
+                capture_output=capture_output,
+                text=True,
+                creationflags=creation_flags
+            )
+            
+            progress.stop()
+            
+            if result.returncode == 0:
+                status_label.config(text="Update completed successfully!")
+                messagebox.showinfo("Success", "Update completed successfully!")
+            else:
+                status_label.config(text="Update failed!")
+                messagebox.showerror("Error", f"Update failed:\\n{{result.stderr}}")
+            
+            root.destroy()
+            
+        except Exception as e:
+            progress.stop()
+            status_label.config(text="Update failed!")
+            messagebox.showerror("Error", f"Update failed: {{e}}")
+            root.destroy()
+    
+    # Start update after window is shown
+    root.after(1000, update_library)
+    root.mainloop()
+
+if __name__ == "__main__":
+    main()
+'''
+
+        # Template for about.pyw (help page launcher)
+        about_template = f'''"""
+{self.app_name} About / Help
+Opens the help page in the default web browser
+"""
+import webbrowser
+import tkinter as tk
+from tkinter import messagebox
+
+def main():
+    try:
+        # Open help page in default browser
+        webbrowser.open("{self.help_page}")
+    except Exception as e:
+        # Show error if browser fails to open
+        root = tk.Tk()
+        root.withdraw()
+        messagebox.showerror("Error", f"Failed to open help page: {{e}}")
+
+if __name__ == "__main__":
+    main()
+'''
+
+        templates = {
+            "run_app.pyw": run_app_template,
+            "launch_config.ini": launch_config_template,
+            "update.pyw": update_template,
+            "about.pyw": about_template
+        }
 
         created = []
-        for fname, lbl in self.file_labels.items():
+        for fname in self.required_files:
             file_path = install_dir / fname
             if not file_path.exists():
                 try:
                     file_path.write_text(
-                        templates.get(fname, f"# {{fname}}\\n"))
-                    lbl.config(
-                        text=f"✅ {{fname}} (created)", foreground="green")
+                        templates.get(fname, f"# {fname}\\n"))
                     created.append(fname)
-                    self.wizard.log(f"Created file: {{fname}}")
+                    self.wizard.log(f"Created file: {fname}")
                 except Exception as e:
                     self.wizard.log(
-                        f"Failed to create {{fname}}: {{e}}", "error")
+                        f"Failed to create {fname}: {e}", "error")
 
         if created:
-            messagebox.showinfo("Files Created",
-                                f"Created {{len(created)}} file(s):\\n" + "\\n".join(created) +
-                                "\\n\\nDouble-click start_app.pyw to run the application!")
-            self.check_files()  # Re-check
+            if show_dialog:
+                messagebox.showinfo("Files Created",
+                                    f"Created {{len(created)}} file(s):\\n" + "\\n".join(created) +
+                                    f"\\n\\nDouble-click run_app.pyw to run {self.app_name}!")
+            else:
+                # Silent mode - show success in UI
+                if self.status_label:
+                    self.status_label.config(
+                        text="✅ Application files created successfully!", foreground="green")
+                if self.success_label:
+                    self.success_label.config(
+                        text=f"🎉 Setup Complete! run_app.pyw now exists - close this installer and double-click run_app.pyw to start {self.app_name}")
+
+                # Mark step as complete
+                self.wizard.step_status["files"] = True
+                self.wizard.update_progress()
+                self.wizard.log(
+                    f"Step 5 completed - Created {{len(created)}} files: {{', '.join(created)}}")
+        else:
+            # All files already exist
+            if not show_dialog:
+                if self.status_label:
+                    self.status_label.config(
+                        text="✅ All application files already exist!", foreground="green")
+                if self.success_label:
+                    self.success_label.config(
+                        text=f"🎉 Setup Complete! run_app.pyw exists - close this installer and double-click run_app.pyw to start {self.app_name}")
+
+                self.wizard.step_status["files"] = True
+                self.wizard.update_progress()
+                self.wizard.log("Step 5 completed - All files already existed")
+
+    def auto_detect(self):
+        """Auto-detect if files should be created"""
+        # Check DEV section for simulation first
+        config = configparser.ConfigParser()
+        config_file = Path(__file__).parent / "config.ini"
+
+        try:
+            config.read(config_file)
+            if config.getboolean('DEV', 'simulate_files_complete', fallback=False):
+                if hasattr(self, 'status_label') and self.status_label:
+                    self.status_label.config(
+                        text="✅ Application files (simulated)", foreground="orange")
+                if hasattr(self, 'success_label') and self.success_label:
+                    self.success_label.config(
+                        text=f"🎉 Setup Complete (Simulated)! run_app.pyw would exist")
+                self.wizard.step_status["files"] = True
+                self.wizard.log("DEV: Simulating files creation completion")
+                self.wizard.update_progress()
+                return
+        except Exception:
+            pass  # Continue with normal detection if config read fails
+
+        if self.all_prerequisites_complete():
+            if hasattr(self, 'status_label'):
+                self.auto_create_files()

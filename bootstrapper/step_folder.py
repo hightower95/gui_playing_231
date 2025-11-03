@@ -2,6 +2,7 @@
 from pathlib import Path
 import tkinter as tk
 from tkinter import ttk, filedialog
+import configparser
 
 
 class FolderStep:
@@ -65,6 +66,21 @@ class FolderStep:
 
     def auto_detect(self):
         """Auto-detect if folder exists"""
+        # Check DEV section for simulation first
+        config = configparser.ConfigParser()
+        config_file = Path(__file__).parent / "config.ini"
+
+        try:
+            config.read(config_file)
+            if config.getboolean('DEV', 'simulate_folder_complete', fallback=False):
+                self.folder_status.config(
+                    text="✅ Folder selected (simulated)", foreground="orange")
+                self.wizard.step_status["folder"] = True
+                self.wizard.log("DEV: Simulating folder selection completion")
+                return
+        except Exception:
+            pass  # Continue with normal detection if config read fails
+
         folder = Path(self.install_path.get())
         if folder.exists():
             self.validate()

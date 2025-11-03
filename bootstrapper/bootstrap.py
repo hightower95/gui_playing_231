@@ -6,6 +6,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from pathlib import Path
 import logging
+import configparser
 
 # Import step modules
 from step_folder import FolderStep
@@ -42,6 +43,9 @@ class SetupWizard(tk.Tk):
 
         # Track section labels for strikethrough styling
         self.section_labels = {}
+
+        # Load debug setting from config
+        self.debug_mode = self.load_debug_setting()
 
         # Track if steps are being executed
         self.running_step = False
@@ -80,6 +84,21 @@ class SetupWizard(tk.Tk):
             self.logger.error(message)
         elif level == "warning":
             self.logger.warning(message)
+
+    def load_debug_setting(self):
+        """Load debug setting from config.ini"""
+        config = configparser.ConfigParser()
+        config_file = Path(__file__).parent / "config.ini"
+
+        try:
+            config.read(config_file)
+            debug_str = config.get('Settings', 'debug', fallback='false')
+            debug_mode = debug_str.lower() in ('true', '1', 'yes', 'on')
+            self.log(f"Debug mode: {debug_mode}")
+            return debug_mode
+        except Exception as e:
+            self.log(f"Failed to read debug setting: {e}", "warning")
+            return False
 
     def build_ui(self):
         """Build the main UI"""
@@ -155,6 +174,10 @@ class SetupWizard(tk.Tk):
         # Update section titles with strikethrough for completed steps
         self.update_section_styling()
 
+        # Refresh Step 5 status when any step completes
+        if hasattr(self, 'files_step') and hasattr(self.files_step, 'refresh_status'):
+            self.files_step.refresh_status()
+
         # Enable finish button only if all steps complete (and button exists)
         if hasattr(self, 'finish_btn'):
             if completed == total:
@@ -190,6 +213,8 @@ class SetupWizard(tk.Tk):
         self.folder_step.auto_detect()
         self.venv_step.auto_detect()
         self.token_step.auto_detect()
+        self.library_step.auto_detect()
+        self.files_step.auto_detect()
 
         # Update progress
         self.update_progress()

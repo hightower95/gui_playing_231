@@ -32,6 +32,7 @@ class TokenStep:
         self.url_entry = None
         self.index_url_status = None
         self.token_status = None
+        self.showing_placeholder = False
 
     def load_config(self):
         """Load configuration from config.ini"""
@@ -87,9 +88,17 @@ class TokenStep:
         url_frame.pack(fill="x", pady=(0, 5))
 
         # Use Text widget for multi-line input
-        self.url_entry = tk.Text(url_frame, height=2, width=80, wrap=tk.WORD)
+        self.url_entry = tk.Text(url_frame, height=4, width=80, wrap=tk.WORD)
         self.url_entry.pack(side="left", fill="x", expand=True, padx=(0, 5))
+
+        # Add placeholder text
+        self.placeholder_text = "[global]\nindex-url = https://u3uajiojdwaoijdwadkawkdi9218jhn@example.com/artifactory/api/pypi/common-pypi/simple"
+        self.setup_placeholder()
+
         self.url_entry.bind('<KeyRelease>', self.validate_url_input)
+        self.url_entry.bind('<FocusIn>', self.on_entry_focus_in)
+        self.url_entry.bind('<FocusOut>', self.on_entry_focus_out)
+        self.url_entry.bind('<Button-1>', self.on_entry_click)
 
         ttk.Button(url_frame, text="Save",
                    command=self.configure_pyirc).pack(side="left")
@@ -139,6 +148,34 @@ class TokenStep:
         widget.bind("<Enter>", on_enter)
         widget.bind("<Leave>", on_leave)
 
+    def setup_placeholder(self):
+        """Setup the placeholder text in the entry widget"""
+        self.url_entry.insert("1.0", self.placeholder_text)
+        self.url_entry.config(foreground="gray")
+        self.showing_placeholder = True
+
+    def on_entry_focus_in(self, event):
+        """Handle focus in - remove placeholder if present"""
+        if self.showing_placeholder:
+            self.url_entry.delete("1.0", tk.END)
+            self.url_entry.config(foreground="black")
+            self.showing_placeholder = False
+
+    def on_entry_focus_out(self, event):
+        """Handle focus out - restore placeholder if empty"""
+        content = self.url_entry.get("1.0", tk.END).strip()
+        if not content:
+            self.url_entry.insert("1.0", self.placeholder_text)
+            self.url_entry.config(foreground="gray")
+            self.showing_placeholder = True
+
+    def on_entry_click(self, event):
+        """Handle mouse click - clear placeholder if present"""
+        if self.showing_placeholder:
+            self.url_entry.delete("1.0", tk.END)
+            self.url_entry.config(foreground="black")
+            self.showing_placeholder = False
+
     def show_instructions(self):
         """Show detailed instructions in a popup"""
         messagebox.showinfo(
@@ -155,6 +192,12 @@ class TokenStep:
 
     def validate_url_input(self, event=None):
         """Validate the index-url as user types"""
+        # Skip validation if showing placeholder
+        if hasattr(self, 'showing_placeholder') and self.showing_placeholder:
+            self.index_url_status.config(
+                text="⏸ Enter index-url", foreground="gray")
+            return
+
         # Get text from Text widget (different from Entry widget)
         url = self.url_entry.get("1.0", tk.END).strip()
 
@@ -179,8 +222,13 @@ class TokenStep:
                                    "Please complete Step 2 (Create venv) first.")
             return
 
-        # Get text from Text widget
+        # Check if placeholder is still showing
+        if hasattr(self, 'showing_placeholder') and self.showing_placeholder:
+            messagebox.showwarning(
+                "No Input", "Please replace the example text with your actual PyIRC configuration.")
+            return
 
+        # Get text from Text widget
         pyirc_entry_value = self.url_entry.get("1.0", tk.END).strip()
 
         # Validate URL
@@ -236,6 +284,24 @@ class TokenStep:
 
     def auto_detect(self):
         """Auto-detect if PyIRC is already configured"""
+        # Check DEV section for simulation first
+        config = configparser.ConfigParser()
+        config_file = Path(__file__).parent / "config.ini"
+
+        try:
+            config.read(config_file)
+            if config.getboolean('DEV', 'simulate_pyirc_complete', fallback=False):
+                if hasattr(self, 'token_status') and self.token_status:
+                    self.token_status.config(
+                        text="✅ PyIRC (simulated)", foreground="orange")
+                self.wizard.step_status["pyirc"] = True
+                self.wizard.log(
+                    "DEV: Simulating PyIRC configuration completion")
+                self.wizard.update_progress()
+                return
+        except Exception:
+            pass  # Continue with normal detection if config read fails
+
         if pip_exists_with_correct_sections():
             # Don't rebuild UI if already shown as configured
             if hasattr(self, 'token_status') and self.token_status:
