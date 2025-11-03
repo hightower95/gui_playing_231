@@ -630,3 +630,35 @@ index-url = u3uajiojdwaoijdwadkawkdi9218jhn/common-pypi/simple
 2025-11-03 20:37:56,025 - INFO - Step 5 completed - Manual file creation successful
 2025-11-03 20:37:56,047 - INFO - All steps completed!
 2025-11-03 20:37:57,938 - INFO - Setup wizard exited by user
+2025-11-03 21:44:24,107 - INFO - App name: My Application
+2025-11-03 21:44:24,108 - INFO - Setup Wizard started
+2025-11-03 21:44:24,108 - INFO - Script directory: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-03 21:44:24,109 - INFO - Debug mode: True
+2025-11-03 21:44:24,110 - INFO - DEV: Skip local index enabled - will use PyPI directly
+2025-11-03 21:44:24,111 - INFO - Main library: requests
+2025-11-03 21:44:24,111 - INFO - Additional packages: ['requests', 'pytest']
+2025-11-03 21:44:24,595 - INFO - Folder validated: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-03 21:44:24,599 - INFO - Auto-detected existing venv
+2025-11-03 21:44:24,600 - INFO - Auto-detected PyIRC configuration
+2025-11-03 21:44:25,535 - INFO - Found 12 installed packages in venv
+2025-11-03 21:44:25,536 - INFO - Auto-detected installed packages: requests==2.32.5, requests==2.32.5, pytest==8.4.2
+2025-11-03 21:44:26,064 - INFO - All steps completed!
+2025-11-03 21:44:26,064 - INFO - Step 5 completed - All files already existed
+2025-11-03 21:44:26,067 - INFO - All steps completed!
+2025-11-03 21:44:26,067 - INFO - Step 5 completed - All files already existed
+2025-11-03 21:44:43,404 - INFO - App name: Unknown Application
+2025-11-03 21:44:43,404 - INFO - Setup Wizard started
+2025-11-03 21:44:43,405 - INFO - Script directory: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-03 21:44:43,405 - INFO - Debug mode: True
+2025-11-03 21:44:43,407 - INFO - DEV: Skip local index enabled - will use PyPI directly
+2025-11-03 21:44:43,407 - INFO - Main library: requests
+2025-11-03 21:44:43,407 - INFO - Additional packages: ['requests', 'pytest']
+2025-11-03 21:44:43,878 - INFO - Folder validated: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-03 21:44:43,881 - INFO - Auto-detected existing venv
+2025-11-03 21:44:43,882 - INFO - Auto-detected PyIRC configuration
+2025-11-03 21:44:44,343 - INFO - Found 12 installed packages in venv
+2025-11-03 21:44:44,343 - INFO - Auto-detected installed packages: requests==2.32.5, requests==2.32.5, pytest==8.4.2
+2025-11-03 21:44:44,882 - INFO - All steps completed!
+2025-11-03 21:44:44,883 - INFO - Step 5 completed - All files already existed
+2025-11-03 21:44:44,885 - INFO - All steps completed!
+2025-11-03 21:44:44,885 - INFO - Step 5 completed - All files already existed

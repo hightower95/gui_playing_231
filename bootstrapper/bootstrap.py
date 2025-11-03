@@ -19,12 +19,16 @@ from step_files import FilesStep
 class SetupWizard(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.title("Project Setup Wizard")
+        
+        # Setup logging first
+        self.setup_logging()
+        
+        # Load app name from config
+        self.app_name = self.load_app_name()
+        self.title(f"{self.app_name} - Setup Wizard")
         self.geometry("800x900")
         self.resizable(False, False)
 
-        # Setup logging
-        self.setup_logging()
         self.log("Setup Wizard started")
 
         # State tracking - default to the directory where bootstrap.py is located
@@ -100,6 +104,20 @@ class SetupWizard(tk.Tk):
             self.log(f"Failed to read debug setting: {e}", "warning")
             return False
 
+    def load_app_name(self):
+        """Load app name from config.ini"""
+        config = configparser.ConfigParser()
+        config_file = Path(__file__).parent / "config.ini"
+
+        try:
+            config.read(config_file)
+            app_name = config.get('Settings', 'app_name', fallback='My Application')
+            self.log(f"App name: {app_name}")
+            return app_name
+        except Exception as e:
+            self.log(f"Failed to read app name: {e}", "warning")
+            return "My Application"
+
     def build_ui(self):
         """Build the main UI"""
         # Main container
@@ -107,7 +125,7 @@ class SetupWizard(tk.Tk):
         main_frame.pack(fill="both", expand=True)
 
         # Title
-        ttk.Label(main_frame, text="Project Setup Wizard", font=(
+        ttk.Label(main_frame, text=f"{self.app_name} - Setup Wizard", font=(
             "Segoe UI", 16, "bold")).pack(anchor="w", pady=(0, 20))
 
         # Progress overview
