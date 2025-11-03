@@ -37,7 +37,7 @@ def main():
     try:
         # Step 1: Upgrade the library
         subprocess.run(
-            [str(venv_python), "-m", "pip", "install", "--upgrade", "productivity_app"],
+            [str(venv_python), "-m", "pip", "install", "--upgrade", "requests"],
             capture_output=capture_output,
             creationflags=creation_flags
         )
@@ -53,8 +53,8 @@ def main():
             launch_config = {}
         
         # Step 3: Import and run the library
-        import productivity_app
-        productivity_app.run(launch_config)
+        import requests
+        requests.run(launch_config)
         
     except Exception as e:
         import tkinter as tk

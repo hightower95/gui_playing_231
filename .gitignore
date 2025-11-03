@@ -32,6 +32,8 @@ pip-delete-this-directory.txt
 dmypy.json
 .env
 .venv
+.test_venv/*
+*.test_venv/**
 env/
 venv/
 ENV/
@@ -41,3 +43,4 @@ venv.bak/
 .tool_config/
 document_scanner_cache/
 e3_caches/
+.test_venv/

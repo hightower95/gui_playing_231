@@ -37,6 +37,13 @@ class LibraryStep:
         # Get venv directory name from config
         self.venv_dir_name = config.get('Paths', 'venv_dir', fallback='.venv')
 
+        # Get DEV settings
+        self.skip_local_index = config.getboolean(
+            'DEV', 'skip_local_index', fallback=False)
+        if self.skip_local_index:
+            self.wizard.log(
+                "DEV: Skip local index enabled - will use PyPI directly")
+
         # Get main library path from config
         main_library_str = config.get(
             'Dependencies', 'core_libraries', fallback='')
@@ -61,6 +68,23 @@ class LibraryStep:
                 f"Failed to read dependencies from config.ini: {e}", "warning")
             self.additional_packages = []
 
+    def build_pip_command(self, venv_python, packages):
+        """Build pip install command with appropriate index settings"""
+        cmd = [str(venv_python), "-m", "pip", "install"]
+
+        # Add index-url to skip local PyIRC configuration if requested
+        if self.skip_local_index:
+            cmd.extend(["--index-url", "https://pypi.org/simple/"])
+            self.wizard.log("Using PyPI directly (skipping local index)")
+
+        # Add the packages to install
+        if isinstance(packages, (list, tuple)):
+            cmd.extend(str(pkg) for pkg in packages)
+        else:
+            cmd.append(str(packages))
+
+        return cmd
+
     def build_ui(self, parent):
         """Build the UI for library installation"""
         frame = ttk.Frame(parent)
@@ -74,7 +98,35 @@ class LibraryStep:
         if self.additional_packages:
             deps_text = f"Additional: {', '.join(self.additional_packages)}"
             ttk.Label(frame, text=deps_text, foreground="gray").pack(
-                anchor="w", pady=(0, 5))
+                anchor="w", pady=(0, 2))
+
+        # Show index URL information
+        if self.skip_local_index:
+            index_text = "📦 Index: PyPI (https://pypi.org/simple/) [Local index disabled]"
+            index_color = "orange"
+        else:
+            index_text = "📦 Index: Local PyIRC configuration"
+            index_color = "green"
+
+        ttk.Label(frame, text=index_text, foreground=index_color).pack(
+            anchor="w", pady=(0, 2))
+
+        # Show simulation status if enabled
+        config = configparser.ConfigParser()
+        config_file = Path(__file__).parent / "config.ini"
+
+        try:
+            config.read(config_file)
+            if config.getboolean('DEV', 'simulate_library_complete', fallback=False):
+                sim_text = "🎭 Simulation: Step completion is simulated"
+                ttk.Label(frame, text=sim_text, foreground="purple").pack(
+                    anchor="w", pady=(0, 5))
+            else:
+                # Add spacing when no simulation
+                ttk.Frame(frame, height=3).pack(pady=(0, 3))
+        except Exception:
+            # Add spacing when config read fails
+            ttk.Frame(frame, height=3).pack(pady=(0, 3))
 
         self.install_btn = ttk.Button(frame, text="Install Libraries",
                                       command=self.run_threaded)
@@ -95,17 +147,22 @@ class LibraryStep:
                 "Busy", "Another step is running. Please wait.")
             return
 
-        if not self.wizard.step_status["pyirc"]:
-            messagebox.showwarning("Step 3 Required",
-                                   "Please complete Step 3 (Configure PyIRC) first.")
-            return
+        # Check PyIRC requirements only if not skipping local index
+        if not self.skip_local_index:
+            if not self.wizard.step_status["pyirc"]:
+                messagebox.showwarning("Step 3 Required",
+                                       "Please complete Step 3 (Configure PyIRC) first.")
+                return
 
-        # Double-check PyIRC configuration
-        if not pip_exists_with_correct_sections():
-            messagebox.showerror("PyIRC Not Configured",
-                                 "PyIRC configuration is missing or invalid. "
-                                 "Please complete Step 3 first.")
-            return
+            # Double-check PyIRC configuration
+            if not pip_exists_with_correct_sections():
+                messagebox.showerror("PyIRC Not Configured",
+                                     "PyIRC configuration is missing or invalid. "
+                                     "Please complete Step 3 first.")
+                return
+        else:
+            self.wizard.log(
+                "DEV: Skipping PyIRC validation (using PyPI directly)")
 
         self.wizard.running_step = True
         self.install_btn.config(state=tk.DISABLED)
@@ -124,12 +181,19 @@ class LibraryStep:
         self.wizard.log(f"Main library path: {self.main_library_path}")
         self.wizard.log(f"Additional packages: {self.additional_packages}")
 
+        # Log index URL configuration
+        if self.skip_local_index:
+            self.wizard.log(
+                "Index URL: Using PyPI directly (https://pypi.org/simple/) - DEV MODE")
+        else:
+            self.wizard.log("Index URL: Using local PyIRC configuration")
+
         try:
             if not venv_python.exists():
                 self.wizard.log(
                     f"Python executable not found at {venv_python}", "error")
                 self.install_status.config(
-                    text="❌ venv Python not found", foreground="red")
+                    text="❌ venv Python not found at startup", foreground="red")
                 self.wizard.step_status["library"] = False
                 return
 
@@ -147,9 +211,12 @@ class LibraryStep:
             self.wizard.log(
                 f"Debug mode: {self.wizard.debug_mode}, using creation_flags: {creation_flags}, capture_output: {capture_output}")
 
+            # Build pip command with appropriate index settings
+            pip_cmd = self.build_pip_command(
+                venv_python, self.main_library_path)
+
             result = subprocess.run(
-                [str(venv_python), "-m", "pip", "install",
-                 str(self.main_library_path)],
+                pip_cmd,
                 capture_output=capture_output,
                 text=True,
                 timeout=300,
@@ -167,7 +234,7 @@ class LibraryStep:
                 self.wizard.log(
                     f"Main library installation failed with return code: {result.returncode}", "error")
                 self.wizard.log(
-                    f"Command: {' '.join([str(venv_python), '-m', 'pip', 'install', str(self.main_library_path)])}", "error")
+                    f"Command: {' '.join(pip_cmd)}", "error")
 
                 # Show error message, using stderr only if we captured it
                 error_msg = result.stderr[:
@@ -179,7 +246,7 @@ class LibraryStep:
 
             self.wizard.log("Main library installed successfully")
             self.wizard.log(
-                f"Installation command: {' '.join([str(venv_python), '-m', 'pip', 'install', str(self.main_library_path)])}")
+                f"Installation command: {' '.join(pip_cmd)}")
 
             # Step 2: Install additional packages if specified
             if self.additional_packages:
@@ -188,9 +255,12 @@ class LibraryStep:
                 self.wizard.log(
                     f"Installing additional packages: {self.additional_packages}")
 
+                # Build pip command for additional packages
+                additional_pip_cmd = self.build_pip_command(
+                    venv_python, self.additional_packages)
+
                 result = subprocess.run(
-                    [str(venv_python), "-m", "pip", "install"] +
-                    self.additional_packages,
+                    additional_pip_cmd,
                     capture_output=capture_output,
                     text=True,
                     timeout=300,
@@ -210,12 +280,12 @@ class LibraryStep:
                     self.wizard.log(
                         f"Additional packages installation failed with return code: {result.returncode}", "warning")
                     self.wizard.log(
-                        f"Additional packages command: {' '.join([str(venv_python), '-m', 'pip', 'install'] + self.additional_packages)}", "warning")
+                        f"Additional packages command: {' '.join(additional_pip_cmd)}", "warning")
                 else:
                     self.wizard.log(
                         "Additional packages installed successfully")
                     self.wizard.log(
-                        f"Additional packages command: {' '.join([str(venv_python), '-m', 'pip', 'install'] + self.additional_packages)}")
+                        f"Additional packages command: {' '.join(additional_pip_cmd)}")
 
             # Success!
             installed_list = [self.main_library_path.name] + \
@@ -257,7 +327,7 @@ class LibraryStep:
             config.read(config_file)
             if config.getboolean('DEV', 'simulate_library_complete', fallback=False):
                 self.install_status.config(
-                    text="✅ Libraries (simulated)", foreground="orange")
+                    text="✅ Libraries (simulated completion)", foreground="purple")
                 self.wizard.step_status["library"] = True
                 self.wizard.log(
                     "DEV: Simulating library installation completion")
@@ -276,25 +346,75 @@ class LibraryStep:
 
         if not venv_python.exists():
             self.install_status.config(
-                text="❓ Virtual environment not found", foreground="gray")
+                text="❓ Virtual environment not found at startup", foreground="gray")
             self.wizard.step_status["library"] = False
             return
 
         try:
-            # Check if main library is installed
+            # Run pip list to check installed packages
             result = subprocess.run([
-                str(venv_python), "-c", f"import {self.main_library_path}"
-            ], capture_output=True, text=True, timeout=10)
+                str(venv_python), "-m", "pip", "list", "--format=freeze"
+            ], capture_output=True, text=True, timeout=15)
 
-            if result.returncode == 0:
+            if result.returncode != 0:
+                self.wizard.log(
+                    f"Failed to run pip list: {result.stderr}", "warning")
                 self.install_status.config(
-                    text="✅ Libraries already installed", foreground="green")
-                self.wizard.step_status["library"] = True
-                self.wizard.log("Auto-detected existing library installation")
-            else:
-                self.install_status.config(
-                    text="❓ Libraries not installed", foreground="gray")
+                    text="❓ Could not check installed packages", foreground="gray")
                 self.wizard.step_status["library"] = False
+                return
+
+            # Parse installed packages
+            installed_packages = {}
+            for line in result.stdout.strip().split('\n'):
+                if '==' in line:
+                    package_name, version = line.split('==', 1)
+                    installed_packages[package_name.lower()] = version
+
+            self.wizard.log(
+                f"Found {len(installed_packages)} installed packages in venv")
+
+            # Check if main library is installed
+            main_lib_name = self.main_library_path.name.lower()
+            main_lib_installed = main_lib_name in installed_packages
+
+            # Check additional packages
+            additional_installed = []
+            additional_missing = []
+            for pkg in self.additional_packages:
+                pkg_name = pkg.lower()
+                if pkg_name in installed_packages:
+                    additional_installed.append(
+                        f"{pkg}=={installed_packages[pkg_name]}")
+                else:
+                    additional_missing.append(pkg)
+
+            # Determine status
+            if main_lib_installed and not additional_missing:
+                # All packages are installed
+                installed_list = [
+                    f"{main_lib_name}=={installed_packages[main_lib_name]}"] + additional_installed
+                self.install_status.config(
+                    text=f"✅ Already installed: {', '.join([pkg.split('==')[0] for pkg in installed_list])}",
+                    foreground="green")
+                self.wizard.step_status["library"] = True
+                self.wizard.log(
+                    f"Auto-detected installed packages: {', '.join(installed_list)}")
+            elif main_lib_installed and additional_missing:
+                # Main library installed but some additional packages missing
+                self.install_status.config(
+                    text=f"⚠️ {main_lib_name} installed, missing: {', '.join(additional_missing)}",
+                    foreground="orange")
+                self.wizard.step_status["library"] = False
+                self.wizard.log(
+                    f"Main library {main_lib_name} found, but missing additional packages: {additional_missing}")
+            else:
+                # Main library not installed
+                self.install_status.config(
+                    text=f"❓ {main_lib_name} not installed", foreground="gray")
+                self.wizard.step_status["library"] = False
+                self.wizard.log(
+                    f"Main library {main_lib_name} not found in pip list")
 
         except (subprocess.TimeoutExpired, Exception) as e:
             self.wizard.log(f"Auto-detect library error: {e}", "warning")

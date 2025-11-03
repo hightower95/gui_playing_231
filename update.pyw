@@ -37,7 +37,7 @@ def main():
             return
         
         try:
-            status_label.config(text="Updating productivity_app...")
+            status_label.config(text="Updating requests...")
             root.update()
             
             # Load debug setting from bootstrap config
@@ -54,7 +54,7 @@ def main():
             capture_output = not debug_mode  # Don't capture output if in debug mode
             
             result = subprocess.run(
-                [str(venv_python), "-m", "pip", "install", "--upgrade", "productivity_app"],
+                [str(venv_python), "-m", "pip", "install", "--upgrade", "requests"],
                 capture_output=capture_output,
                 text=True,
                 creationflags=creation_flags

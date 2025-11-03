@@ -20,7 +20,7 @@ class SetupWizard(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Project Setup Wizard")
-        self.geometry("800x800")
+        self.geometry("800x900")
         self.resizable(False, False)
 
         # Setup logging
@@ -132,16 +132,28 @@ class SetupWizard(tk.Tk):
         self.section(main_frame, "3️⃣ Configure PyIRC",
                      self.token_step.build_ui, "pyirc")
 
-        self.section(main_frame, "4️⃣ Install Library",
+        # Dynamic title for Step 4 based on DEV settings
+        library_title = "4️⃣ Install Library"
+        if hasattr(self.library_step, 'skip_local_index') and self.library_step.skip_local_index:
+            library_title += " [Local index disabled]"
+
+        self.section(main_frame, library_title,
                      self.library_step.build_ui, "library")
 
         self.section(main_frame, "5️⃣ Verify Required Files",
                      self.files_step.build_ui, "files")
 
-        # Finish button
-        self.finish_btn = ttk.Button(
-            main_frame, text="Finish 🎉", command=self.finish, state=tk.DISABLED)
-        self.finish_btn.pack(pady=15)
+        # Finish buttons frame
+        finish_frame = ttk.Frame(main_frame)
+        finish_frame.pack(pady=15)
+
+        self.exit_btn = ttk.Button(
+            finish_frame, text="Exit", command=self.exit_app, state=tk.DISABLED)
+        self.exit_btn.pack(side="left", padx=(0, 10))
+
+        self.show_me_btn = ttk.Button(
+            finish_frame, text="Show Me 📂", command=self.show_files, state=tk.DISABLED)
+        self.show_me_btn.pack(side="left")
 
         # Auto-detect completed steps
         self.after(100, self.auto_detect_completion)
@@ -178,22 +190,28 @@ class SetupWizard(tk.Tk):
         if hasattr(self, 'files_step') and hasattr(self.files_step, 'refresh_status'):
             self.files_step.refresh_status()
 
-        # Enable finish button only if all steps complete (and button exists)
-        if hasattr(self, 'finish_btn'):
+        # Enable finish buttons only if all steps complete
+        if hasattr(self, 'exit_btn') and hasattr(self, 'show_me_btn'):
             if completed == total:
-                self.finish_btn.config(state=tk.NORMAL)
+                self.exit_btn.config(state=tk.NORMAL)
+                self.show_me_btn.config(state=tk.NORMAL)
                 self.log("All steps completed!")
             else:
-                self.finish_btn.config(state=tk.DISABLED)
+                self.exit_btn.config(state=tk.DISABLED)
+                self.show_me_btn.config(state=tk.DISABLED)
 
     def update_section_styling(self):
         """Update section titles to show strikethrough for completed steps"""
-        # Define original titles
+        # Define original titles (dynamic for library step)
+        library_title = "4️⃣ Install Library"
+        if hasattr(self.library_step, 'skip_local_index') and self.library_step.skip_local_index:
+            library_title += " [Local index disabled]"
+
         original_titles = {
             "folder": "1️⃣ Select Installation Folder",
             "venv": "2️⃣ Create Virtual Environment",
             "pyirc": "3️⃣ Configure PyIRC",
-            "library": "4️⃣ Install Library",
+            "library": library_title,
             "files": "5️⃣ Verify Required Files"
         }
 
@@ -219,17 +237,43 @@ class SetupWizard(tk.Tk):
         # Update progress
         self.update_progress()
 
-    def finish(self):
-        """Complete the setup and close the wizard"""
-        self.log("Setup wizard completed successfully")
-
-        log_file = Path(__file__).parent / "logs" / "setup_wizard.log"
-        summary = "Setup completed successfully!\n\n"
-        summary += f"Installation folder: {self.install_path.get()}\n"
-        summary += f"Log file: {log_file}\n"
-
-        messagebox.showinfo("Setup Complete", summary)
+    def exit_app(self):
+        """Exit the setup wizard"""
+        self.log("Setup wizard exited by user")
         self.destroy()
+
+    def show_files(self):
+        """Show the installation folder with run_app.pyw highlighted"""
+        import subprocess
+        import os
+
+        install_path = Path(self.install_path.get())
+        run_app_path = install_path / "run_app.pyw"
+
+        try:
+            if os.name == 'nt':  # Windows
+                if run_app_path.exists():
+                    # Open explorer and select the file
+                    subprocess.run(['explorer', '/select,', str(run_app_path)])
+                else:
+                    # Just open the folder
+                    subprocess.run(['explorer', str(install_path)])
+            else:  # macOS/Linux
+                if run_app_path.exists():
+                    subprocess.run(['open', '-R', str(run_app_path)])  # macOS
+                else:
+                    subprocess.run(['open', str(install_path)])  # macOS
+        except Exception as e:
+            # Fallback: show a message with the path
+            messagebox.showinfo("Files Created",
+                                f"Setup completed successfully!\n\n"
+                                f"Installation folder: {install_path}\n"
+                                f"Main app: {run_app_path}\n\n"
+                                f"Double-click run_app.pyw to start the application!")
+
+    def finish(self):
+        """Complete the setup and close the wizard (legacy method for compatibility)"""
+        self.exit_app()
 
 
 if __name__ == "__main__":

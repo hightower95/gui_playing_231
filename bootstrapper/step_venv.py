@@ -152,3 +152,9 @@ class VenvStep:
                 text=f"✅ Virtual environment already exists at {venv_dir}", foreground="green")
             self.wizard.step_status["venv"] = True
             self.wizard.log("Auto-detected existing venv")
+        else:
+            # Virtual environment doesn't exist or is invalid
+            self.venv_status.config(
+                text=f"❌ Virtual environment not found at {venv_dir}", foreground="red")
+            self.wizard.step_status["venv"] = False
+            self.wizard.log(f"Virtual environment not found at {venv_dir}")
