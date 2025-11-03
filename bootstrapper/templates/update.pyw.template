@@ -1,5 +1,5 @@
 """
-Unknown Application Updater
+{app_name} Updater
 Standalone updater utility
 """
 import subprocess
@@ -7,18 +7,19 @@ import sys
 from pathlib import Path
 import tkinter as tk
 from tkinter import messagebox, ttk
+import configparser
 
 def main():
     # Create update window
     root = tk.Tk()
-    root.title("Unknown Application Updater")
+    root.title("{app_name} Updater")
     root.geometry("400x200")
     root.resizable(False, False)
     
     # Center the window
     root.eval('tk::PlaceWindow . center')
     
-    ttk.Label(root, text="Updating Unknown Application...", font=("", 12)).pack(pady=20)
+    ttk.Label(root, text="Updating {app_name}...", font=("", 12)).pack(pady=20)
     
     progress = ttk.Progressbar(root, length=300, mode='indeterminate')
     progress.pack(pady=10)
@@ -29,7 +30,7 @@ def main():
     
     def update_library():
         app_dir = Path(__file__).parent
-        venv_python = app_dir / ".test_venv" / "Scripts" / "python.exe"
+        venv_python = app_dir / "{venv_dir_name}" / "Scripts" / "python.exe"
         
         if not venv_python.exists():
             messagebox.showerror("Error", f"Python not found at {venv_python}")
@@ -37,7 +38,7 @@ def main():
             return
         
         try:
-            status_label.config(text="Updating requests...")
+            status_label.config(text="Updating {library_name}...")
             root.update()
             
             # Load debug setting from launch config
@@ -54,7 +55,7 @@ def main():
             capture_output = not debug_mode  # Don't capture output if in debug mode
             
             result = subprocess.run(
-                [str(venv_python), "-m", "pip", "install", "--upgrade", "requests"],
+                [str(venv_python), "-m", "pip", "install", "--upgrade", "{library_name}"],
                 capture_output=capture_output,
                 text=True,
                 creationflags=creation_flags

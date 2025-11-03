@@ -662,3 +662,180 @@ index-url = u3uajiojdwaoijdwadkawkdi9218jhn/common-pypi/simple
 2025-11-03 21:44:44,883 - INFO - Step 5 completed - All files already existed
 2025-11-03 21:44:44,885 - INFO - All steps completed!
 2025-11-03 21:44:44,885 - INFO - Step 5 completed - All files already existed
+2025-11-03 22:21:02,905 - INFO - Setup Wizard started
+2025-11-03 22:21:02,906 - INFO - Script directory: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-03 22:21:02,907 - INFO - DEV: Skip local index enabled - will use PyPI directly
+2025-11-03 22:21:02,908 - INFO - Main library: requests
+2025-11-03 22:21:02,908 - INFO - Additional packages: ['requests', 'pytest']
+2025-11-03 22:21:03,409 - INFO - Step folder completed
+2025-11-03 22:21:03,409 - INFO - [folder] Folder validated: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-03 22:21:03,411 - INFO - Step venv completed
+2025-11-03 22:21:03,412 - INFO - [venv] Auto-detected existing venv
+2025-11-03 22:21:03,412 - INFO - Auto-detected PyIRC configuration
+2025-11-03 22:21:04,539 - INFO - Found 12 installed packages in venv
+2025-11-03 22:21:04,539 - INFO - Auto-detected installed packages: requests==2.32.5, requests==2.32.5, pytest==8.4.2
+2025-11-03 22:21:05,075 - INFO - All steps completed!
+2025-11-03 22:21:05,075 - INFO - Step 5 completed - All files already existed
+2025-11-03 22:21:05,078 - INFO - All steps completed!
+2025-11-03 22:21:05,078 - INFO - Step 5 completed - All files already existed
+2025-11-03 22:21:09,910 - INFO - Setup wizard exited by user
+2025-11-03 22:25:15,228 - INFO - Setup Wizard started
+2025-11-03 22:25:15,228 - INFO - Script directory: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-03 22:25:15,229 - INFO - DEV: Skip local index enabled - will use PyPI directly
+2025-11-03 22:25:15,230 - INFO - Main library: requests
+2025-11-03 22:25:15,230 - INFO - Additional packages: ['requests', 'pytest']
+2025-11-03 22:25:15,676 - INFO - Step folder completed
+2025-11-03 22:25:15,676 - INFO - [folder] Folder validated: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-03 22:25:15,678 - INFO - Virtual environment not found at C:\Users\peter\OneDrive\Documents\Coding\gui\.test_venv
+2025-11-03 22:25:24,425 - INFO - [venv] Creating venv at C:\Users\peter\OneDrive\Documents\Coding\gui\.test_venv
+2025-11-03 22:25:24,425 - INFO - [venv] Python executable: C:\Users\peter\OneDrive\Documents\Coding\gui\.venv\Scripts\python.exe
+2025-11-03 22:25:24,425 - INFO - [venv] Target directory: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-03 22:25:24,425 - INFO - [venv] Creating new virtual environment...
+2025-11-03 22:25:32,853 - INFO - [venv] Venv created successfully at: C:\Users\peter\OneDrive\Documents\Coding\gui\.test_venv
+2025-11-03 22:25:32,853 - INFO - [venv] Verified Python executable at: C:\Users\peter\OneDrive\Documents\Coding\gui\.test_venv\Scripts\python.exe
+2025-11-03 22:25:32,861 - INFO - Step venv completed
+2025-11-03 22:25:32,861 - INFO - [venv] Step 2 (venv creation) completed successfully
+2025-11-03 22:25:35,494 - INFO - PyIRC configured with index-url: [global]
+index-url = u3uajiojdwaoijdwadkawkdi9218jhn/common-pypi/simple
+2025-11-03 22:25:37,227 - INFO - DEV: Skipping PyIRC validation (using PyPI directly)
+2025-11-03 22:25:37,227 - INFO - === Starting Step 4: Library Installation ===
+2025-11-03 22:25:37,227 - INFO - Install directory: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-03 22:25:37,227 - INFO - Virtual environment Python: C:\Users\peter\OneDrive\Documents\Coding\gui\.test_venv\Scripts\python.exe
+2025-11-03 22:25:37,227 - INFO - Main library path: requests
+2025-11-03 22:25:37,227 - INFO - Additional packages: ['requests', 'pytest']
+2025-11-03 22:25:37,227 - INFO - Index URL: Using PyPI directly (https://pypi.org/simple/) - DEV MODE
+2025-11-03 22:25:37,228 - INFO - Installing main library from requests
+2025-11-03 22:25:37,228 - INFO - Debug mode: True, using creation_flags: 0, capture_output: False
+2025-11-03 22:25:37,228 - INFO - Using PyPI directly (skipping local index)
+2025-11-03 22:25:41,496 - INFO - Main library installed successfully
+2025-11-03 22:25:41,496 - INFO - Installation command: C:\Users\peter\OneDrive\Documents\Coding\gui\.test_venv\Scripts\python.exe -m pip install --index-url https://pypi.org/simple/ requests
+2025-11-03 22:25:41,497 - INFO - Installing additional packages: ['requests', 'pytest']
+2025-11-03 22:25:41,497 - INFO - Using PyPI directly (skipping local index)
+2025-11-03 22:25:50,877 - INFO - Additional packages installed successfully
+2025-11-03 22:25:50,877 - INFO - Additional packages command: C:\Users\peter\OneDrive\Documents\Coding\gui\.test_venv\Scripts\python.exe -m pip install --index-url https://pypi.org/simple/ requests pytest
+2025-11-03 22:25:50,878 - INFO - === Step 4: Library Installation Completed Successfully ===
+2025-11-03 22:25:51,402 - INFO - Created file: run_app.pyw
+2025-11-03 22:25:51,403 - INFO - Created file: launch_config.ini
+2025-11-03 22:25:51,403 - INFO - Created file: update.pyw
+2025-11-03 22:25:51,404 - INFO - Created file: about.pyw
+2025-11-03 22:25:51,426 - INFO - All steps completed!
+2025-11-03 22:25:51,426 - INFO - Step 5 completed - Created {len(created)} files: {', '.join(created)}
+2025-11-03 22:25:52,400 - INFO - All steps completed!
+2025-11-03 22:25:52,400 - INFO - Step 5 completed - All files already existed
+2025-11-03 22:26:47,057 - INFO - Setup Wizard started
+2025-11-03 22:26:47,058 - INFO - Script directory: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-03 22:26:47,059 - INFO - DEV: Skip local index enabled - will use PyPI directly
+2025-11-03 22:26:47,059 - INFO - Main library: requests
+2025-11-03 22:26:47,059 - INFO - Additional packages: ['requests', 'pytest']
+2025-11-03 22:26:47,517 - INFO - Step folder completed
+2025-11-03 22:26:47,517 - INFO - [folder] Folder validated: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-03 22:26:47,519 - INFO - Step venv completed
+2025-11-03 22:26:47,519 - INFO - [venv] Auto-detected existing venv
+2025-11-03 22:26:47,520 - INFO - Auto-detected PyIRC configuration
+2025-11-03 22:26:47,975 - INFO - Found 12 installed packages in venv
+2025-11-03 22:26:47,975 - INFO - Auto-detected installed packages: requests==2.32.5, requests==2.32.5, pytest==8.4.2
+2025-11-03 22:26:48,511 - INFO - All steps completed!
+2025-11-03 22:26:48,511 - INFO - Step 5 completed - All files already existed
+2025-11-03 22:26:48,514 - INFO - All steps completed!
+2025-11-03 22:26:48,515 - INFO - Step 5 completed - All files already existed
+2025-11-03 22:33:39,937 - INFO - Setup Wizard started
+2025-11-03 22:33:39,937 - INFO - Script directory: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-03 22:33:39,939 - INFO - DEV: Skip local index enabled - will use PyPI directly
+2025-11-03 22:33:39,939 - INFO - Main library: requests
+2025-11-03 22:33:39,939 - INFO - Additional packages: ['requests', 'pytest']
+2025-11-03 22:33:40,486 - INFO - Progress check: 1/5 completed
+2025-11-03 22:33:40,486 - INFO - Disabling finish buttons - only 1/5 complete
+2025-11-03 22:33:40,486 - INFO - Step folder completed
+2025-11-03 22:33:40,486 - INFO - [folder] Folder validated: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-03 22:33:40,488 - INFO - Progress check: 1/5 completed
+2025-11-03 22:33:40,488 - INFO - Disabling finish buttons - only 1/5 complete
+2025-11-03 22:33:40,488 - INFO - Virtual environment not found at C:\Users\peter\OneDrive\Documents\Coding\gui\.test_venv
+2025-11-03 22:33:40,492 - INFO - Progress check: 1/5 completed
+2025-11-03 22:33:40,492 - INFO - Disabling finish buttons - only 1/5 complete
+2025-11-03 22:34:28,566 - INFO - [venv] Creating venv at C:\Users\peter\OneDrive\Documents\Coding\gui\.test_venv
+2025-11-03 22:34:28,566 - INFO - [venv] Python executable: C:\Users\peter\OneDrive\Documents\Coding\gui\.venv\Scripts\python.exe
+2025-11-03 22:34:28,566 - INFO - [venv] Target directory: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-03 22:34:28,566 - INFO - [venv] Creating new virtual environment...
+2025-11-03 22:34:34,592 - INFO - [venv] Venv created successfully at: C:\Users\peter\OneDrive\Documents\Coding\gui\.test_venv
+2025-11-03 22:34:34,593 - INFO - [venv] Verified Python executable at: C:\Users\peter\OneDrive\Documents\Coding\gui\.test_venv\Scripts\python.exe
+2025-11-03 22:34:34,600 - INFO - Progress check: 2/5 completed
+2025-11-03 22:34:34,600 - INFO - Disabling finish buttons - only 2/5 complete
+2025-11-03 22:34:34,601 - INFO - Step venv completed
+2025-11-03 22:34:34,601 - INFO - [venv] Step 2 (venv creation) completed successfully
+2025-11-03 22:53:39,949 - INFO - PyIRC configured with index-url: [global]
+index-url = u3uajiojdwaoijdwadkawkdi9218jhn/common-pypi/simple
+2025-11-03 22:53:39,961 - INFO - Progress check: 3/5 completed
+2025-11-03 22:53:39,961 - INFO - Disabling finish buttons - only 3/5 complete
+2025-11-03 22:53:42,296 - INFO - DEV: Skipping PyIRC validation (using PyPI directly)
+2025-11-03 22:53:42,296 - INFO - === Starting Step 4: Library Installation ===
+2025-11-03 22:53:42,297 - INFO - Install directory: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-03 22:53:42,297 - INFO - Virtual environment Python: C:\Users\peter\OneDrive\Documents\Coding\gui\.test_venv\Scripts\python.exe
+2025-11-03 22:53:42,297 - INFO - Main library path: requests
+2025-11-03 22:53:42,297 - INFO - Additional packages: ['requests', 'pytest']
+2025-11-03 22:53:42,297 - INFO - Index URL: Using PyPI directly (https://pypi.org/simple/) - DEV MODE
+2025-11-03 22:53:42,298 - INFO - Installing main library from requests
+2025-11-03 22:53:42,298 - INFO - Debug mode: True, using creation_flags: 0, capture_output: False
+2025-11-03 22:53:42,299 - INFO - Using PyPI directly (skipping local index)
+2025-11-03 22:53:45,911 - INFO - Main library installed successfully
+2025-11-03 22:53:45,912 - INFO - Installation command: C:\Users\peter\OneDrive\Documents\Coding\gui\.test_venv\Scripts\python.exe -m pip install --index-url https://pypi.org/simple/ requests
+2025-11-03 22:53:45,912 - INFO - Installing additional packages: ['requests', 'pytest']
+2025-11-03 22:53:45,912 - INFO - Using PyPI directly (skipping local index)
+2025-11-03 22:53:52,810 - INFO - Additional packages installed successfully
+2025-11-03 22:53:52,811 - INFO - Additional packages command: C:\Users\peter\OneDrive\Documents\Coding\gui\.test_venv\Scripts\python.exe -m pip install --index-url https://pypi.org/simple/ requests pytest
+2025-11-03 22:53:52,811 - INFO - === Step 4: Library Installation Completed Successfully ===
+2025-11-03 22:53:52,820 - INFO - Progress check: 4/5 completed
+2025-11-03 22:53:52,820 - INFO - Disabling finish buttons - only 4/5 complete
+2025-11-03 22:53:53,320 - INFO - Created file: run_app.pyw
+2025-11-03 22:53:53,321 - INFO - Created file: launch_config.ini
+2025-11-03 22:53:53,322 - INFO - Created file: update.pyw
+2025-11-03 22:53:53,322 - INFO - Created file: about.pyw
+2025-11-03 22:53:53,343 - INFO - Progress check: 5/5 completed
+2025-11-03 22:53:53,343 - INFO - Enabling finish buttons...
+2025-11-03 22:53:53,343 - INFO - All steps completed!
+2025-11-03 22:53:53,343 - INFO - Step 5 completed - Created {len(created)} files: {', '.join(created)}
+2025-11-03 22:53:54,321 - INFO - Progress check: 5/5 completed
+2025-11-03 22:53:54,321 - INFO - Enabling finish buttons...
+2025-11-03 22:53:54,321 - INFO - All steps completed!
+2025-11-03 22:53:54,321 - INFO - Step 5 completed - All files already existed
+2025-11-03 22:55:50,505 - INFO - Setup Wizard started
+2025-11-03 22:55:50,506 - INFO - Script directory: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-03 22:55:50,507 - INFO - DEV: Skip local index enabled - will use PyPI directly
+2025-11-03 22:55:50,508 - INFO - Main library: requests
+2025-11-03 22:55:50,508 - INFO - Additional packages: ['requests', 'pytest']
+2025-11-03 22:55:50,994 - INFO - Step folder completed
+2025-11-03 22:55:50,994 - INFO - [folder] Folder validated: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-03 22:55:50,996 - INFO - Virtual environment not found at C:\Users\peter\OneDrive\Documents\Coding\gui\.test_venv
+2025-11-03 22:55:50,996 - INFO - Auto-detected PyIRC configuration
+2025-11-03 22:55:52,701 - INFO - [venv] Creating venv at C:\Users\peter\OneDrive\Documents\Coding\gui\.test_venv
+2025-11-03 22:55:52,701 - INFO - [venv] Python executable: C:\Users\peter\OneDrive\Documents\Coding\gui\.venv\Scripts\python.exe
+2025-11-03 22:55:52,701 - INFO - [venv] Target directory: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-03 22:55:52,702 - INFO - [venv] Creating new virtual environment...
+2025-11-03 22:55:59,015 - INFO - [venv] Venv created successfully at: C:\Users\peter\OneDrive\Documents\Coding\gui\.test_venv
+2025-11-03 22:55:59,015 - INFO - [venv] Verified Python executable at: C:\Users\peter\OneDrive\Documents\Coding\gui\.test_venv\Scripts\python.exe
+2025-11-03 22:55:59,025 - INFO - Step venv completed
+2025-11-03 22:55:59,025 - INFO - [venv] Step 2 (venv creation) completed successfully
+2025-11-03 22:58:31,604 - INFO - DEV: Skipping PyIRC validation (using PyPI directly)
+2025-11-03 22:58:31,604 - INFO - === Starting Step 4: Library Installation ===
+2025-11-03 22:58:31,605 - INFO - Install directory: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-03 22:58:31,605 - INFO - Virtual environment Python: C:\Users\peter\OneDrive\Documents\Coding\gui\.test_venv\Scripts\python.exe
+2025-11-03 22:58:31,605 - INFO - Main library path: requests
+2025-11-03 22:58:31,605 - INFO - Additional packages: ['requests', 'pytest']
+2025-11-03 22:58:31,605 - INFO - Index URL: Using PyPI directly (https://pypi.org/simple/) - DEV MODE
+2025-11-03 22:58:31,606 - INFO - Installing main library from requests
+2025-11-03 22:58:31,606 - INFO - Debug mode: True, using creation_flags: 0, capture_output: False
+2025-11-03 22:58:31,606 - INFO - Using PyPI directly (skipping local index)
+2025-11-03 22:58:35,073 - INFO - Main library installed successfully
+2025-11-03 22:58:35,073 - INFO - Installation command: C:\Users\peter\OneDrive\Documents\Coding\gui\.test_venv\Scripts\python.exe -m pip install --index-url https://pypi.org/simple/ requests
+2025-11-03 22:58:35,074 - INFO - Installing additional packages: ['requests', 'pytest']
+2025-11-03 22:58:35,074 - INFO - Using PyPI directly (skipping local index)
+2025-11-03 22:58:41,917 - INFO - Additional packages installed successfully
+2025-11-03 22:58:41,917 - INFO - Additional packages command: C:\Users\peter\OneDrive\Documents\Coding\gui\.test_venv\Scripts\python.exe -m pip install --index-url https://pypi.org/simple/ requests pytest
+2025-11-03 22:58:41,917 - INFO - === Step 4: Library Installation Completed Successfully ===
+2025-11-03 22:58:42,439 - INFO - Created file: run_app.pyw
+2025-11-03 22:58:42,439 - INFO - Created file: launch_config.ini
+2025-11-03 22:58:42,440 - INFO - Created file: update.pyw
+2025-11-03 22:58:42,441 - INFO - Created file: about.pyw
+2025-11-03 22:58:42,462 - INFO - All steps completed!
+2025-11-03 22:58:42,462 - INFO - Step 5 completed - Created {len(created)} files: {', '.join(created)}
+2025-11-03 22:58:43,427 - INFO - All steps completed!
+2025-11-03 22:58:43,427 - INFO - Step 5 completed - All files already existed

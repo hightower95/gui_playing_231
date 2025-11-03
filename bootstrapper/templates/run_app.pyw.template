@@ -1,5 +1,5 @@
 """
-Unknown Application Main Launcher
+{app_name} Main Launcher
 Upgrades library and runs the application
 """
 import subprocess
@@ -10,7 +10,7 @@ import configparser
 def main():
     # Get paths
     app_dir = Path(__file__).parent
-    venv_python = app_dir / ".test_venv" / "Scripts" / "python.exe"
+    venv_python = app_dir / "{venv_dir_name}" / "Scripts" / "python.exe"
     
     if not venv_python.exists():
         import tkinter as tk
@@ -37,7 +37,7 @@ def main():
     try:
         # Step 1: Upgrade the library
         subprocess.run(
-            [str(venv_python), "-m", "pip", "install", "--upgrade", "requests"],
+            [str(venv_python), "-m", "pip", "install", "--upgrade", "{library_name}"],
             capture_output=capture_output,
             creationflags=creation_flags
         )
@@ -53,8 +53,8 @@ def main():
             launch_config = {}
         
         # Step 3: Import and run the library
-        import requests
-        requests.run(launch_config)
+        import {library_name}
+        {library_name}.run(launch_config)
         
     except Exception as e:
         import tkinter as tk

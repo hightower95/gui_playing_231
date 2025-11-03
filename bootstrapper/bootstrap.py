@@ -6,7 +6,8 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from pathlib import Path
 import logging
-import configparser
+from config_manager import config_manager
+from constants import *
 
 # Import step modules
 from step_folder import FolderStep
@@ -19,15 +20,17 @@ from step_files import FilesStep
 class SetupWizard(tk.Tk):
     def __init__(self):
         super().__init__()
-        
+
         # Setup logging first
         self.setup_logging()
-        
+
         # Load app name from config
-        self.app_name = self.load_app_name()
-        self.title(f"{self.app_name} - Setup Wizard")
-        self.geometry("800x900")
-        self.resizable(False, False)
+        self.app_name = config_manager.get_app_name()
+        self.title(WINDOW_TITLE_TEMPLATE.format(app_name=self.app_name))
+        self.geometry(WINDOW_SIZE)
+        self.resizable(True, True)
+        # Set minimum size to prevent it from being too small
+        self.minsize(800, 800)
 
         self.log("Setup Wizard started")
 
@@ -49,7 +52,7 @@ class SetupWizard(tk.Tk):
         self.section_labels = {}
 
         # Load debug setting from config
-        self.debug_mode = self.load_debug_setting()
+        self.debug_mode = config_manager.get_debug_mode()
 
         # Track if steps are being executed
         self.running_step = False
@@ -88,35 +91,6 @@ class SetupWizard(tk.Tk):
             self.logger.error(message)
         elif level == "warning":
             self.logger.warning(message)
-
-    def load_debug_setting(self):
-        """Load debug setting from config.ini"""
-        config = configparser.ConfigParser()
-        config_file = Path(__file__).parent / "config.ini"
-
-        try:
-            config.read(config_file)
-            debug_str = config.get('Settings', 'debug', fallback='false')
-            debug_mode = debug_str.lower() in ('true', '1', 'yes', 'on')
-            self.log(f"Debug mode: {debug_mode}")
-            return debug_mode
-        except Exception as e:
-            self.log(f"Failed to read debug setting: {e}", "warning")
-            return False
-
-    def load_app_name(self):
-        """Load app name from config.ini"""
-        config = configparser.ConfigParser()
-        config_file = Path(__file__).parent / "config.ini"
-
-        try:
-            config.read(config_file)
-            app_name = config.get('Settings', 'app_name', fallback='My Application')
-            self.log(f"App name: {app_name}")
-            return app_name
-        except Exception as e:
-            self.log(f"Failed to read app name: {e}", "warning")
-            return "My Application"
 
     def build_ui(self):
         """Build the main UI"""
