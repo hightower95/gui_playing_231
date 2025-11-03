@@ -11,7 +11,6 @@ class VenvStep:
     def __init__(self, wizard):
         self.wizard = wizard
         self.venv_btn = None
-        self.venv_progress = None
         self.venv_status = None
 
     def build_ui(self, parent):
@@ -22,10 +21,6 @@ class VenvStep:
         self.venv_btn = ttk.Button(frame, text="Create Virtual Environment",
                                    command=self.run_threaded)
         self.venv_btn.pack(anchor="w", pady=(0, 5))
-
-        self.venv_progress = ttk.Progressbar(
-            frame, length=300, mode='indeterminate')
-        self.venv_progress.pack(anchor="w", pady=(0, 5))
 
         self.venv_status = ttk.Label(
             frame, text="⏸ Not run yet", foreground="gray")
@@ -55,7 +50,6 @@ class VenvStep:
 
         try:
             self.venv_status.config(text="⏳ Creating virtual environment...")
-            self.venv_progress.start(10)
             self.wizard.log(f"Creating venv at {venv_dir}")
 
             if venv_dir.exists():
@@ -77,7 +71,6 @@ class VenvStep:
             self.wizard.step_status["venv"] = False
 
         finally:
-            self.venv_progress.stop()
             self.venv_btn.config(state=tk.NORMAL)
             self.wizard.running_step = False
             self.wizard.update_progress()

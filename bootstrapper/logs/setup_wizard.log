@@ -78,3 +78,119 @@
 2025-10-31 23:36:44,647 - INFO - Additional packages: []
 2025-10-31 23:36:45,125 - INFO - Folder validated: C:\Users\peter\OneDrive\Documents\Coding\gui
 2025-10-31 23:36:45,125 - INFO - Auto-detected existing venv
+2025-11-03 08:56:48,974 - INFO - Setup Wizard started
+2025-11-03 08:56:48,975 - INFO - Script directory: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-03 08:56:48,976 - INFO - Main library: c:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-03 08:56:48,976 - INFO - Additional packages: []
+2025-11-03 08:58:03,415 - INFO - Setup Wizard started
+2025-11-03 08:58:03,416 - INFO - Script directory: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-03 08:58:03,417 - INFO - Main library: c:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-03 08:58:03,417 - INFO - Additional packages: []
+2025-11-03 08:58:03,901 - INFO - Folder validated: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-03 08:58:03,902 - INFO - Auto-detected existing venv
+2025-11-03 09:01:40,281 - INFO - Setup Wizard started
+2025-11-03 09:01:40,281 - INFO - Script directory: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-03 09:01:40,283 - INFO - Main library: c:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-03 09:01:40,283 - INFO - Additional packages: []
+2025-11-03 09:01:40,726 - INFO - Folder validated: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-03 09:01:40,727 - INFO - Auto-detected existing venv
+2025-11-03 09:15:46,129 - INFO - Setup Wizard started
+2025-11-03 09:15:46,130 - INFO - Script directory: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-03 09:15:46,131 - INFO - Main library: c:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-03 09:15:46,131 - INFO - Additional packages: []
+2025-11-03 09:15:46,583 - INFO - Folder validated: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-03 09:15:46,584 - INFO - Auto-detected existing venv
+2025-11-03 09:15:59,838 - INFO - PyIRC configured with index-url: [global]
+index-url = u3uajiojdwaoijdwadkawkdi9218jhn/common-pypi/simple
+2025-11-03 09:34:29,133 - INFO - Setup Wizard started
+2025-11-03 09:34:29,134 - INFO - Script directory: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-03 09:34:29,135 - INFO - Main library: c:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-03 09:34:29,135 - INFO - Additional packages: []
+2025-11-03 09:34:29,578 - INFO - Folder validated: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-03 09:34:29,579 - INFO - Auto-detected existing venv
+2025-11-03 09:34:29,580 - INFO - Auto-detected PyIRC configuration
+2025-11-03 09:36:00,189 - INFO - Upgrading pip
+2025-11-03 09:36:03,833 - INFO - Installing main library from c:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-03 09:36:05,542 - ERROR - Main library installation failed: WARNING: The index url "[global]index-url = u3uajiojdwaoijdwadkawkdi9218jhn/common-pypi/simple" seems invalid, please provide a scheme.
+
+[notice] A new release of pip is available: 24.3.1 -> 25.3
+[notice] To update, run: python.exe -m pip install --upgrade pip
+ERROR: file:///C:/Users/peter/OneDrive/Documents/Coding/gui does not appear to be a Python project: neither 'setup.py' nor 'pyproject.toml' found.
+
+2025-11-03 09:42:04,382 - INFO - Setup Wizard started
+2025-11-03 09:42:04,382 - INFO - Script directory: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-03 09:42:04,383 - INFO - Main library: c:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-03 09:42:04,384 - INFO - Additional packages: []
+2025-11-03 09:42:04,813 - INFO - Folder validated: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-03 09:42:04,813 - INFO - Auto-detected existing venv
+2025-11-03 09:42:30,466 - INFO - PyIRC configured with index-url: [global]
+index-url = u3uajiojdwaoijdwadkawkdi9218jhn/common-pypi/simple
+2025-11-03 09:42:32,809 - INFO - Overwriting existing index-url (u3uajiojdwaoijdwadkawkdi9218jhn/common-pypi/simple) from section [global]
+2025-11-03 09:42:32,810 - INFO - PyIRC configured with index-url: [global]
+index-url = u3uajiojdwaoijdwadkawkdi9218jhn/common-pypi/simple
+2025-11-03 09:42:39,162 - INFO - Overwriting existing index-url (u3uajiojdwaoijdwadkawkdi9218jhn/common-pypi/simple) from section [global]
+2025-11-03 09:42:39,163 - INFO - PyIRC configured with index-url: [global]
+index-url = u3uaj34ijdwadkawkdi9218jhn/common-pypi/simple
+2025-11-03 09:42:58,019 - INFO - Overwriting existing index-url (u3uaj34ijdwadkawkdi9218jhn/common-pypi/simple) from section [global]
+2025-11-03 09:42:58,019 - INFO - PyIRC configured with index-url: [global]
+index-url = u3uaj34ijdwadkawkdi92122221hn/common-pypi/simple
+2025-11-03 09:43:14,841 - INFO - Upgrading pip
+2025-11-03 09:43:16,650 - INFO - Installing main library from c:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-03 09:43:18,345 - ERROR - Main library installation failed: WARNING: The index url "u3uaj34ijdwadkawkdi92122221hn/common-pypi/simple" seems invalid, please provide a scheme.
+
+[notice] A new release of pip is available: 24.3.1 -> 25.3
+[notice] To update, run: python.exe -m pip install --upgrade pip
+ERROR: file:///C:/Users/peter/OneDrive/Documents/Coding/gui does not appear to be a Python project: neither 'setup.py' nor 'pyproject.toml' found.
+
+2025-11-03 09:43:51,832 - INFO - Setup Wizard started
+2025-11-03 09:43:51,833 - INFO - Script directory: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-03 09:43:51,834 - INFO - Main library: c:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-03 09:43:51,834 - INFO - Additional packages: []
+2025-11-03 09:43:52,278 - INFO - Folder validated: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-03 09:43:52,279 - INFO - Auto-detected existing venv
+2025-11-03 09:44:30,995 - INFO - PyIRC configured with index-url: [global]
+index-url = u3uajiojdwaoijdwa11ss9218jhn/common-pypi/simple
+2025-11-03 09:46:56,305 - INFO - Setup Wizard started
+2025-11-03 09:46:56,306 - INFO - Script directory: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-03 09:46:56,307 - INFO - Main library: c:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-03 09:46:56,307 - INFO - Additional packages: []
+2025-11-03 09:47:46,384 - INFO - Setup Wizard started
+2025-11-03 09:47:46,384 - INFO - Script directory: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-03 09:47:46,386 - INFO - Main library: c:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-03 09:47:46,386 - INFO - Additional packages: []
+2025-11-03 09:47:46,820 - INFO - Folder validated: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-03 09:47:46,821 - INFO - Auto-detected existing venv
+2025-11-03 09:47:46,822 - INFO - Auto-detected PyIRC configuration
+2025-11-03 09:48:32,936 - INFO - Setup Wizard started
+2025-11-03 09:48:32,937 - INFO - Script directory: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-03 09:48:32,938 - INFO - Main library: c:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-03 09:48:32,938 - INFO - Additional packages: []
+2025-11-03 09:48:33,364 - INFO - Folder validated: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-03 09:48:33,365 - INFO - Auto-detected existing venv
+2025-11-03 09:48:48,348 - INFO - PyIRC configured with index-url: [global]
+index-url = u3uajiojdwaoijdwadkawkdi9218jhn/common-pypi/simple
+2025-11-03 09:53:42,947 - INFO - Setup Wizard started
+2025-11-03 09:53:42,948 - INFO - Script directory: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-03 09:53:42,957 - INFO - Main library: requests
+2025-11-03 09:53:42,957 - INFO - Additional packages: []
+2025-11-03 09:53:43,390 - INFO - Folder validated: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-03 09:53:43,391 - INFO - Auto-detected existing venv
+2025-11-03 09:53:43,392 - INFO - Auto-detected PyIRC configuration
+2025-11-03 09:53:46,288 - INFO - Upgrading pip
+2025-11-03 09:53:48,145 - INFO - Installing main library from requests
+2025-11-03 09:53:49,875 - ERROR - Main library installation failed: 
+[notice] A new release of pip is available: 24.3.1 -> 25.3
+[notice] To update, run: python.exe -m pip install --upgrade pip
+ERROR: requests is not a valid editable requirement. It should either be a path to a local project or a VCS URL (beginning with bzr+http, bzr+https, bzr+ssh, bzr+sftp, bzr+ftp, bzr+lp, bzr+file, git+http, git+https, git+ssh, git+git, git+file, hg+file, hg+http, hg+https, hg+ssh, hg+static-http, svn+ssh, svn+http, svn+https, svn+svn, svn+file).
+
+2025-11-03 09:57:24,591 - INFO - Setup Wizard started
+2025-11-03 09:57:24,592 - INFO - Script directory: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-03 09:57:24,593 - INFO - Main library: requests
+2025-11-03 09:57:24,593 - INFO - Additional packages: []
+2025-11-03 09:57:25,031 - INFO - Folder validated: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-03 09:57:25,032 - INFO - Auto-detected existing venv
+2025-11-03 09:57:25,032 - INFO - Auto-detected PyIRC configuration
+2025-11-03 09:57:28,940 - INFO - Installing main library from requests
+2025-11-03 09:57:30,790 - INFO - Main library installed successfully
+2025-11-03 09:57:35,587 - WARNING - File missing: start_app.pyw
+2025-11-03 09:57:35,588 - WARNING - File missing: update_app.bat

@@ -40,6 +40,9 @@ class SetupWizard(tk.Tk):
             "files": False
         }
 
+        # Track section labels for strikethrough styling
+        self.section_labels = {}
+
         # Track if steps are being executed
         self.running_step = False
 
@@ -102,19 +105,19 @@ class SetupWizard(tk.Tk):
 
         # Build each step section
         self.section(main_frame, "1️⃣ Select Installation Folder",
-                     self.folder_step.build_ui)
+                     self.folder_step.build_ui, "folder")
 
         self.section(main_frame, "2️⃣ Create Virtual Environment",
-                     self.venv_step.build_ui)
+                     self.venv_step.build_ui, "venv")
 
-        self.section(main_frame, "3️⃣ Configure Token",
-                     self.token_step.build_ui)
+        self.section(main_frame, "3️⃣ Configure PyIRC",
+                     self.token_step.build_ui, "pyirc")
 
         self.section(main_frame, "4️⃣ Install Library",
-                     self.library_step.build_ui)
+                     self.library_step.build_ui, "library")
 
         self.section(main_frame, "5️⃣ Verify Required Files",
-                     self.files_step.build_ui)
+                     self.files_step.build_ui, "files")
 
         # Finish button
         self.finish_btn = ttk.Button(
@@ -124,10 +127,15 @@ class SetupWizard(tk.Tk):
         # Auto-detect completed steps
         self.after(100, self.auto_detect_completion)
 
-    def section(self, parent, title, builder_fn):
+    def section(self, parent, title, builder_fn, step_key=None):
         """Create a labeled section frame"""
         box = ttk.Labelframe(parent, text=title, padding=10)
         box.pack(fill="x", pady=5)
+
+        # Store reference to the labelframe for strikethrough styling
+        if step_key:
+            self.section_labels[step_key] = box
+
         builder_fn(box)
         return box
 
@@ -144,12 +152,38 @@ class SetupWizard(tk.Tk):
         self.progress_label.config(
             text=f"Progress: {completed}/{total} steps completed")
 
-        # Enable finish button only if all steps complete
-        if completed == total:
-            self.finish_btn.config(state=tk.NORMAL)
-            self.log("All steps completed!")
-        else:
-            self.finish_btn.config(state=tk.DISABLED)
+        # Update section titles with strikethrough for completed steps
+        self.update_section_styling()
+
+        # Enable finish button only if all steps complete (and button exists)
+        if hasattr(self, 'finish_btn'):
+            if completed == total:
+                self.finish_btn.config(state=tk.NORMAL)
+                self.log("All steps completed!")
+            else:
+                self.finish_btn.config(state=tk.DISABLED)
+
+    def update_section_styling(self):
+        """Update section titles to show strikethrough for completed steps"""
+        # Define original titles
+        original_titles = {
+            "folder": "1️⃣ Select Installation Folder",
+            "venv": "2️⃣ Create Virtual Environment",
+            "pyirc": "3️⃣ Configure PyIRC",
+            "library": "4️⃣ Install Library",
+            "files": "5️⃣ Verify Required Files"
+        }
+
+        for step_key, labelframe in self.section_labels.items():
+            original_title = original_titles.get(step_key, "")
+            if self.step_status.get(step_key, False):
+                # Step completed - add strikethrough styling
+                completed_title = f"✅ {original_title}"
+                # Note: tkinter doesn't support strikethrough, so we use checkmark instead
+                labelframe.config(text=completed_title)
+            else:
+                # Step not completed - use original title
+                labelframe.config(text=original_title)
 
     def auto_detect_completion(self):
         """Auto-detect if steps are already completed"""

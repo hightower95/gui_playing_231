@@ -7,6 +7,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import threading
 import configparser
+from pyirc_bootstrapper import pip_exists_with_correct_sections
 
 # Windows-specific flag to hide console window
 if sys.platform == "win32":
@@ -31,8 +32,14 @@ class LibraryStep:
         config = configparser.ConfigParser()
         config_file = Path(__file__).parent / "config.ini"
 
-        # Get the parent folder of bootstrapper as the main library
-        self.main_library_path = Path(__file__).parent.parent
+        config.read(config_file)
+        # Get main library path from config
+        main_library_str = config.get(
+            'Dependencies', 'core_libraries', fallback='')
+        if main_library_str:
+            self.main_library_path = Path(main_library_str)
+        else:
+            raise Exception("Main library path not specified in config.ini")
 
         try:
             config.read(config_file)
@@ -56,7 +63,7 @@ class LibraryStep:
         frame.pack(fill="x")
 
         # Show what will be installed
-        info_text = f"Main library: {self.main_library_path.name} (editable mode)"
+        info_text = f"Main library: {self.main_library_path.name}"
         ttk.Label(frame, text=info_text, foreground="blue").pack(
             anchor="w", pady=(0, 2))
 
@@ -70,7 +77,7 @@ class LibraryStep:
         self.install_btn.pack(anchor="w", pady=(5, 5))
 
         self.install_progress = ttk.Progressbar(
-            frame, length=300, mode='indeterminate')
+            frame, length=300, mode='determinate', value=0)
         self.install_progress.pack(anchor="w", pady=(0, 5))
 
         self.install_status = ttk.Label(
@@ -86,7 +93,14 @@ class LibraryStep:
 
         if not self.wizard.step_status["pyirc"]:
             messagebox.showwarning("Step 3 Required",
-                                   "Please complete Step 3 (Configure token) first.")
+                                   "Please complete Step 3 (Configure PyIRC) first.")
+            return
+
+        # Double-check PyIRC configuration
+        if not pip_exists_with_correct_sections():
+            messagebox.showerror("PyIRC Not Configured",
+                                 "PyIRC configuration is missing or invalid. "
+                                 "Please complete Step 3 first.")
             return
 
         self.wizard.running_step = True
@@ -109,32 +123,17 @@ class LibraryStep:
                 self.wizard.step_status["library"] = False
                 return
 
-            # Step 1: Upgrade pip
-            self.install_status.config(text="⏳ Upgrading pip...")
+            # Step 1: Install main library
+            self.install_progress.config(mode='indeterminate')
             self.install_progress.start(10)
-            self.wizard.log("Upgrading pip")
-
-            result = subprocess.run(
-                [str(venv_python), "-m", "pip", "install", "--upgrade", "pip"],
-                capture_output=True,
-                text=True,
-                timeout=120,
-                creationflags=CREATE_NO_WINDOW
-            )
-
-            if result.returncode != 0:
-                self.wizard.log(
-                    f"Pip upgrade warning: {result.stderr}", "warning")
-
-            # Step 2: Install main library in editable mode
             self.install_status.config(
-                text=f"⏳ Installing {self.main_library_path.name} (editable)...")
+                text=f"⏳ Installing {self.main_library_path.name}...")
             self.wizard.log(
                 f"Installing main library from {self.main_library_path}")
 
             result = subprocess.run(
                 [str(venv_python), "-m", "pip", "install",
-                 "-e", str(self.main_library_path)],
+                 str(self.main_library_path)],
                 capture_output=True,
                 text=True,
                 timeout=300,
@@ -151,7 +150,7 @@ class LibraryStep:
 
             self.wizard.log("Main library installed successfully")
 
-            # Step 3: Install additional packages if specified
+            # Step 2: Install additional packages if specified
             if self.additional_packages:
                 self.install_status.config(
                     text="⏳ Installing additional packages...")
