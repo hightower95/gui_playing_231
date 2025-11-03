@@ -7,11 +7,12 @@ import sys
 from pathlib import Path
 import configparser
 
+
 def main():
     # Get paths
     app_dir = Path(__file__).parent
     venv_python = app_dir / ".test_venv" / "Scripts" / "python.exe"
-    
+
     if not venv_python.exists():
         import tkinter as tk
         from tkinter import messagebox
@@ -19,7 +20,7 @@ def main():
         root.withdraw()
         messagebox.showerror("Error", f"Python not found at {venv_python}")
         return
-    
+
     # Load debug setting from bootstrap config
     bootstrap_config = configparser.ConfigParser()
     bootstrap_config_file = app_dir / "bootstrapper" / "config.ini"
@@ -28,12 +29,12 @@ def main():
         bootstrap_config.read(bootstrap_config_file)
         debug_str = bootstrap_config.get('Settings', 'debug', fallback='false')
         debug_mode = debug_str.lower() in ('true', '1', 'yes', 'on')
-    
+
     # Windows flag to hide console (only if not in debug mode)
     CREATE_NO_WINDOW = 0x08000000
     creation_flags = 0 if debug_mode else CREATE_NO_WINDOW
     capture_output = not debug_mode  # Don't capture output if in debug mode
-    
+
     try:
         # Step 1: Upgrade the library
         subprocess.run(
@@ -41,27 +42,29 @@ def main():
             capture_output=capture_output,
             creationflags=creation_flags
         )
-        
+
         # Step 2: Load launch config
         config = configparser.ConfigParser()
         config_file = app_dir / "launch_config.ini"
         if config_file.exists():
             config.read(config_file)
             # Get launch_config as a dictionary
-            launch_config = dict(config['DEFAULT']) if config.has_section('DEFAULT') else {}
+            launch_config = dict(config['DEFAULT']) if config.has_section(
+                'DEFAULT') else {}
         else:
             launch_config = {}
-        
+
         # Step 3: Import and run the library
         import requests
         requests.run(launch_config)
-        
+
     except Exception as e:
         import tkinter as tk
         from tkinter import messagebox
         root = tk.Tk()
         root.withdraw()
         messagebox.showerror("Error", f"Failed to start application: {e}")
+
 
 if __name__ == "__main__":
     main()

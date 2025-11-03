@@ -313,13 +313,13 @@ def main():
         messagebox.showerror("Error", f"Python not found at {{venv_python}}")
         return
     
-    # Load debug setting from bootstrap config
-    bootstrap_config = configparser.ConfigParser()
-    bootstrap_config_file = app_dir / "bootstrapper" / "config.ini"
+    # Load debug setting from launch config
+    launch_config = configparser.ConfigParser()
+    launch_config_file = app_dir / "launch_config.ini"
     debug_mode = False
-    if bootstrap_config_file.exists():
-        bootstrap_config.read(bootstrap_config_file)
-        debug_str = bootstrap_config.get('Settings', 'debug', fallback='false')
+    if launch_config_file.exists():
+        launch_config.read(launch_config_file)
+        debug_str = launch_config.get('Settings', 'debug', fallback='false')
         debug_mode = debug_str.lower() in ('true', '1', 'yes', 'on')
     
     # Windows flag to hide console (only if not in debug mode)
@@ -412,13 +412,13 @@ def main():
             status_label.config(text="Updating {self.library_name}...")
             root.update()
             
-            # Load debug setting from bootstrap config
-            bootstrap_config = configparser.ConfigParser()
-            bootstrap_config_file = app_dir / "bootstrapper" / "config.ini"
+            # Load debug setting from launch config
+            launch_config = configparser.ConfigParser()
+            launch_config_file = app_dir / "launch_config.ini"
             debug_mode = False
-            if bootstrap_config_file.exists():
-                bootstrap_config.read(bootstrap_config_file)
-                debug_str = bootstrap_config.get('Settings', 'debug', fallback='false')
+            if launch_config_file.exists():
+                launch_config.read(launch_config_file)
+                debug_str = launch_config.get('Settings', 'debug', fallback='false')
                 debug_mode = debug_str.lower() in ('true', '1', 'yes', 'on')
             
             # Use CREATE_NO_WINDOW only if not in debug mode

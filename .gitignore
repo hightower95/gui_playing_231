@@ -44,3 +44,9 @@ venv.bak/
 document_scanner_cache/
 e3_caches/
 .test_venv/
+
+# Bootstrap-generated files (auto-created during setup)
+run_app.pyw
+launch_config.ini
+update.pyw
+about.pyw
