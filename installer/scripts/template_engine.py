@@ -4,7 +4,7 @@ Handles loading and rendering of file templates
 """
 from pathlib import Path
 from typing import Dict, Any
-from constants import TEMPLATES_DIR
+from .constants import TEMPLATES_DIR
 
 
 class TemplateEngine:

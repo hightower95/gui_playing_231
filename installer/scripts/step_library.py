@@ -7,7 +7,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import threading
 import configparser
-from pyirc_bootstrapper import pip_exists_with_correct_sections
+from .pyirc_bootstrapper import pip_exists_with_correct_sections
 
 # Windows-specific flag to hide console window
 if sys.platform == "win32":
@@ -30,7 +30,7 @@ class LibraryStep:
     def load_config(self):
         """Load library configuration from config.ini"""
         config = configparser.ConfigParser()
-        config_file = Path(__file__).parent / "config.ini"
+        config_file = Path(__file__).parent.parent / "config.ini"  # Go up one level from scripts/
 
         config.read(config_file)
 
@@ -44,13 +44,18 @@ class LibraryStep:
             self.wizard.log(
                 "DEV: Skip local index enabled - will use PyPI directly")
 
-        # Get main library path from config
+        # Get main library from config (can be a package name or path)
         main_library_str = config.get(
             'Dependencies', 'core_libraries', fallback='')
         if main_library_str:
-            self.main_library_path = Path(main_library_str)
+            # If it looks like a file path, use Path, otherwise treat as package name
+            if '/' in main_library_str or '\\' in main_library_str or main_library_str.endswith(('.whl', '.tar.gz')):
+                self.main_library_path = Path(main_library_str)
+            else:
+                # It's a package name, store as string
+                self.main_library_path = main_library_str
         else:
-            raise Exception("Main library path not specified in config.ini")
+            raise Exception("Main library not specified in config.ini")
 
         try:
             config.read(config_file)
@@ -91,7 +96,8 @@ class LibraryStep:
         frame.pack(fill="x")
 
         # Show what will be installed
-        info_text = f"Main library: {self.main_library_path.name}"
+        main_lib_name = self.main_library_path.name if isinstance(self.main_library_path, Path) else self.main_library_path
+        info_text = f"Main library: {main_lib_name}"
         ttk.Label(frame, text=info_text, foreground="blue").pack(
             anchor="w", pady=(0, 2))
 
@@ -200,8 +206,9 @@ class LibraryStep:
             # Step 1: Install main library
             self.install_progress.config(mode='indeterminate')
             self.install_progress.start(10)
+            main_lib_name = self.main_library_path.name if isinstance(self.main_library_path, Path) else self.main_library_path
             self.install_status.config(
-                text=f"⏳ Installing {self.main_library_path.name}...")
+                text=f"⏳ Installing {main_lib_name}...")
             self.wizard.log(
                 f"Installing main library from {self.main_library_path}")
 
@@ -288,7 +295,8 @@ class LibraryStep:
                         f"Additional packages command: {' '.join(additional_pip_cmd)}")
 
             # Success!
-            installed_list = [self.main_library_path.name] + \
+            main_lib_name = self.main_library_path.name if isinstance(self.main_library_path, Path) else self.main_library_path
+            installed_list = [main_lib_name] + \
                 self.additional_packages
             self.install_status.config(
                 text=f"✅ Installed: {', '.join(installed_list)}", foreground="green")
@@ -375,7 +383,7 @@ class LibraryStep:
                 f"Found {len(installed_packages)} installed packages in venv")
 
             # Check if main library is installed
-            main_lib_name = self.main_library_path.name.lower()
+            main_lib_name = (self.main_library_path.name if isinstance(self.main_library_path, Path) else self.main_library_path).lower()
             main_lib_installed = main_lib_name in installed_packages
 
             # Check additional packages

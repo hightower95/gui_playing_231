@@ -7,9 +7,9 @@ from pathlib import Path
 import tkinter as tk
 from tkinter import ttk, messagebox
 import threading
-from base_step import BaseStep
-from constants import *
-from threading_utils import run_async
+from .base_step import BaseStep
+from .constants import *
+from .threading_utils import run_async
 
 
 class VenvStep(BaseStep):

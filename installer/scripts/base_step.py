@@ -7,7 +7,7 @@ from tkinter import ttk
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Optional
-from config_manager import config_manager
+from .config_manager import config_manager
 
 
 class BaseStep(ABC):

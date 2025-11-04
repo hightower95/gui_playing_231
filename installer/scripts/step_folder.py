@@ -2,8 +2,8 @@
 from pathlib import Path
 import tkinter as tk
 from tkinter import ttk, filedialog
-from base_step import BaseStep
-from constants import *
+from .base_step import BaseStep
+from .constants import *
 
 
 class FolderStep(BaseStep):

@@ -6,15 +6,15 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from pathlib import Path
 import logging
-from config_manager import config_manager
-from constants import *
+from scripts.config_manager import config_manager
+from scripts.constants import *
 
 # Import step modules
-from step_folder import FolderStep
-from step_venv import VenvStep
-from step_token import TokenStep
-from step_library import LibraryStep
-from step_files import FilesStep
+from scripts.step_folder import FolderStep
+from scripts.step_venv import VenvStep
+from scripts.step_token import TokenStep
+from scripts.step_library import LibraryStep
+from scripts.step_files import FilesStep
 
 
 class SetupWizard(tk.Tk):

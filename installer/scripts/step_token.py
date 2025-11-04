@@ -4,7 +4,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import webbrowser
 import configparser
-from pyirc_bootstrapper import (
+from .pyirc_bootstrapper import (
     pip_exists_with_correct_sections,
     get_howto_configure_index_url,
     is_valid_index_url_value,
