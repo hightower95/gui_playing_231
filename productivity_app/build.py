@@ -189,18 +189,44 @@ def update_version_in_toml(version_type="patch"):
 def build_package():
     """Build the package"""
     print("🏗️ Building package...")
+    
+    # Find the directory containing pyproject.toml
+    pyproject_file = find_pyproject_toml()
+    if not pyproject_file:
+        print("❌ Could not find pyproject.toml!")
+        sys.exit(1)
+    
+    build_dir = pyproject_file.parent
+    print(f"📁 Building in directory: {build_dir}")
 
-    # Clean previous builds
-    run_command("python -m pip install --upgrade build twine")
+    # Install build tools first
+    print("📦 Installing/upgrading build tools...")
+    try:
+        run_command("python -m pip install --upgrade build twine")
+    except:
+        print("⚠️ Warning: Could not upgrade build tools, continuing anyway...")
 
-    # Remove old builds
+    # Remove old builds from the build directory
+    print("🧹 Cleaning old builds...")
     for path in ["dist", "build", "*.egg-info"]:
-        run_command(
-            f"python -c \"import shutil, glob; [shutil.rmtree(p, ignore_errors=True) for p in glob.glob('{path}')]\"")
+        try:
+            run_command(
+                f"python -c \"import shutil, glob, os; os.chdir('{build_dir}'); [shutil.rmtree(p, ignore_errors=True) for p in glob.glob('{path}')]\"")
+        except:
+            print(f"⚠️ Warning: Could not clean {path}")
 
-    # Build
-    run_command("python -m build")
-    print("✅ Package built successfully!")
+    # Build the package in the correct directory
+    print(f"🏗️ Running build in {build_dir}...")
+    try:
+        run_command("python -m build", cwd=str(build_dir))
+        print("✅ Package built successfully!")
+    except Exception as e:
+        print("❌ Build failed!")
+        print("💡 Possible solutions:")
+        print("  1. Make sure you're in a virtual environment")
+        print("  2. Install build tools: pip install build")
+        print("  3. Check your pyproject.toml file is valid")
+        raise
 
 
 def main():
@@ -258,10 +284,17 @@ def main():
     build_package()
 
     # Show what was built
-    dist_files = list(Path("dist").glob("*"))
-    print(f"\n✅ Built {len(dist_files)} files:")
-    for file in dist_files:
-        print(f"   📦 {file.name}")
+    pyproject_file = find_pyproject_toml()
+    build_dir = pyproject_file.parent if pyproject_file else Path(".")
+    dist_dir = build_dir / "dist"
+    
+    if dist_dir.exists():
+        dist_files = list(dist_dir.glob("*"))
+        print(f"\n✅ Built {len(dist_files)} files:")
+        for file in dist_files:
+            print(f"   📦 {file.name}")
+    else:
+        print(f"\n⚠️ No dist directory found at {dist_dir}")
 
     print(f"\n🎉 Build complete! Version: {new_version}")
     print("\nNext steps:")
