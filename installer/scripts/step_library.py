@@ -205,10 +205,13 @@ class LibraryStep:
             if not venv_python.exists():
                 self.wizard.log(
                     f"ERROR: Python executable not found at {venv_python}", "error")
-                self.wizard.log(f"Checked path: {venv_python.absolute()}", "error")
-                self.wizard.log(f"Parent directory exists: {venv_python.parent.exists()}", "error")
+                self.wizard.log(
+                    f"Checked path: {venv_python.absolute()}", "error")
+                self.wizard.log(
+                    f"Parent directory exists: {venv_python.parent.exists()}", "error")
                 if venv_python.parent.exists():
-                    self.wizard.log(f"Contents of {venv_python.parent}: {list(venv_python.parent.iterdir())}", "error")
+                    self.wizard.log(
+                        f"Contents of {venv_python.parent}: {list(venv_python.parent.iterdir())}", "error")
                 self.install_status.config(
                     text="❌ venv Python not found at startup", foreground="red")
                 self.wizard.step_status["library"] = False
@@ -219,10 +222,13 @@ class LibraryStep:
                 python_version_result = subprocess.run([
                     str(venv_python), "--version"
                 ], capture_output=True, text=True, timeout=10)
-                self.wizard.log(f"Venv Python version: {python_version_result.stdout.strip()}")
-                self.wizard.log(f"Venv Python path verified: {venv_python.absolute()}")
+                self.wizard.log(
+                    f"Venv Python version: {python_version_result.stdout.strip()}")
+                self.wizard.log(
+                    f"Venv Python path verified: {venv_python.absolute()}")
             except Exception as e:
-                self.wizard.log(f"Could not get venv Python version: {e}", "warning")
+                self.wizard.log(
+                    f"Could not get venv Python version: {e}", "warning")
 
             # Step 1: Install main library
             self.install_progress.config(mode='indeterminate')
@@ -242,7 +248,7 @@ class LibraryStep:
             # Build pip command with appropriate index settings
             pip_cmd = self.build_pip_command(
                 venv_python, self.main_library_path)
-            
+
             self.wizard.log(f"Executing pip command: {' '.join(pip_cmd)}")
             self.wizard.log("--- PIP EXECUTION START ---")
 
@@ -271,7 +277,8 @@ class LibraryStep:
                     f"Command: {' '.join(pip_cmd)}", "error")
 
                 # Show error message
-                error_msg = result.stderr[:50] if result.stderr else f"Return code: {result.returncode}"
+                error_msg = result.stderr[:
+                                          50] if result.stderr else f"Return code: {result.returncode}"
                 self.install_status.config(
                     text=f"❌ Install failed: {error_msg}", foreground="red")
                 self.wizard.step_status["library"] = False
@@ -291,9 +298,11 @@ class LibraryStep:
                 # Build pip command for additional packages
                 additional_pip_cmd = self.build_pip_command(
                     venv_python, self.additional_packages)
-                
-                self.wizard.log(f"Executing additional packages command: {' '.join(additional_pip_cmd)}")
-                self.wizard.log("--- ADDITIONAL PACKAGES PIP EXECUTION START ---")
+
+                self.wizard.log(
+                    f"Executing additional packages command: {' '.join(additional_pip_cmd)}")
+                self.wizard.log(
+                    "--- ADDITIONAL PACKAGES PIP EXECUTION START ---")
 
                 result = subprocess.run(
                     additional_pip_cmd,
@@ -304,14 +313,16 @@ class LibraryStep:
                 )
 
                 # Always log additional packages output for verbose logging
-                self.wizard.log(f"Additional packages pip return code: {result.returncode}")
+                self.wizard.log(
+                    f"Additional packages pip return code: {result.returncode}")
                 if result.stdout:
                     self.wizard.log("=== ADDITIONAL PACKAGES PIP STDOUT ===")
                     self.wizard.log(result.stdout)
                 if result.stderr:
                     self.wizard.log("=== ADDITIONAL PACKAGES PIP STDERR ===")
                     self.wizard.log(result.stderr)
-                self.wizard.log("--- ADDITIONAL PACKAGES PIP EXECUTION END ---")
+                self.wizard.log(
+                    "--- ADDITIONAL PACKAGES PIP EXECUTION END ---")
 
                 if result.returncode != 0:
                     self.wizard.log(
@@ -398,11 +409,13 @@ class LibraryStep:
 
         try:
             # Run pip list to check installed packages
-            pip_list_cmd = [str(venv_python), "-m", "pip", "list", "--format=freeze"]
+            pip_list_cmd = [str(venv_python), "-m", "pip",
+                            "list", "--format=freeze"]
             self.wizard.log(f"Running: {' '.join(pip_list_cmd)}")
-            
-            result = subprocess.run(pip_list_cmd, capture_output=True, text=True, timeout=15)
-            
+
+            result = subprocess.run(
+                pip_list_cmd, capture_output=True, text=True, timeout=15)
+
             self.wizard.log(f"Pip list return code: {result.returncode}")
             if result.stdout:
                 self.wizard.log("=== PIP LIST OUTPUT ===")
