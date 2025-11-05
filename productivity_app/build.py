@@ -216,17 +216,68 @@ def build_package():
         except:
             print(f"[WARN] Warning: Could not clean {path}")
 
+    # First, let's check if the build module is available
+    print("[CHECK] Checking if build module is available...")
+    try:
+        result = run_command("python -c \"import build; print('Build module found')\"")
+        print(f"[OK] {result}")
+    except:
+        print("[ERROR] Build module not found!")
+        print("[INFO] Installing build module...")
+        try:
+            run_command("python -m pip install build")
+            print("[OK] Build module installed")
+        except Exception as install_error:
+            print(f"[ERROR] Could not install build module: {install_error}")
+            print("[TIP] Try manually running: pip install build")
+            sys.exit(1)
+    
     # Build the package in the correct directory
     print(f"[BUILD] Running build in {build_dir}...")
+    
+    # Let's also check what's in the build directory
+    print(f"[INFO] Contents of {build_dir}:")
     try:
-        run_command("python -m build", cwd=str(build_dir))
-        print("[OK] Package built successfully!")
+        import os
+        for item in os.listdir(build_dir):
+            print(f"  - {item}")
     except Exception as e:
-        print("[ERROR] Build failed!")
+        print(f"[WARN] Could not list directory: {e}")
+    
+    try:
+        # Try with more verbose output
+        result = subprocess.run(
+            ["python", "-m", "build", "--verbose"],
+            cwd=str(build_dir),
+            capture_output=True,
+            text=True
+        )
+        
+        if result.returncode == 0:
+            print("[OK] Package built successfully!")
+            if result.stdout:
+                print("[INFO] Build output:")
+                print(result.stdout)
+        else:
+            print(f"[ERROR] Build failed with exit code {result.returncode}")
+            if result.stderr:
+                print("[ERROR] Error details:")
+                print(result.stderr)
+            if result.stdout:
+                print("[INFO] Build output:")
+                print(result.stdout)
+            raise Exception(f"Build failed with exit code {result.returncode}")
+            
+    except FileNotFoundError:
+        print("[ERROR] Python not found in PATH")
+        print("[TIP] Make sure Python is properly installed and in your PATH")
+        sys.exit(1)
+    except Exception as e:
+        print(f"[ERROR] Build failed: {e}")
         print("[TIP] Possible solutions:")
         print("  1. Make sure you're in a virtual environment")
-        print("  2. Install build tools: pip install build")
-        print("  3. Check your pyproject.toml file is valid")
+        print("  2. Check your pyproject.toml file is valid")
+        print("  3. Try running manually: python -m build --verbose")
         raise
 
 

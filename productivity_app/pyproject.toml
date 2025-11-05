@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "productivity-app"
-version = "0.1.0"
+version = "0.1.1"
 description = "A comprehensive productivity toolkit for connector management, EPD operations, document scanning, and Azure DevOps integration"
 readme = "README.md"
 requires-python = ">=3.8"
