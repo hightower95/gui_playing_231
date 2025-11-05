@@ -101,7 +101,8 @@ def watched_paths_have_changed(watch_paths=None):
                         all_changed_files.extend(path_files)
 
             if all_changed_files:
-                print(f"[INFO] Found changes in watched paths since {last_tag}")
+                print(
+                    f"[INFO] Found changes in watched paths since {last_tag}")
                 print("   Changed files:")
                 for file in sorted(set(all_changed_files)):
                     print(f"     [FILE] {file}")
@@ -111,7 +112,8 @@ def watched_paths_have_changed(watch_paths=None):
                 return False
 
         except:
-            print(f"[INFO] No previous tags found, checking watched paths for any files")
+            print(
+                f"[INFO] No previous tags found, checking watched paths for any files")
             # If no tags, check if any watched paths have relevant files
             for watch_path in existing_paths:
                 if Path(watch_path).is_file():
@@ -207,7 +209,8 @@ def build_package():
     print("[PKG] Installing/upgrading build tools...")
     try:
         # Try with default PyPI index in case there are pip config issues
-        run_command("python -m pip install --upgrade --index-url https://pypi.org/simple build twine")
+        run_command(
+            "python -m pip install --upgrade --index-url https://pypi.org/simple build twine")
     except:
         print("[WARN] Warning: Could not upgrade build tools, continuing anyway...")
 
@@ -223,23 +226,25 @@ def build_package():
     # First, let's check if the build module is available
     print("[CHECK] Checking if build module is available...")
     try:
-        result = run_command("python -c \"import build; print('Build module found')\"")
+        result = run_command(
+            "python -c \"import build; print('Build module found')\"")
         print(f"[OK] {result}")
     except:
         print("[ERROR] Build module not found!")
         print("[INFO] Installing build module...")
         try:
             # Try with default PyPI index in case there are pip config issues
-            run_command("python -m pip install --index-url https://pypi.org/simple build")
+            run_command(
+                "python -m pip install --index-url https://pypi.org/simple build")
             print("[OK] Build module installed")
         except Exception as install_error:
             print(f"[ERROR] Could not install build module: {install_error}")
             print("[TIP] Try manually running: pip install build")
             sys.exit(1)
-    
+
     # Build the package in the correct directory
     print(f"[BUILD] Running build in {build_dir}...")
-    
+
     # Let's also check what's in the build directory
     print(f"[INFO] Contents of {build_dir}:")
     try:
@@ -248,21 +253,22 @@ def build_package():
             print(f"  - {item}")
     except Exception as e:
         print(f"[WARN] Could not list directory: {e}")
-    
+
     try:
         # Use full path to python and be very explicit
         import sys
         python_exe = sys.executable
         print(f"[INFO] Using Python: {python_exe}")
-        
+
         result = subprocess.run(
             [python_exe, "-m", "build", "--verbose"],
             cwd=str(build_dir),
             capture_output=True,
             text=True,
-            env=dict(os.environ, PYTHONPATH="")  # Clear PYTHONPATH to avoid conflicts
+            # Clear PYTHONPATH to avoid conflicts
+            env=dict(os.environ, PYTHONPATH="")
         )
-        
+
         if result.returncode == 0:
             print("[OK] Package built successfully!")
             if result.stdout:
@@ -277,7 +283,7 @@ def build_package():
                 print("[INFO] Build output:")
                 print(result.stdout)
             raise Exception(f"Build failed with exit code {result.returncode}")
-            
+
     except FileNotFoundError:
         print("[ERROR] Python not found in PATH")
         print("[TIP] Make sure Python is properly installed and in your PATH")
@@ -304,18 +310,18 @@ Examples:
   python package_builder.py --no-increment     # build without version change
         """
     )
-    
+
     version_group = parser.add_mutually_exclusive_group()
-    version_group.add_argument('--minor', action='store_true', 
-                              help='Increment minor version (x.Y.z)')
+    version_group.add_argument('--minor', action='store_true',
+                               help='Increment minor version (x.Y.z)')
     version_group.add_argument('--major', action='store_true',
-                              help='Increment major version (X.y.z)')
-    
+                               help='Increment major version (X.y.z)')
+
     parser.add_argument('--no-increment', action='store_true',
-                       help='Build without incrementing version number')
-    
+                        help='Build without incrementing version number')
+
     args = parser.parse_args()
-    
+
     # Determine version increment type
     if args.major:
         version_type = "major"
@@ -323,7 +329,7 @@ Examples:
         version_type = "minor"
     else:
         version_type = "patch"
-    
+
     no_increment = args.no_increment
 
     # Determine if we're running from the project root or the productivity_app directory
@@ -390,12 +396,12 @@ Examples:
     print(f"\n[DONE] Build complete! Version: {new_version}")
     print("\nNext steps:")
     print("  - Test your package: pip install dist/*.whl")
-    
+
     if no_increment:
         print("  - Version unchanged - no commit needed for version")
     else:
         print("  - Commit version bump: git add . && git commit -m 'Bump version to {}'".format(new_version))
-        
+
     print("  - Tag release: git tag v{}".format(new_version))
     print("  - Push: git push && git push --tags")
 
