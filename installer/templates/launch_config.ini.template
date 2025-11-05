@@ -1,3 +1,4 @@
-[DEFAULT]
+[Settings]
 # Configuration settings for {app_name}
-debug_mode = false
+debug = false
+enable_log = false

@@ -25,10 +25,13 @@ def main():
     launch_config_parser = configparser.ConfigParser()
     launch_config_file = app_dir / "launch_config.ini"
     debug_mode = False
+    enable_log = False
     if launch_config_file.exists():
         launch_config_parser.read(launch_config_file)
         debug_str = launch_config_parser.get('Settings', 'debug', fallback='false')
         debug_mode = debug_str.lower() in ('true', '1', 'yes', 'on')
+        enable_log_str = launch_config_parser.get('Settings', 'enable_log', fallback='false')
+        enable_log = enable_log_str.lower() in ('true', '1', 'yes', 'on')
     
     # Windows flag to hide console (only if not in debug mode)
     CREATE_NO_WINDOW = 0x08000000
@@ -82,52 +85,130 @@ except Exception as e:
 '''
         
         # Step 3: Run the library using the venv Python with the runner script
-        if debug_mode:
-            # In debug mode: show output in console, don't hide window
-            print("=== Starting Application ===")
-            print("Command:", str(venv_python), "-c <runner_script>")
-            result = subprocess.run(
-                [str(venv_python), "-c", runner_script],
-                cwd=str(app_dir),  # Set working directory
-                capture_output=False,  # Let output show directly in console
-                creationflags=0  # Don't hide console window
-            )
-            print("=== Application Finished ===")
-            print("Exit Code:", result.returncode)
-        else:
-            # In normal mode: capture output for logging, hide console
-            result = subprocess.run(
-                [str(venv_python), "-c", runner_script],
-                cwd=str(app_dir),  # Set working directory
-                capture_output=True,  # Capture for logging
-                text=True,  # Decode output as text
-                creationflags=creation_flags
-            )
+        # Always capture output for logging purposes
+        result = subprocess.run(
+            [str(venv_python), "-c", runner_script],
+            cwd=str(app_dir),  # Set working directory
+            capture_output=True,  # Always capture for logging
+            text=True,  # Decode output as text
+            creationflags=creation_flags
+        )
         
-        # Log output to file (only if we captured it in normal mode)
-        log_file = app_dir / "last_run_log.txt"
-        try:
-            import datetime
-            with open(log_file, 'w', encoding='utf-8') as f:
-                f.write("=== Run Log - " + str(datetime.datetime.now()) + " ===\\n")
-                f.write("Exit Code: " + str(result.returncode) + "\\n")
-                f.write("Command: " + str(venv_python) + " -c <runner_script>\\n")
-                f.write("Debug Mode: " + str(debug_mode) + "\\n\\n")
+        # In debug mode, also display captured output in console
+        if debug_mode:
+            print("\\n=== APPLICATION EXECUTION COMPLETE ===")
+            print("Command:", str(venv_python), "-c <runner_script>")
+            print("Exit Code:", result.returncode)
+            
+            if result.stdout:
+                print("\\n--- STDOUT ---")
+                print(result.stdout)
+                print("--- END STDOUT ---")
+            
+            if result.stderr:
+                print("\\n--- STDERR ---")
+                print(result.stderr) 
+                print("--- END STDERR ---")
                 
-                if not debug_mode:
-                    # Only log captured output in normal mode
+            print("\\n=== END APPLICATION OUTPUT ===\\n")
+        
+        # Comprehensive logging to file (only if enabled)
+        if enable_log:
+            log_file = app_dir / "last_run_log.txt"
+            try:
+                import datetime
+                import platform
+                with open(log_file, 'w', encoding='utf-8') as f:
+                    # Header with timestamp
+                    f.write("=" * 80 + "\\n")
+                    f.write("=== {app_name} - COMPREHENSIVE RUN LOG ===\\n")
+                    f.write("=== " + str(datetime.datetime.now()) + " ===\\n")
+                    f.write("=" * 80 + "\\n\\n")
+                    
+                    # System Information
+                    f.write("=== SYSTEM INFORMATION ===\\n")
+                    f.write("Platform: " + platform.platform() + "\\n")
+                    f.write("Python Version: " + platform.python_version() + "\\n")
+                    f.write("Architecture: " + platform.machine() + "\\n")
+                    f.write("Processor: " + platform.processor() + "\\n")
+                    f.write("Working Directory: " + str(app_dir) + "\\n")
+                    f.write("\\n")
+                    
+                    # Virtual Environment Information  
+                    f.write("=== VIRTUAL ENVIRONMENT ===\\n")
+                    f.write("Virtual Environment Path: " + str(venv_python) + "\\n")
+                    f.write("Venv Exists: " + str(venv_python.exists()) + "\\n")
+                    if venv_python.exists():
+                        f.write("Venv Directory: " + str(venv_python.parent.parent) + "\\n")
+                    else:
+                        f.write("ERROR: Virtual environment not found!\\n")
+                    f.write("\\n")
+                    
+                    # Configuration Information
+                    f.write("=== CONFIGURATION ===\\n")
+                    f.write("App Name: {app_name}\\n")
+                    f.write("Library Name: {library_name}\\n") 
+                    f.write("Venv Directory Name: {venv_dir_name}\\n")
+                    f.write("Debug Mode: " + str(debug_mode) + "\\n")
+                    f.write("Launch Config File: " + str(launch_config_file) + "\\n")
+                    f.write("Launch Config Exists: " + str(launch_config_file.exists()) + "\\n")
+                    
+                    # Read and log the actual launch config content
+                    if launch_config_file.exists():
+                        f.write("\\n--- Launch Config Content ---\\n")
+                        try:
+                            with open(launch_config_file, 'r', encoding='utf-8') as config_file:
+                                f.write(config_file.read())
+                        except Exception as e:
+                            f.write("Error reading config file: " + str(e) + "\\n")
+                        f.write("--- End Launch Config ---\\n")
+                    f.write("\\n")
+                    
+                    # Execution Information
+                    f.write("=== EXECUTION DETAILS ===\\n")
+                    f.write("Exit Code: " + str(result.returncode) + "\\n")
+                    f.write("Command: " + str(venv_python) + " -c <runner_script>\\n")
+                    f.write("Working Directory: " + str(app_dir) + "\\n")
+                    f.write("Creation Flags: " + str(creation_flags if not debug_mode else 0) + "\\n")
+                    f.write("\\n")
+                
+                    # Runner Script Content
+                    f.write("=== RUNNER SCRIPT ===\\n")
+                    f.write(runner_script)
+                    f.write("\\n=== END RUNNER SCRIPT ===\\n\\n")
+                    
+                    # Application Output - Always log captured output
+                    f.write("=== APPLICATION OUTPUT ===\\n")
+                    
+                    # Always log stdout (captured in both debug and normal mode)
                     if hasattr(result, 'stdout') and result.stdout:
-                        f.write("=== STDOUT ===\\n")
+                        f.write("--- STDOUT ---\\n")
                         f.write(result.stdout)
-                        f.write("\\n\\n")
+                        f.write("\\n--- END STDOUT ---\\n\\n")
+                    else:
+                        f.write("--- STDOUT ---\\n")
+                        f.write("(No stdout output)\\n\\n")
+                    
+                    # Always log stderr (captured in both debug and normal mode)  
                     if hasattr(result, 'stderr') and result.stderr:
-                        f.write("=== STDERR ===\\n")
+                        f.write("--- STDERR ---\\n")
                         f.write(result.stderr)
-                        f.write("\\n\\n")
-                else:
-                    f.write("Output displayed directly in console (debug mode)\\n")
-        except Exception as log_error:
-            print("Warning: Could not write log file: " + str(log_error))
+                        f.write("\\n--- END STDERR ---\\n\\n")
+                    else:
+                        f.write("--- STDERR ---\\n")
+                        f.write("(No stderr output)\\n\\n")
+                    
+                    # Note about debug mode display
+                    if debug_mode:
+                        f.write("Note: Output was also displayed in console (debug mode)\\n\\n")
+                    
+                    # Footer
+                    f.write("=" * 80 + "\\n")
+                    f.write("=== END OF LOG ===\\n")
+                    f.write("=" * 80 + "\\n")
+                    
+            except Exception as log_error:
+                print("Warning: Could not write comprehensive log file: " + str(log_error))
         
         # In debug mode, keep console open on any result
         if debug_mode:
