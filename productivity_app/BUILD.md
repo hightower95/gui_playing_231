@@ -53,6 +53,28 @@ mypy app/
 
 ## Building Distribution
 
+### Automated Build (Recommended)
+
+Use the automated build script for smart version management:
+
+```bash
+# Run automated build - detects changes and auto-increments version
+python package_builder.py
+
+# Build without incrementing version
+python package_builder.py --no-increment
+```
+
+The automated build script:
+- ✅ Checks git status (refuses to build with uncommitted changes)
+- ✅ Detects changes in source code and config files
+- ✅ Auto-increments version number (patch/minor/major) or keeps current version
+- ✅ Updates `pyproject.toml` with new version (unless `--no-increment` used)
+- ✅ Builds both wheel and source distributions
+- ✅ Provides next steps for testing and release
+
+### Manual Build
+
 ```bash
 # Clean old builds
 Remove-Item -Recurse -Force build, dist, *.egg-info -ErrorAction SilentlyContinue
@@ -95,6 +117,31 @@ twine upload dist/*
 ```
 
 ## Version Management
+
+### Automated Version Management (Recommended)
+
+The `package_builder.py` script handles version increments automatically:
+
+- **Patch version** (0.1.0 → 0.1.1): Default for code changes
+- **Minor version** (0.1.0 → 0.2.0): Use `--minor` flag  
+- **Major version** (0.1.0 → 1.0.0): Use `--major` flag
+- **No increment** (keeps current version): Use `--no-increment` flag
+
+```bash
+# Auto-increment patch version (default)
+python package_builder.py
+
+# Increment minor version
+python package_builder.py --minor
+
+# Increment major version  
+python package_builder.py --major
+
+# Build without changing version
+python package_builder.py --no-increment
+```
+
+### Manual Version Management
 
 Update version in `pyproject.toml`:
 
@@ -157,6 +204,7 @@ productivity_app/
 
 ## Quick Reference
 
+### Development Workflow
 ```bash
 # Setup
 pip install -e .[dev]
@@ -167,9 +215,42 @@ pytest --cov=app
 # Format
 black . && isort .
 
-# Build
-python -m build
+# Automated build (recommended)
+python package_builder.py
 
 # Publish
 twine upload dist/*
+```
+
+### Build Script Features
+- **Git Integration**: Validates clean working directory
+- **Smart Detection**: Monitors source code and config changes
+- **Auto Versioning**: Increments version automatically or keeps current version
+- **Full Build**: Creates both wheel (.whl) and source (.tar.gz)
+- **Next Steps**: Provides testing and release instructions
+
+### Build Script Options
+```bash
+# Default patch increment
+python package_builder.py
+
+# Version increment options
+python package_builder.py --minor
+python package_builder.py --major
+python package_builder.py --no-increment
+
+# Help
+python package_builder.py --help
+```
+
+### Manual Commands
+```bash
+# Manual build
+python -m build
+
+# Check git status
+git status --porcelain
+
+# View current version
+grep version pyproject.toml
 ```

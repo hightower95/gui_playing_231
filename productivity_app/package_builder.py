@@ -14,17 +14,19 @@ Watched Paths:
 - pyproject.toml                      (project config)
 
 Usage: 
-  python build.py [patch|minor|major]
+  python package_builder.py [--minor|--major] [--no-increment]
 
 Examples:
-  python build.py                    # patch version (0.1.0 → 0.1.1)
-  python build.py minor              # minor version (0.1.1 → 0.2.0)
-  python build.py major              # major version (0.2.0 → 1.0.0)
+  python package_builder.py                    # patch version (0.1.0 → 0.1.1)
+  python package_builder.py --minor            # minor version (0.1.1 → 0.2.0)
+  python package_builder.py --major            # major version (0.2.0 → 1.0.0)
+  python package_builder.py --no-increment     # build without version change
 """
 import subprocess
 import re
 import sys
 import os
+import argparse
 from pathlib import Path
 
 
@@ -290,7 +292,39 @@ def build_package():
 
 
 def main():
-    version_type = sys.argv[1] if len(sys.argv) > 1 else "patch"
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(
+        description="Smart build script with git integration and version management",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  python package_builder.py                    # patch version (0.1.0 → 0.1.1)
+  python package_builder.py --minor            # minor version (0.1.1 → 0.2.0)
+  python package_builder.py --major            # major version (0.2.0 → 1.0.0)
+  python package_builder.py --no-increment     # build without version change
+        """
+    )
+    
+    version_group = parser.add_mutually_exclusive_group()
+    version_group.add_argument('--minor', action='store_true', 
+                              help='Increment minor version (x.Y.z)')
+    version_group.add_argument('--major', action='store_true',
+                              help='Increment major version (X.y.z)')
+    
+    parser.add_argument('--no-increment', action='store_true',
+                       help='Build without incrementing version number')
+    
+    args = parser.parse_args()
+    
+    # Determine version increment type
+    if args.major:
+        version_type = "major"
+    elif args.minor:
+        version_type = "minor"
+    else:
+        version_type = "patch"
+    
+    no_increment = args.no_increment
 
     # Determine if we're running from the project root or the productivity_app directory
     script_dir = Path(__file__).parent
@@ -313,15 +347,6 @@ def main():
         print("   - The parent directory (where productivity_app/ folder is)")
         sys.exit(1)
 
-    if version_type not in ["patch", "minor", "major"]:
-        print("Usage: python build.py [patch|minor|major]")
-        print("Examples:")
-        print("  python build.py                           # patch version")
-        print("  python build.py minor                     # minor version")
-        print("  python build.py major                     # major version")
-        print(f"\nWatched paths: {', '.join(default_watch_paths)}")
-        sys.exit(1)
-
     print("[CHECK] Checking git status...")
 
     # First, check if git working directory is clean
@@ -332,14 +357,19 @@ def main():
     print(f"   Watching: {', '.join(default_watch_paths)}")
 
     # Then check if there are relevant changes in the watched paths
-    if not watched_paths_have_changed(default_watch_paths):
-        print("⏭️ No relevant changes detected, skipping build")
+    if not no_increment and not watched_paths_have_changed(default_watch_paths):
+        print("[SKIP] No relevant changes detected, skipping build")
         return
 
-    print(f"[GO] Building new {version_type} version...")
-
-    # Update version
-    new_version = update_version_in_toml(version_type)
+    if no_increment:
+        print("[GO] Building with current version (no increment)...")
+        # Get current version without incrementing
+        major, minor, patch = get_current_version()
+        new_version = f"{major}.{minor}.{patch}"
+    else:
+        print(f"[GO] Building new {version_type} version...")
+        # Update version
+        new_version = update_version_in_toml(version_type)
 
     # Build package
     build_package()
@@ -360,7 +390,12 @@ def main():
     print(f"\n[DONE] Build complete! Version: {new_version}")
     print("\nNext steps:")
     print("  - Test your package: pip install dist/*.whl")
-    print("  - Commit version bump: git add . && git commit -m 'Bump version to {}'".format(new_version))
+    
+    if no_increment:
+        print("  - Version unchanged - no commit needed for version")
+    else:
+        print("  - Commit version bump: git add . && git commit -m 'Bump version to {}'".format(new_version))
+        
     print("  - Tag release: git tag v{}".format(new_version))
     print("  - Push: git push && git push --tags")
 
