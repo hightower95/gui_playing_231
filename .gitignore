@@ -54,3 +54,4 @@ installer/logs/setup_wizard.log
 installer/logs/
 last_run_log.txt
 installer/installation_settings.ini
+run_app.pyw
