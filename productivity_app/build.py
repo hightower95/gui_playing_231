@@ -3,10 +3,10 @@
 Smart build script with git integration and multi-path watching.
 
 Features:
-- 🚨 Refuses to build if there are uncommitted changes
-- 📁 Watches multiple paths: source code + project config
-- 🏷️ Auto-increments version numbers
-- 🧹 Cleans old builds automatically  
+- [!] Refuses to build if there are uncommitted changes
+- [DIR] Watches multiple paths: source code + project config
+- [TAG] Auto-increments version numbers
+- [CLEAN] Cleans old builds automatically  
 - 🎯 Shows exactly what changed since last build
 
 Watched Paths:
@@ -44,20 +44,20 @@ def git_has_changes_pending():
         # Check for uncommitted changes
         status = run_command("git status --porcelain")
         if status:
-            print("❌ UNCOMMITTED CHANGES DETECTED!")
+            print("[ERROR] UNCOMMITTED CHANGES DETECTED!")
             print("   The following files have uncommitted changes:")
             for line in status.split('\n'):
                 if line.strip():
                     print(f"     {line}")
-            print("\n🚨 Please commit or stash changes before building!")
+            print("\n[!] Please commit or stash changes before building!")
             print("   Run: git add . && git commit -m 'Your commit message'")
             print("   Or:  git stash")
             return False
 
-        print("✅ Git working directory is clean")
+        print("[OK] Git working directory is clean")
         return True
     except:
-        print("⚠️ Cannot check git status - make sure you're in a git repository")
+        print("[WARN] Cannot check git status - make sure you're in a git repository")
         return False
 
 
@@ -74,10 +74,10 @@ def watched_paths_have_changed(watch_paths=None):
             if Path(path).exists():
                 existing_paths.append(path)
             else:
-                print(f"⚠️ Watch path '{path}' not found, skipping")
+                print(f"[WARN] Watch path '{path}' not found, skipping")
 
         if not existing_paths:
-            print("⚠️ No valid watch paths found, assuming changes exist")
+            print("[WARN] No valid watch paths found, assuming changes exist")
             return True
 
         # Check if there are commits since last tag that affect any watch path
@@ -98,17 +98,17 @@ def watched_paths_have_changed(watch_paths=None):
                         all_changed_files.extend(path_files)
 
             if all_changed_files:
-                print(f"📝 Found changes in watched paths since {last_tag}")
+                print(f"[INFO] Found changes in watched paths since {last_tag}")
                 print("   Changed files:")
                 for file in sorted(set(all_changed_files)):
-                    print(f"     📄 {file}")
+                    print(f"     [FILE] {file}")
                 return True
             else:
-                print(f"✅ No changes in watched paths since {last_tag}")
+                print(f"[OK] No changes in watched paths since {last_tag}")
                 return False
 
         except:
-            print(f"📝 No previous tags found, checking watched paths for any files")
+            print(f"[INFO] No previous tags found, checking watched paths for any files")
             # If no tags, check if any watched paths have relevant files
             for watch_path in existing_paths:
                 if Path(watch_path).is_file():
@@ -123,7 +123,7 @@ def watched_paths_have_changed(watch_paths=None):
             return False
 
     except Exception as e:
-        print(f"⚠️ Cannot check changes in watched paths: {e}")
+        print(f"[WARN] Cannot check changes in watched paths: {e}")
         return True
 
 
@@ -143,14 +143,14 @@ def get_current_version():
     """Get current version from pyproject.toml"""
     pyproject_file = find_pyproject_toml()
     if not pyproject_file:
-        print("❌ pyproject.toml not found!")
+        print("[ERROR] pyproject.toml not found!")
         print("   Make sure you're running from the correct directory")
         sys.exit(1)
 
     content = pyproject_file.read_text()
     match = re.search(r'version = "(\d+)\.(\d+)\.(\d+)"', content)
     if not match:
-        print("❌ Could not find version in pyproject.toml")
+        print("[ERROR] Could not find version in pyproject.toml")
         sys.exit(1)
 
     return tuple(map(int, match.groups()))
@@ -175,7 +175,7 @@ def update_version_in_toml(version_type="patch"):
     # Update pyproject.toml
     pyproject_file = find_pyproject_toml()
     if not pyproject_file:
-        print("❌ Could not find pyproject.toml to update!")
+        print("[ERROR] Could not find pyproject.toml to update!")
         sys.exit(1)
 
     content = pyproject_file.read_text()
@@ -183,47 +183,47 @@ def update_version_in_toml(version_type="patch"):
                      f'version = "{new_version}"', content)
     pyproject_file.write_text(content)
 
-    print(f"📝 Updated version to {new_version}")
+    print(f"[INFO] Updated version to {new_version}")
     return new_version
 
 
 def build_package():
     """Build the package"""
-    print("🏗️ Building package...")
+    print("[BUILD] Building package...")
 
     # Find the directory containing pyproject.toml
     pyproject_file = find_pyproject_toml()
     if not pyproject_file:
-        print("❌ Could not find pyproject.toml!")
+        print("[ERROR] Could not find pyproject.toml!")
         sys.exit(1)
 
     build_dir = pyproject_file.parent
-    print(f"📁 Building in directory: {build_dir}")
+    print(f"[DIR] Building in directory: {build_dir}")
 
     # Install build tools first
-    print("📦 Installing/upgrading build tools...")
+    print("[PKG] Installing/upgrading build tools...")
     try:
         run_command("python -m pip install --upgrade build twine")
     except:
-        print("⚠️ Warning: Could not upgrade build tools, continuing anyway...")
+        print("[WARN] Warning: Could not upgrade build tools, continuing anyway...")
 
     # Remove old builds from the build directory
-    print("🧹 Cleaning old builds...")
+    print("[CLEAN] Cleaning old builds...")
     for path in ["dist", "build", "*.egg-info"]:
         try:
             run_command(
                 f"python -c \"import shutil, glob, os; os.chdir('{build_dir}'); [shutil.rmtree(p, ignore_errors=True) for p in glob.glob('{path}')]\"")
         except:
-            print(f"⚠️ Warning: Could not clean {path}")
+            print(f"[WARN] Warning: Could not clean {path}")
 
     # Build the package in the correct directory
-    print(f"🏗️ Running build in {build_dir}...")
+    print(f"[BUILD] Running build in {build_dir}...")
     try:
         run_command("python -m build", cwd=str(build_dir))
-        print("✅ Package built successfully!")
+        print("[OK] Package built successfully!")
     except Exception as e:
-        print("❌ Build failed!")
-        print("💡 Possible solutions:")
+        print("[ERROR] Build failed!")
+        print("[TIP] Possible solutions:")
         print("  1. Make sure you're in a virtual environment")
         print("  2. Install build tools: pip install build")
         print("  3. Check your pyproject.toml file is valid")
@@ -240,15 +240,15 @@ def main():
     if (script_dir / "pyproject.toml").exists():
         # Running from productivity_app directory
         default_watch_paths = ["productivity_app", "pyproject.toml"]
-        print("📁 Running from productivity_app directory")
+        print("[DIR] Running from productivity_app directory")
     # Check if we're in the parent directory (productivity_app subdirectory exists)
     elif (script_dir.parent / "productivity_app" / "pyproject.toml").exists():
         # Running from parent directory
         default_watch_paths = [
             "productivity_app/productivity_app", "productivity_app/pyproject.toml"]
-        print("📁 Running from parent directory")
+        print("[DIR] Running from parent directory")
     else:
-        print("❌ Could not determine project structure!")
+        print("[ERROR] Could not determine project structure!")
         print("   Make sure you're running from either:")
         print("   - The productivity_app directory (where pyproject.toml is)")
         print("   - The parent directory (where productivity_app/ folder is)")
@@ -263,13 +263,13 @@ def main():
         print(f"\nWatched paths: {', '.join(default_watch_paths)}")
         sys.exit(1)
 
-    print("🔍 Checking git status...")
+    print("[CHECK] Checking git status...")
 
     # First, check if git working directory is clean
     if not git_has_changes_pending():
         sys.exit(1)
 
-    print(f"🔍 Checking for changes in watched paths...")
+    print(f"[CHECK] Checking for changes in watched paths...")
     print(f"   Watching: {', '.join(default_watch_paths)}")
 
     # Then check if there are relevant changes in the watched paths
@@ -277,7 +277,7 @@ def main():
         print("⏭️ No relevant changes detected, skipping build")
         return
 
-    print(f"🚀 Building new {version_type} version...")
+    print(f"[GO] Building new {version_type} version...")
 
     # Update version
     new_version = update_version_in_toml(version_type)
@@ -292,13 +292,13 @@ def main():
 
     if dist_dir.exists():
         dist_files = list(dist_dir.glob("*"))
-        print(f"\n✅ Built {len(dist_files)} files:")
+        print(f"\n[OK] Built {len(dist_files)} files:")
         for file in dist_files:
-            print(f"   📦 {file.name}")
+            print(f"   [PKG] {file.name}")
     else:
-        print(f"\n⚠️ No dist directory found at {dist_dir}")
+        print(f"\n[WARN] No dist directory found at {dist_dir}")
 
-    print(f"\n🎉 Build complete! Version: {new_version}")
+    print(f"\n[DONE] Build complete! Version: {new_version}")
     print("\nNext steps:")
     print("  - Test your package: pip install dist/*.whl")
     print("  - Commit version bump: git add . && git commit -m 'Bump version to {}'".format(new_version))
