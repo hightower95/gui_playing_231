@@ -129,7 +129,7 @@ def watched_paths_have_changed(watch_paths=None):
 
 def get_current_version():
     """Get current version from pyproject.toml"""
-    pyproject_file = Path("pyproject.toml")
+    pyproject_file = Path("productivity_app/pyproject.toml")
     if not pyproject_file.exists():
         print("❌ pyproject.toml not found!")
         sys.exit(1)
@@ -160,7 +160,7 @@ def update_version_in_toml(version_type="patch"):
     new_version = f"{major}.{minor}.{patch}"
 
     # Update pyproject.toml
-    pyproject_file = Path("pyproject.toml")
+    pyproject_file = Path("productivity_app/pyproject.toml")
     content = pyproject_file.read_text()
     content = re.sub(r'version = "\d+\.\d+\.\d+"',
                      f'version = "{new_version}"', content)
@@ -192,7 +192,7 @@ def main():
 
     # Default watch paths: source code + project config
     default_watch_paths = [
-        "productivity_app/productivity_app", "pyproject.toml"]
+        "productivity_app/productivity_app", "productivity_app/pyproject.toml"]
 
     if version_type not in ["patch", "minor", "major"]:
         print("Usage: python build.py [patch|minor|major]")
