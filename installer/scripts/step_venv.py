@@ -49,12 +49,18 @@ class VenvStep(BaseStep):
         """Create the virtual environment"""
         install_dir = self.get_install_path()
         venv_dir = self.get_venv_path()
+        expected_venv_name = self.config.get_venv_dir()
 
         try:
             self.update_status(STATUS_RUNNING, COLOR_BLUE)
-            self.log(f"Creating venv at {venv_dir}")
-            self.log(f"Python executable: {sys.executable}")
-            self.log(f"Target directory: {install_dir}")
+            self.log("=== VENV CREATION - DETAILED LOG ===")
+            self.log(f"Install directory: {install_dir}")
+            self.log(f"Expected venv name (from config): {expected_venv_name}")
+            self.log(f"Full venv path: {venv_dir}")
+            self.log(f"Current Python executable: {sys.executable}")
+            self.log(f"Python version: {sys.version}")
+            self.log(f"Operating system: {os.name}")
+            self.log(f"Platform: {sys.platform}")
 
             if venv_dir.exists():
                 self.log("Venv directory already exists, checking validity...")

@@ -77,7 +77,7 @@ class SetupWizard(tk.Tk):
             level=logging.INFO,
             format='%(asctime)s - %(levelname)s - %(message)s',
             handlers=[
-                logging.FileHandler(log_file)
+                logging.FileHandler(log_file, mode='a')  # Append mode to preserve logs across runs
                 # Removed StreamHandler() to prevent console window
             ]
         )
