@@ -138,6 +138,7 @@ def find_pyproject_toml():
     else:
         return None
 
+
 def get_current_version():
     """Get current version from pyproject.toml"""
     pyproject_file = find_pyproject_toml()
@@ -176,7 +177,7 @@ def update_version_in_toml(version_type="patch"):
     if not pyproject_file:
         print("❌ Could not find pyproject.toml to update!")
         sys.exit(1)
-    
+
     content = pyproject_file.read_text()
     content = re.sub(r'version = "\d+\.\d+\.\d+"',
                      f'version = "{new_version}"', content)
@@ -189,13 +190,13 @@ def update_version_in_toml(version_type="patch"):
 def build_package():
     """Build the package"""
     print("🏗️ Building package...")
-    
+
     # Find the directory containing pyproject.toml
     pyproject_file = find_pyproject_toml()
     if not pyproject_file:
         print("❌ Could not find pyproject.toml!")
         sys.exit(1)
-    
+
     build_dir = pyproject_file.parent
     print(f"📁 Building in directory: {build_dir}")
 
@@ -234,7 +235,7 @@ def main():
 
     # Determine if we're running from the project root or the productivity_app directory
     script_dir = Path(__file__).parent
-    
+
     # Check if we're in the productivity_app directory (pyproject.toml exists here)
     if (script_dir / "pyproject.toml").exists():
         # Running from productivity_app directory
@@ -243,7 +244,8 @@ def main():
     # Check if we're in the parent directory (productivity_app subdirectory exists)
     elif (script_dir.parent / "productivity_app" / "pyproject.toml").exists():
         # Running from parent directory
-        default_watch_paths = ["productivity_app/productivity_app", "productivity_app/pyproject.toml"]
+        default_watch_paths = [
+            "productivity_app/productivity_app", "productivity_app/pyproject.toml"]
         print("📁 Running from parent directory")
     else:
         print("❌ Could not determine project structure!")
@@ -287,7 +289,7 @@ def main():
     pyproject_file = find_pyproject_toml()
     build_dir = pyproject_file.parent if pyproject_file else Path(".")
     dist_dir = build_dir / "dist"
-    
+
     if dist_dir.exists():
         dist_files = list(dist_dir.glob("*"))
         print(f"\n✅ Built {len(dist_files)} files:")
