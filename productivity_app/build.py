@@ -127,11 +127,23 @@ def watched_paths_have_changed(watch_paths=None):
         return True
 
 
+def find_pyproject_toml():
+    """Find pyproject.toml file"""
+    # Check current directory first
+    if Path("pyproject.toml").exists():
+        return Path("pyproject.toml")
+    # Check productivity_app subdirectory
+    elif Path("productivity_app/pyproject.toml").exists():
+        return Path("productivity_app/pyproject.toml")
+    else:
+        return None
+
 def get_current_version():
     """Get current version from pyproject.toml"""
-    pyproject_file = Path("productivity_app/pyproject.toml")
-    if not pyproject_file.exists():
+    pyproject_file = find_pyproject_toml()
+    if not pyproject_file:
         print("❌ pyproject.toml not found!")
+        print("   Make sure you're running from the correct directory")
         sys.exit(1)
 
     content = pyproject_file.read_text()
@@ -160,7 +172,11 @@ def update_version_in_toml(version_type="patch"):
     new_version = f"{major}.{minor}.{patch}"
 
     # Update pyproject.toml
-    pyproject_file = Path("productivity_app/pyproject.toml")
+    pyproject_file = find_pyproject_toml()
+    if not pyproject_file:
+        print("❌ Could not find pyproject.toml to update!")
+        sys.exit(1)
+    
     content = pyproject_file.read_text()
     content = re.sub(r'version = "\d+\.\d+\.\d+"',
                      f'version = "{new_version}"', content)
@@ -190,9 +206,25 @@ def build_package():
 def main():
     version_type = sys.argv[1] if len(sys.argv) > 1 else "patch"
 
-    # Default watch paths: source code + project config
-    default_watch_paths = [
-        "productivity_app/productivity_app", "productivity_app/pyproject.toml"]
+    # Determine if we're running from the project root or the productivity_app directory
+    script_dir = Path(__file__).parent
+    
+    # Check if we're in the productivity_app directory (pyproject.toml exists here)
+    if (script_dir / "pyproject.toml").exists():
+        # Running from productivity_app directory
+        default_watch_paths = ["productivity_app", "pyproject.toml"]
+        print("📁 Running from productivity_app directory")
+    # Check if we're in the parent directory (productivity_app subdirectory exists)
+    elif (script_dir.parent / "productivity_app" / "pyproject.toml").exists():
+        # Running from parent directory
+        default_watch_paths = ["productivity_app/productivity_app", "productivity_app/pyproject.toml"]
+        print("📁 Running from parent directory")
+    else:
+        print("❌ Could not determine project structure!")
+        print("   Make sure you're running from either:")
+        print("   - The productivity_app directory (where pyproject.toml is)")
+        print("   - The parent directory (where productivity_app/ folder is)")
+        sys.exit(1)
 
     if version_type not in ["patch", "minor", "major"]:
         print("Usage: python build.py [patch|minor|major]")
