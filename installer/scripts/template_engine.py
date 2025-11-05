@@ -12,7 +12,8 @@ class TemplateEngine:
 
     def __init__(self, template_dir: Path = None):
         if template_dir is None:
-            template_dir = Path(__file__).parent / TEMPLATES_DIR
+            # Templates are in the installer directory, not scripts subdirectory
+            template_dir = Path(__file__).parent.parent / TEMPLATES_DIR
         self.template_dir = Path(template_dir)
 
         if not self.template_dir.exists():

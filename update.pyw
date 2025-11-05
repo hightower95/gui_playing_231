@@ -1,5 +1,5 @@
 """
-Unknown Application Updater
+ProductivityApp Updater
 Standalone updater utility
 """
 import subprocess
@@ -7,18 +7,19 @@ import sys
 from pathlib import Path
 import tkinter as tk
 from tkinter import messagebox, ttk
+import configparser
 
 def main():
     # Create update window
     root = tk.Tk()
-    root.title("Unknown Application Updater")
+    root.title("ProductivityApp Updater")
     root.geometry("400x200")
     root.resizable(False, False)
     
     # Center the window
     root.eval('tk::PlaceWindow . center')
     
-    ttk.Label(root, text="Updating Unknown Application...", font=("", 12)).pack(pady=20)
+    ttk.Label(root, text="Updating ProductivityApp...", font=("", 12)).pack(pady=20)
     
     progress = ttk.Progressbar(root, length=300, mode='indeterminate')
     progress.pack(pady=10)

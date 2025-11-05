@@ -33,7 +33,7 @@ def main():
         venv_python = app_dir / "{venv_dir_name}" / "Scripts" / "python.exe"
         
         if not venv_python.exists():
-            messagebox.showerror("Error", f"Python not found at {venv_python}")
+            messagebox.showerror("Error", f"Python not found at {{venv_python}}")
             root.destroy()
             return
         
@@ -68,14 +68,14 @@ def main():
                 messagebox.showinfo("Success", "Update completed successfully!")
             else:
                 status_label.config(text="Update failed!")
-                messagebox.showerror("Error", f"Update failed:\n{result.stderr}")
+                messagebox.showerror("Error", f"Update failed:\n{{result.stderr}}")
             
             root.destroy()
             
         except Exception as e:
             progress.stop()
             status_label.config(text="Update failed!")
-            messagebox.showerror("Error", f"Update failed: {e}")
+            messagebox.showerror("Error", f"Update failed: {{e}}")
             root.destroy()
     
     # Start update after window is shown

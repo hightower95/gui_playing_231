@@ -1,5 +1,5 @@
 """
-Unknown Application About / Help
+ProductivityApp About / Help
 Opens the help page in the default web browser
 """
 import webbrowser

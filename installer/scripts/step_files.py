@@ -3,6 +3,7 @@ from pathlib import Path
 import tkinter as tk
 from tkinter import ttk, messagebox
 import configparser
+from .template_engine import TemplateEngine
 
 
 class FilesStep:
@@ -297,202 +298,30 @@ class FilesStep:
         """Create launcher files for the application"""
         install_dir = Path(self.wizard.install_path.get())
 
-        # Template for run_app.pyw (main launcher)
-        run_app_template = f'''"""
-{self.app_name} Main Launcher
-Upgrades library and runs the application
-"""
-import subprocess
-import sys
-from pathlib import Path
-import configparser
+        # Initialize template engine and load external templates
+        template_engine = TemplateEngine()
 
-def main():
-    # Get paths
-    app_dir = Path(__file__).parent
-    venv_python = app_dir / "{self.venv_dir_name}" / "Scripts" / "python.exe"
-    
-    if not venv_python.exists():
-        import tkinter as tk
-        from tkinter import messagebox
-        root = tk.Tk()
-        root.withdraw()
-        messagebox.showerror("Error", f"Python not found at {{venv_python}}")
-        return
-    
-    # Load debug setting from launch config
-    launch_config = configparser.ConfigParser()
-    launch_config_file = app_dir / "launch_config.ini"
-    debug_mode = False
-    if launch_config_file.exists():
-        launch_config.read(launch_config_file)
-        debug_str = launch_config.get('Settings', 'debug', fallback='false')
-        debug_mode = debug_str.lower() in ('true', '1', 'yes', 'on')
-    
-    # Windows flag to hide console (only if not in debug mode)
-    CREATE_NO_WINDOW = 0x08000000
-    creation_flags = 0 if debug_mode else CREATE_NO_WINDOW
-    capture_output = not debug_mode  # Don't capture output if in debug mode
-    
-    try:
-        # Step 1: Upgrade the library
-        subprocess.run(
-            [str(venv_python), "-m", "pip", "install", "--upgrade", "{self.library_name}"],
-            capture_output=capture_output,
-            creationflags=creation_flags
-        )
-        
-        # Step 2: Load launch config
-        config = configparser.ConfigParser()
-        config_file = app_dir / "launch_config.ini"
-        if config_file.exists():
-            config.read(config_file)
-            # Get launch_config as a dictionary
-            launch_config = dict(config['DEFAULT']) if config.has_section('DEFAULT') else {{}}
-        else:
-            launch_config = {{}}
-        
-        # Step 3: Import and run the library
-        import {self.library_name}
-        {self.library_name}.run(launch_config)
-        
-    except Exception as e:
-        import tkinter as tk
-        from tkinter import messagebox
-        root = tk.Tk()
-        root.withdraw()
-        messagebox.showerror("Error", f"Failed to start application: {{e}}")
-
-if __name__ == "__main__":
-    main()
-'''
-
-        # Template for launch_config.ini
-        launch_config_template = f'''[DEFAULT]
-# Configuration settings for {self.app_name}
-debug_mode = false
-
-
-
-'''
-
-        # Template for update.pyw (standalone updater)
-        update_template = f'''"""
-{self.app_name} Updater
-Standalone updater utility
-"""
-import subprocess
-import sys
-from pathlib import Path
-import tkinter as tk
-from tkinter import messagebox, ttk
-
-def main():
-    # Create update window
-    root = tk.Tk()
-    root.title("{self.app_name} Updater")
-    root.geometry("400x200")
-    root.resizable(False, False)
-    
-    # Center the window
-    root.eval('tk::PlaceWindow . center')
-    
-    ttk.Label(root, text="Updating {self.app_name}...", font=("", 12)).pack(pady=20)
-    
-    progress = ttk.Progressbar(root, length=300, mode='indeterminate')
-    progress.pack(pady=10)
-    progress.start()
-    
-    status_label = ttk.Label(root, text="Starting update...")
-    status_label.pack(pady=10)
-    
-    def update_library():
-        app_dir = Path(__file__).parent
-        venv_python = app_dir / "{self.venv_dir_name}" / "Scripts" / "python.exe"
-        
-        if not venv_python.exists():
-            messagebox.showerror("Error", f"Python not found at {{venv_python}}")
-            root.destroy()
-            return
-        
-        try:
-            status_label.config(text="Updating {self.library_name}...")
-            root.update()
-            
-            # Load debug setting from launch config
-            launch_config = configparser.ConfigParser()
-            launch_config_file = app_dir / "launch_config.ini"
-            debug_mode = False
-            if launch_config_file.exists():
-                launch_config.read(launch_config_file)
-                debug_str = launch_config.get('Settings', 'debug', fallback='false')
-                debug_mode = debug_str.lower() in ('true', '1', 'yes', 'on')
-            
-            # Use CREATE_NO_WINDOW only if not in debug mode
-            creation_flags = 0 if debug_mode else 0x08000000
-            capture_output = not debug_mode  # Don't capture output if in debug mode
-            
-            result = subprocess.run(
-                [str(venv_python), "-m", "pip", "install", "--upgrade", "{self.library_name}"],
-                capture_output=capture_output,
-                text=True,
-                creationflags=creation_flags
-            )
-            
-            progress.stop()
-            
-            if result.returncode == 0:
-                status_label.config(text="Update completed successfully!")
-                messagebox.showinfo("Success", "Update completed successfully!")
-            else:
-                status_label.config(text="Update failed!")
-                messagebox.showerror("Error", f"Update failed:\\n{{result.stderr}}")
-            
-            root.destroy()
-            
-        except Exception as e:
-            progress.stop()
-            status_label.config(text="Update failed!")
-            messagebox.showerror("Error", f"Update failed: {{e}}")
-            root.destroy()
-    
-    # Start update after window is shown
-    root.after(1000, update_library)
-    root.mainloop()
-
-if __name__ == "__main__":
-    main()
-'''
-
-        # Template for about.pyw (help page launcher)
-        about_template = f'''"""
-{self.app_name} About / Help
-Opens the help page in the default web browser
-"""
-import webbrowser
-import tkinter as tk
-from tkinter import messagebox
-
-def main():
-    try:
-        # Open help page in default browser
-        webbrowser.open("{self.help_page}")
-    except Exception as e:
-        # Show error if browser fails to open
-        root = tk.Tk()
-        root.withdraw()
-        messagebox.showerror("Error", f"Failed to open help page: {{e}}")
-
-if __name__ == "__main__":
-    main()
-'''
-
-        templates = {
-            "run_app.pyw": run_app_template,
-            "launch_config.ini": launch_config_template,
-            "update.pyw": update_template,
-            "about.pyw": about_template
+        # Prepare template variables
+        template_vars = {
+            'app_name': self.app_name,
+            'library_name': self.library_name,
+            'venv_dir_name': self.venv_dir_name,
+            'help_page': self.help_page
         }
+
+        # Load templates from external template files
+        templates = {}
+        for filename in self.required_files:
+            try:
+                template_content = template_engine.render(
+                    filename + ".template", **template_vars)
+                templates[filename] = template_content
+                self.wizard.log(f"Loaded external template for: {filename}")
+            except Exception as e:
+                self.wizard.log(
+                    f"Failed to load template for {filename}: {e}", "error")
+                # Fallback to basic content if template loading fails
+                templates[filename] = f"# {filename}\n"
 
         created = []
         for fname in self.required_files:

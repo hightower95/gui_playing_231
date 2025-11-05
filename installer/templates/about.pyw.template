@@ -14,7 +14,7 @@ def main():
         # Show error if browser fails to open
         root = tk.Tk()
         root.withdraw()
-        messagebox.showerror("Error", f"Failed to open help page: {e}")
+        messagebox.showerror("Error", f"Failed to open help page: {{e}}")
 
 if __name__ == "__main__":
     main()
