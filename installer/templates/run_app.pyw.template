@@ -24,18 +24,15 @@ def main():
     # Load debug setting from launch config
     launch_config_parser = configparser.ConfigParser()
     launch_config_file = app_dir / "launch_config.ini"
-    debug_mode = False
     enable_log = False
     if launch_config_file.exists():
         launch_config_parser.read(launch_config_file)
-        debug_str = launch_config_parser.get('Settings', 'debug', fallback='false')
-        debug_mode = debug_str.lower() in ('true', '1', 'yes', 'on')
         enable_log_str = launch_config_parser.get('Settings', 'enable_log', fallback='false')
         enable_log = enable_log_str.lower() in ('true', '1', 'yes', 'on')
     
-    # Windows flag to hide console (only if not in debug mode)
+    # Windows flag to hide console
     CREATE_NO_WINDOW = 0x08000000
-    creation_flags = 0 if debug_mode else CREATE_NO_WINDOW
+    creation_flags = CREATE_NO_WINDOW
     
     try:
         # Step 1: Upgrade the library
@@ -67,6 +64,7 @@ config_file = app_dir / "launch_config.ini"
 launch_config = dict()
 if config_file.exists():
     config.read(config_file)
+    # Read from Settings section (preferred) or fall back to DEFAULT
     if config.has_section('DEFAULT'):
         launch_config = dict(config['DEFAULT'])
 
@@ -74,9 +72,7 @@ if config_file.exists():
 try:
     import {library_name}
     {library_name}.run(launch_config)
-except ImportError as e:
-    print("Import error: " + str(e))
-    print("Python path: " + str(sys.path))
+
     print("Python executable: " + str(sys.executable))
     raise
 except Exception as e:
@@ -93,24 +89,6 @@ except Exception as e:
             text=True,  # Decode output as text
             creationflags=creation_flags
         )
-        
-        # In debug mode, also display captured output in console
-        if debug_mode:
-            print("\\n=== APPLICATION EXECUTION COMPLETE ===")
-            print("Command:", str(venv_python), "-c <runner_script>")
-            print("Exit Code:", result.returncode)
-            
-            if result.stdout:
-                print("\\n--- STDOUT ---")
-                print(result.stdout)
-                print("--- END STDOUT ---")
-            
-            if result.stderr:
-                print("\\n--- STDERR ---")
-                print(result.stderr) 
-                print("--- END STDERR ---")
-                
-            print("\\n=== END APPLICATION OUTPUT ===\\n")
         
         # Comprehensive logging to file (only if enabled)
         if enable_log:
@@ -149,7 +127,7 @@ except Exception as e:
                     f.write("App Name: {app_name}\\n")
                     f.write("Library Name: {library_name}\\n") 
                     f.write("Venv Directory Name: {venv_dir_name}\\n")
-                    f.write("Debug Mode: " + str(debug_mode) + "\\n")
+
                     f.write("Launch Config File: " + str(launch_config_file) + "\\n")
                     f.write("Launch Config Exists: " + str(launch_config_file.exists()) + "\\n")
                     
@@ -169,7 +147,7 @@ except Exception as e:
                     f.write("Exit Code: " + str(result.returncode) + "\\n")
                     f.write("Command: " + str(venv_python) + " -c <runner_script>\\n")
                     f.write("Working Directory: " + str(app_dir) + "\\n")
-                    f.write("Creation Flags: " + str(creation_flags if not debug_mode else 0) + "\\n")
+                    f.write("Creation Flags: " + str(creation_flags) + "\\n")
                     f.write("\\n")
                 
                     # Runner Script Content
@@ -198,9 +176,7 @@ except Exception as e:
                         f.write("--- STDERR ---\\n")
                         f.write("(No stderr output)\\n\\n")
                     
-                    # Note about debug mode display
-                    if debug_mode:
-                        f.write("Note: Output was also displayed in console (debug mode)\\n\\n")
+
                     
                     # Footer
                     f.write("=" * 80 + "\\n")
@@ -209,15 +185,7 @@ except Exception as e:
                     
             except Exception as log_error:
                 print("Warning: Could not write comprehensive log file: " + str(log_error))
-        
-        # In debug mode, keep console open on any result
-        if debug_mode:
-            if result.returncode != 0:
-                print("\\n*** Application failed with exit code:", result.returncode, "***")
-                input("Press Enter to continue...")
-            else:
-                print("\\n*** Application completed successfully ***")
-                input("Press Enter to continue...")
+
         
         # If there was an error, show details to user
         if result.returncode != 0:

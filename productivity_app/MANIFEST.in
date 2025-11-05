@@ -2,6 +2,8 @@
 include README.md
 include LICENSE
 include BUILD.md
+include CONTRIBUTING.md
+include CHANGELOG.md
 recursive-include docs *.md
 
 # Include all markdown documentation

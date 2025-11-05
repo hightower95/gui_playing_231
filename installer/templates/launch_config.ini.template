@@ -1,4 +1,3 @@
 [Settings]
 # Configuration settings for {app_name}
-debug = false
 enable_log = false

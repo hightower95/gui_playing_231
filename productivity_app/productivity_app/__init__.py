@@ -9,18 +9,12 @@ This package provides tools for:
 - Remote documentation access
 """
 
-import sys
-import os
-
-# CRITICAL: Add package directory to path BEFORE any imports
-# This allows 'app' module imports to work from within productivity_app/app/
-_package_dir = os.path.dirname(os.path.abspath(__file__))
-if _package_dir not in sys.path:
-    sys.path.insert(0, _package_dir)
-
 __version__ = "0.1.0"
 __author__ = "Productivity App Contributors"
 __license__ = "MIT"
+
+# Import the main application function
+from .main import main as _main
 
 
 def start():
@@ -33,15 +27,11 @@ def start():
         >>> import productivity_app
         >>> productivity_app.start()
     """
-    # Import here to avoid circular imports and ensure path is set up
-    from .main import main as _main
     _main()
 
 
-def main():
-    """Alias for start() for backwards compatibility."""
-    start()
-
+# For backwards compatibility and direct execution
+main = start
 
 # Expose version info
 __all__ = ["start", "main", "__version__", "__author__", "__license__"]

@@ -68,22 +68,12 @@ python -m build
 ## Testing the Build
 
 ```bash
-# Create a fresh virtual environment for testing
-python -m venv .venv-test
-.\.venv-test\Scripts\Activate.ps1
-
 # Install from wheel
 pip install dist/productivity_app-0.1.0-py3-none-any.whl
 
-# Test that it imports correctly
-python -c "import productivity_app; print(f'✓ Successfully installed v{productivity_app.__version__}')"
-
-# Clean up test environment
-deactivate
-Remove-Item -Recurse -Force .venv-test
+# Test it works
+python -c "import productivity_app; productivity_app.start()"
 ```
-
-**Note:** Don't call `productivity_app.start()` in the test as it will launch the GUI application.
 
 ## Publishing to PyPI
 
@@ -161,6 +151,7 @@ productivity_app/
 ├── tests/                # Test files
 ├── main.py              # Entry point
 ├── pyproject.toml       # Build configuration
+├── requirements-dev.txt # Dev dependencies
 └── README.md            # This file
 ```
 
