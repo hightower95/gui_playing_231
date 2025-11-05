@@ -24,6 +24,7 @@ Examples:
 import subprocess
 import re
 import sys
+import os
 from pathlib import Path
 
 
@@ -247,12 +248,17 @@ def build_package():
         print(f"[WARN] Could not list directory: {e}")
     
     try:
-        # Try with more verbose output
+        # Use full path to python and be very explicit
+        import sys
+        python_exe = sys.executable
+        print(f"[INFO] Using Python: {python_exe}")
+        
         result = subprocess.run(
-            ["python", "-m", "build", "--verbose"],
+            [python_exe, "-m", "build", "--verbose"],
             cwd=str(build_dir),
             capture_output=True,
-            text=True
+            text=True,
+            env=dict(os.environ, PYTHONPATH="")  # Clear PYTHONPATH to avoid conflicts
         )
         
         if result.returncode == 0:
