@@ -64,7 +64,8 @@ def git_has_changes_pending():
 def watched_paths_have_changed(watch_paths=None):
     """Check if there are changes in the watched paths since last tag"""
     if watch_paths is None:
-        watch_paths = ["productivity_app/productivity_app", "pyproject.toml"]
+        watch_paths = ["productivity_app/productivity_app",
+                       "productivity_app/pyproject.toml"]
 
     try:
         # Check if watch paths exist
