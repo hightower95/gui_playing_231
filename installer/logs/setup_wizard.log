@@ -33,3 +33,29 @@
 2025-11-04 16:19:17,012 - INFO - Step 5 completed - All files already existed
 2025-11-04 16:19:17,014 - INFO - All steps completed!
 2025-11-04 16:19:17,014 - INFO - Step 5 completed - All files already existed
+2025-11-05 07:57:07,307 - INFO - Setup Wizard started
+2025-11-05 07:57:07,307 - INFO - Script directory: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-05 07:57:07,316 - INFO - DEV: Skip local index enabled - will use PyPI directly
+2025-11-05 07:57:07,317 - INFO - Main library: requests
+2025-11-05 07:57:07,317 - INFO - Additional packages: ['requests', 'pytest']
+2025-11-05 08:08:41,008 - INFO - Setup Wizard started
+2025-11-05 08:08:41,009 - INFO - Script directory: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-05 08:08:41,010 - INFO - DEV: Skip local index enabled - will use PyPI directly
+2025-11-05 08:08:41,010 - INFO - Main library: requests
+2025-11-05 08:08:41,010 - INFO - Additional packages: ['requests', 'pytest']
+2025-11-05 08:09:19,880 - INFO - Setup Wizard started
+2025-11-05 08:09:19,881 - INFO - Script directory: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-05 08:09:19,882 - INFO - DEV: Skip local index enabled - will use PyPI directly
+2025-11-05 08:09:19,883 - INFO - Main library: requests
+2025-11-05 08:09:19,883 - INFO - Additional packages: ['requests', 'pytest']
+2025-11-05 08:09:20,374 - INFO - Step folder completed
+2025-11-05 08:09:20,374 - INFO - [folder] Folder validated: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-05 08:09:20,377 - INFO - Step venv completed
+2025-11-05 08:09:20,377 - INFO - [venv] Auto-detected existing venv
+2025-11-05 08:09:20,377 - INFO - Auto-detected PyIRC configuration
+2025-11-05 08:09:21,441 - INFO - Found 12 installed packages in venv
+2025-11-05 08:09:21,441 - INFO - Auto-detected installed packages: requests==2.32.5, requests==2.32.5, pytest==8.4.2
+2025-11-05 08:09:21,971 - INFO - All steps completed!
+2025-11-05 08:09:21,971 - INFO - Step 5 completed - All files already existed
+2025-11-05 08:09:21,973 - INFO - All steps completed!
+2025-11-05 08:09:21,973 - INFO - Step 5 completed - All files already existed

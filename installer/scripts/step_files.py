@@ -14,14 +14,15 @@ class FilesStep:
                                "launch_config.ini", "update.pyw", "about.pyw"]
         self.app_name = self.load_app_name()
         self.library_name = self.load_library_name()
-        self.help_page = self.load_help_page()
+        self.help_page = self.load_help_page_url()
         self.venv_dir_name = self.load_venv_dir_name()
-        self.auto_generate_files = self.load_auto_generate_files()
+        self.auto_generate_files = self.load_auto_generate_files_setting()
 
-    def load_auto_generate_files(self):
-        """Load auto_generate_files setting from config.ini"""
+    def load_auto_generate_files_setting(self):
+        """Load auto_generate_files setting from installation_settings.ini"""
         config = configparser.ConfigParser()
-        config_file = Path(__file__).parent / "config.ini"
+        config_file = Path(__file__).parent.parent / \
+            "installation_settings.ini"
 
         try:
             config.read(config_file)
@@ -30,9 +31,10 @@ class FilesStep:
             return True
 
     def load_venv_dir_name(self):
-        """Load venv directory name from config.ini"""
+        """Load venv directory name from installation_settings.ini"""
         config = configparser.ConfigParser()
-        config_file = Path(__file__).parent / "config.ini"
+        config_file = Path(__file__).parent.parent / \
+            "installation_settings.ini"
 
         try:
             config.read(config_file)
@@ -41,9 +43,10 @@ class FilesStep:
             return '.venv'
 
     def load_app_name(self):
-        """Load app name from config.ini"""
+        """Load app name from installation_settings.ini"""
         config = configparser.ConfigParser()
-        config_file = Path(__file__).parent / "config.ini"
+        config_file = Path(__file__).parent.parent / \
+            "installation_settings.ini"
 
         try:
             config.read(config_file)
@@ -52,9 +55,10 @@ class FilesStep:
             return 'My Application'
 
     def load_library_name(self):
-        """Load library name from config.ini"""
+        """Load library name from installation_settings.ini"""
         config = configparser.ConfigParser()
-        config_file = Path(__file__).parent / "config.ini"
+        config_file = Path(__file__).parent.parent / \
+            "installation_settings.ini"
 
         try:
             config.read(config_file)
@@ -62,10 +66,11 @@ class FilesStep:
         except Exception:
             return 'my_library'
 
-    def load_help_page(self):
-        """Load help page URL from config.ini"""
+    def load_help_page_url(self):
+        """Load help page URL from installation_settings.ini"""
         config = configparser.ConfigParser()
-        config_file = Path(__file__).parent / "config.ini"
+        config_file = Path(__file__).parent.parent / \
+            "installation_settings.ini"
 
         try:
             config.read(config_file)
@@ -111,7 +116,8 @@ class FilesStep:
         """Check if all prerequisite steps (1-4) are complete"""
         # Check if skip_local_index is enabled to determine if PyIRC is required
         config = configparser.ConfigParser()
-        config_file = Path(__file__).parent / "config.ini"
+        config_file = Path(__file__).parent.parent / \
+            "installation_settings.ini"
 
         try:
             config.read(config_file)
@@ -133,7 +139,8 @@ class FilesStep:
         """Get appropriate waiting message based on which steps are incomplete"""
         # Check if skip_local_index is enabled to determine if PyIRC is required
         config = configparser.ConfigParser()
-        config_file = Path(__file__).parent / "config.ini"
+        config_file = Path(__file__).parent.parent / \
+            "installation_settings.ini"
 
         try:
             config.read(config_file)
@@ -537,7 +544,8 @@ if __name__ == "__main__":
         """Auto-detect if files should be created"""
         # Check DEV section for simulation first
         config = configparser.ConfigParser()
-        config_file = Path(__file__).parent / "config.ini"
+        config_file = Path(__file__).parent.parent / \
+            "installation_settings.ini"
 
         try:
             config.read(config_file)

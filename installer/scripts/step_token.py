@@ -35,9 +35,10 @@ class TokenStep:
         self.showing_placeholder = False
 
     def load_config(self):
-        """Load configuration from config.ini"""
+        """Load configuration from installation_settings.ini"""
         config = configparser.ConfigParser()
-        config_file = Path(__file__).parent / "config.ini"
+        config_file = Path(__file__).parent.parent / \
+            "installation_settings.ini"
 
         try:
             config.read(config_file)
@@ -45,7 +46,8 @@ class TokenStep:
         except Exception as e:
             # Log error if wizard is available, otherwise just return default
             if hasattr(self, 'wizard'):
-                self.wizard.log(f"Failed to read config.ini: {e}", "warning")
+                self.wizard.log(
+                    f"Failed to read installation_settings.ini: {e}", "warning")
             return 'https://example.com'
 
     def build_ui(self, parent):
@@ -286,7 +288,8 @@ class TokenStep:
         """Auto-detect if PyIRC is already configured"""
         # Check DEV section for simulation first
         config = configparser.ConfigParser()
-        config_file = Path(__file__).parent / "config.ini"
+        config_file = Path(__file__).parent.parent / \
+            "installation_settings.ini"
 
         try:
             config.read(config_file)

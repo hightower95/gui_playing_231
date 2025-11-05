@@ -28,9 +28,10 @@ class LibraryStep:
         self.load_config()
 
     def load_config(self):
-        """Load library configuration from config.ini"""
+        """Load library configuration from installation_settings.ini"""
         config = configparser.ConfigParser()
-        config_file = Path(__file__).parent.parent / "config.ini"  # Go up one level from scripts/
+        config_file = Path(__file__).parent.parent / \
+            "installation_settings.ini"  # Go up one level from scripts/
 
         config.read(config_file)
 
@@ -55,7 +56,8 @@ class LibraryStep:
                 # It's a package name, store as string
                 self.main_library_path = main_library_str
         else:
-            raise Exception("Main library not specified in config.ini")
+            raise Exception(
+                "Main library not specified in installation_settings.ini")
 
         try:
             config.read(config_file)
@@ -70,7 +72,7 @@ class LibraryStep:
             self.wizard.log(f"Additional packages: {self.additional_packages}")
         except Exception as e:
             self.wizard.log(
-                f"Failed to read dependencies from config.ini: {e}", "warning")
+                f"Failed to read dependencies from installation_settings.ini: {e}", "warning")
             self.additional_packages = []
 
     def build_pip_command(self, venv_python, packages):
@@ -96,7 +98,8 @@ class LibraryStep:
         frame.pack(fill="x")
 
         # Show what will be installed
-        main_lib_name = self.main_library_path.name if isinstance(self.main_library_path, Path) else self.main_library_path
+        main_lib_name = self.main_library_path.name if isinstance(
+            self.main_library_path, Path) else self.main_library_path
         info_text = f"Main library: {main_lib_name}"
         ttk.Label(frame, text=info_text, foreground="blue").pack(
             anchor="w", pady=(0, 2))
@@ -119,7 +122,8 @@ class LibraryStep:
 
         # Show simulation status if enabled
         config = configparser.ConfigParser()
-        config_file = Path(__file__).parent / "config.ini"
+        config_file = Path(__file__).parent.parent / \
+            "installation_settings.ini"
 
         try:
             config.read(config_file)
@@ -206,7 +210,8 @@ class LibraryStep:
             # Step 1: Install main library
             self.install_progress.config(mode='indeterminate')
             self.install_progress.start(10)
-            main_lib_name = self.main_library_path.name if isinstance(self.main_library_path, Path) else self.main_library_path
+            main_lib_name = self.main_library_path.name if isinstance(
+                self.main_library_path, Path) else self.main_library_path
             self.install_status.config(
                 text=f"⏳ Installing {main_lib_name}...")
             self.wizard.log(
@@ -295,7 +300,8 @@ class LibraryStep:
                         f"Additional packages command: {' '.join(additional_pip_cmd)}")
 
             # Success!
-            main_lib_name = self.main_library_path.name if isinstance(self.main_library_path, Path) else self.main_library_path
+            main_lib_name = self.main_library_path.name if isinstance(
+                self.main_library_path, Path) else self.main_library_path
             installed_list = [main_lib_name] + \
                 self.additional_packages
             self.install_status.config(
@@ -329,7 +335,8 @@ class LibraryStep:
         """Auto-detect if libraries are already installed"""
         # Check DEV section for simulation first
         config = configparser.ConfigParser()
-        config_file = Path(__file__).parent / "config.ini"
+        config_file = Path(__file__).parent.parent / \
+            "installation_settings.ini"
 
         try:
             config.read(config_file)
@@ -383,7 +390,8 @@ class LibraryStep:
                 f"Found {len(installed_packages)} installed packages in venv")
 
             # Check if main library is installed
-            main_lib_name = (self.main_library_path.name if isinstance(self.main_library_path, Path) else self.main_library_path).lower()
+            main_lib_name = (self.main_library_path.name if isinstance(
+                self.main_library_path, Path) else self.main_library_path).lower()
             main_lib_installed = main_lib_name in installed_packages
 
             # Check additional packages

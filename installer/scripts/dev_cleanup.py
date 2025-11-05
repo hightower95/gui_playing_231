@@ -14,18 +14,18 @@ from tkinter import messagebox, ttk
 class BootstrapCleanup:
     def __init__(self):
         self.script_dir = Path(__file__).parent
-        self.project_dir = self.script_dir.parent
+        self.project_dir = self.script_dir.parent.parent
         self.files_to_remove = []
         self.dirs_to_remove = []
-        self.venv_dir_name = self.load_venv_dir_name()
-        self.app_name = self.load_app_name()
+        self.venv_dir_name = self.get_venv_dir_name()
+        self.app_name = self.get_app_name()
         self.load_config()
         self.identify_cleanup_targets()
 
-    def load_venv_dir_name(self):
-        """Load venv directory name from config.ini"""
+    def get_venv_dir_name(self):
+        """Load venv directory name from installation_settings.ini"""
         config = configparser.ConfigParser()
-        config_file = self.script_dir / "config.ini"
+        config_file = self.script_dir.parent / "installation_settings.ini"
 
         try:
             config.read(config_file)
@@ -33,10 +33,10 @@ class BootstrapCleanup:
         except Exception:
             return '.venv'
 
-    def load_app_name(self):
-        """Load app name from config.ini"""
+    def get_app_name(self):
+        """Load app name from installation_settings.ini"""
         config = configparser.ConfigParser()
-        config_file = self.script_dir / "config.ini"
+        config_file = self.script_dir.parent / "installation_settings.ini"
 
         try:
             config.read(config_file)
@@ -47,7 +47,7 @@ class BootstrapCleanup:
     def load_config(self):
         """Load configuration to understand what was created"""
         config = configparser.ConfigParser()
-        config_file = self.script_dir / "config.ini"
+        config_file = self.script_dir.parent / "installation_settings.ini"
 
         try:
             config.read(config_file)
@@ -56,7 +56,7 @@ class BootstrapCleanup:
             self.library_name = config.get(
                 'Dependencies', 'core_libraries', fallback='productivity_app')
         except Exception as e:
-            print(f"Warning: Could not read config.ini: {e}")
+            print(f"Warning: Could not read installation_settings.ini: {e}")
             self.app_name = 'My Application'
             self.library_name = 'productivity_app'
 

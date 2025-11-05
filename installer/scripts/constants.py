@@ -79,7 +79,7 @@ TEMPLATES_DIR = "templates"
 SCRIPTS_DIR = "Scripts"
 
 # Config File Names
-BOOTSTRAP_CONFIG_FILE = "config.ini"
+BOOTSTRAP_CONFIG_FILE = "installation_settings.ini"
 LAUNCH_CONFIG_FILE = "launch_config.ini"
 PIP_CONFIG_FILE = "pip.conf"
 
