@@ -50,4 +50,5 @@ run_app.pyw
 launch_config.ini
 update.pyw
 about.pyw
-bootstrapper/logs/setup_wizard.log
+installer/logs/setup_wizard.log
+installer/logs/
