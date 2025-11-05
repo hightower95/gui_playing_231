@@ -22,7 +22,8 @@ class ConfigManager:
     def __init__(self):
         # Only initialize once
         if self._config is None:
-            self._config_file = Path(__file__).parent.parent / "installation_settings.ini"
+            self._config_file = Path(
+                __file__).parent.parent / "installation_settings.ini"
             self._load_config()
 
     def _load_config(self) -> None:
