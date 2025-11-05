@@ -59,3 +59,69 @@
 2025-11-05 08:09:21,971 - INFO - Step 5 completed - All files already existed
 2025-11-05 08:09:21,973 - INFO - All steps completed!
 2025-11-05 08:09:21,973 - INFO - Step 5 completed - All files already existed
+2025-11-05 10:41:13,278 - INFO - Setup Wizard started
+2025-11-05 10:41:13,279 - INFO - Script directory: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-05 10:41:13,280 - INFO - DEV: Skip local index enabled - will use PyPI directly
+2025-11-05 10:41:13,281 - INFO - Main library: requests
+2025-11-05 10:41:13,281 - INFO - Additional packages: ['requests', 'pytest']
+2025-11-05 10:41:13,744 - INFO - Step folder completed
+2025-11-05 10:41:13,744 - INFO - [folder] Folder validated: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-05 10:41:13,746 - INFO - Step venv completed
+2025-11-05 10:41:13,746 - INFO - [venv] Auto-detected existing venv
+2025-11-05 10:41:13,747 - INFO - Auto-detected PyIRC configuration
+2025-11-05 10:48:34,881 - INFO - Setup Wizard started
+2025-11-05 10:48:34,882 - INFO - Script directory: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-05 10:48:34,883 - INFO - DEV: Skip local index enabled - will use PyPI directly
+2025-11-05 10:48:34,883 - INFO - Main library: requests
+2025-11-05 10:48:34,884 - INFO - Additional packages: ['requests', 'pytest']
+2025-11-05 10:48:35,352 - INFO - Step folder completed
+2025-11-05 10:48:35,352 - INFO - [folder] Folder validated: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-05 10:48:35,352 - INFO - [venv] Checking for virtual environment:
+2025-11-05 10:48:35,352 - INFO - [venv]   Install directory: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-05 10:48:35,352 - INFO - [venv]   Expected venv name: .venv
+2025-11-05 10:48:35,352 - INFO - [venv]   Full venv path: C:\Users\peter\OneDrive\Documents\Coding\gui\.venv
+2025-11-05 10:48:35,355 - INFO - Step venv completed
+2025-11-05 10:48:35,355 - INFO - [venv] Auto-detected existing venv at correct location: C:\Users\peter\OneDrive\Documents\Coding\gui\.venv
+2025-11-05 10:48:35,356 - INFO - Auto-detected PyIRC configuration
+2025-11-05 10:49:40,023 - INFO - Setup Wizard started
+2025-11-05 10:49:40,023 - INFO - Script directory: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-05 10:49:40,025 - INFO - DEV: Skip local index enabled - will use PyPI directly
+2025-11-05 10:49:40,026 - INFO - Main library: requests
+2025-11-05 10:49:40,026 - INFO - Additional packages: ['requests', 'pytest']
+2025-11-05 10:49:40,484 - INFO - Step folder completed
+2025-11-05 10:49:40,485 - INFO - [folder] Folder validated: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-05 10:49:40,485 - INFO - [venv] Checking for virtual environment:
+2025-11-05 10:49:40,485 - INFO - [venv]   Install directory: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-05 10:49:40,485 - INFO - [venv]   Expected venv name: .venv
+2025-11-05 10:49:40,485 - INFO - [venv]   Full venv path: C:\Users\peter\OneDrive\Documents\Coding\gui\.venv
+2025-11-05 10:49:40,487 - INFO - Step venv completed
+2025-11-05 10:49:40,487 - INFO - [venv] Auto-detected existing venv at correct location: C:\Users\peter\OneDrive\Documents\Coding\gui\.venv
+2025-11-05 10:49:40,488 - INFO - Auto-detected PyIRC configuration
+2025-11-05 10:50:04,515 - INFO - Setup Wizard started
+2025-11-05 10:50:04,516 - INFO - Script directory: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-05 10:50:04,517 - INFO - DEV: Skip local index enabled - will use PyPI directly
+2025-11-05 10:50:04,518 - INFO - Main library: requests
+2025-11-05 10:50:04,518 - INFO - Additional packages: ['requests', 'pytest']
+2025-11-05 10:50:04,987 - INFO - Step folder completed
+2025-11-05 10:50:04,987 - INFO - [folder] Folder validated: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-05 10:50:04,987 - INFO - [venv] Checking for virtual environment:
+2025-11-05 10:50:04,987 - INFO - [venv]   Install directory: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-05 10:50:04,988 - INFO - [venv]   Expected venv name: .venv
+2025-11-05 10:50:04,988 - INFO - [venv]   Full venv path: C:\Users\peter\OneDrive\Documents\Coding\gui\.venv
+2025-11-05 10:50:04,990 - INFO - Step venv completed
+2025-11-05 10:50:04,990 - INFO - [venv] Auto-detected existing venv at correct location: C:\Users\peter\OneDrive\Documents\Coding\gui\.venv
+2025-11-05 10:50:04,990 - INFO - Auto-detected PyIRC configuration
+2025-11-05 10:59:58,533 - INFO - Setup Wizard started
+2025-11-05 10:59:58,534 - INFO - Script directory: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-05 10:59:58,535 - INFO - DEV: Skip local index enabled - will use PyPI directly
+2025-11-05 10:59:58,536 - INFO - Main library: requests
+2025-11-05 10:59:58,536 - INFO - Additional packages: ['requests', 'pytest']
+2025-11-05 10:59:58,991 - INFO - Step folder completed
+2025-11-05 10:59:58,991 - INFO - [folder] Folder validated: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-05 10:59:58,992 - INFO - [venv] Checking for virtual environment:
+2025-11-05 10:59:58,992 - INFO - [venv]   Install directory: C:\Users\peter\OneDrive\Documents\Coding\gui
+2025-11-05 10:59:58,992 - INFO - [venv]   Expected venv name: .test_venv
+2025-11-05 10:59:58,992 - INFO - [venv]   Full venv path: C:\Users\peter\OneDrive\Documents\Coding\gui\.test_venv
+2025-11-05 10:59:58,992 - INFO - [venv] Virtual environment directory not found: C:\Users\peter\OneDrive\Documents\Coding\gui\.test_venv
+2025-11-05 10:59:58,994 - INFO - [venv] Virtual environment validation failed for: C:\Users\peter\OneDrive\Documents\Coding\gui\.test_venv
+2025-11-05 10:59:58,995 - INFO - Auto-detected PyIRC configuration

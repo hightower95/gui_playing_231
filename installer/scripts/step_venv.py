@@ -113,18 +113,33 @@ class VenvStep(BaseStep):
             self.log("DEV: Simulating venv creation completion")
             return
 
+        # Get the expected venv path from configuration
         venv_dir = self.get_venv_path()
+        install_dir = self.get_install_path()
+        expected_venv_name = self.config.get_venv_dir()
+        
+        self.log(f"Checking for virtual environment:")
+        self.log(f"  Install directory: {install_dir}")
+        self.log(f"  Expected venv name: {expected_venv_name}")
+        self.log(f"  Full venv path: {venv_dir}")
+        
         python_exe = venv_dir / ("Scripts" if os.name == "nt" else "bin") / \
             ("python.exe" if os.name == "nt" else "python")
 
+        # Check if the EXACT venv directory specified in config exists
         if venv_dir.exists() and python_exe.exists():
             self.update_status(
                 f"✅ Virtual environment already exists at {venv_dir}", COLOR_GREEN)
             self.mark_complete()
-            self.log("Auto-detected existing venv")
+            self.log(f"Auto-detected existing venv at correct location: {venv_dir}")
         else:
             # Virtual environment doesn't exist or is invalid
+            if not venv_dir.exists():
+                self.log(f"Virtual environment directory not found: {venv_dir}")
+            elif not python_exe.exists():
+                self.log(f"Virtual environment exists but no Python executable: {python_exe}")
+                
             self.update_status(
                 f"❌ Virtual environment not found at {venv_dir}", COLOR_RED)
             self.mark_incomplete()
-            self.wizard.log(f"Virtual environment not found at {venv_dir}")
+            self.log(f"Virtual environment validation failed for: {venv_dir}")
