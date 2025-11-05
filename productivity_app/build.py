@@ -203,7 +203,8 @@ def build_package():
     # Install build tools first
     print("[PKG] Installing/upgrading build tools...")
     try:
-        run_command("python -m pip install --upgrade build twine")
+        # Try with default PyPI index in case there are pip config issues
+        run_command("python -m pip install --upgrade --index-url https://pypi.org/simple build twine")
     except:
         print("[WARN] Warning: Could not upgrade build tools, continuing anyway...")
 
@@ -225,7 +226,8 @@ def build_package():
         print("[ERROR] Build module not found!")
         print("[INFO] Installing build module...")
         try:
-            run_command("python -m pip install build")
+            # Try with default PyPI index in case there are pip config issues
+            run_command("python -m pip install --index-url https://pypi.org/simple build")
             print("[OK] Build module installed")
         except Exception as install_error:
             print(f"[ERROR] Could not install build module: {install_error}")
