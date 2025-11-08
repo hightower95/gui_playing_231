@@ -11,15 +11,17 @@ class FilesStep:
         self.wizard = wizard
         self.status_label = None
         self.success_label = None
-        self.required_files = ["run_app.pyw", "launch_config.ini", "utils"]  # utils is a folder
+        self.required_files = ["run_app.pyw",
+                               "launch_config.ini", "utils"]  # utils is a folder
         self.config = self._load_installation_config()
         self.auto_generate_files = self.config.get('auto_generate_files', True)
 
     def _load_installation_config(self):
         """Load configuration from installation_settings.ini"""
         config = configparser.ConfigParser()
-        config_file = Path(__file__).parent.parent / "installation_settings.ini"
-        
+        config_file = Path(__file__).parent.parent / \
+            "installation_settings.ini"
+
         # Default configuration
         installation_config = {
             'app_name': 'ProductivityApp',
@@ -36,29 +38,30 @@ class FilesStep:
 
         try:
             config.read(config_file)
-            
+
             # Load settings from various sections
             if config.has_section('Settings'):
-                installation_config['app_name'] = config.get('Settings', 'app_name', 
-                                                           fallback=installation_config['app_name'])
-            
+                installation_config['app_name'] = config.get('Settings', 'app_name',
+                                                             fallback=installation_config['app_name'])
+
             if config.has_section('Dependencies'):
-                installation_config['library_name'] = config.get('Dependencies', 'core_libraries', 
-                                                                fallback=installation_config['library_name'])
-            
+                installation_config['library_name'] = config.get('Dependencies', 'core_libraries',
+                                                                 fallback=installation_config['library_name'])
+
             if config.has_section('Paths'):
-                installation_config['venv_dir_name'] = config.get('Paths', 'venv_dir', 
-                                                                 fallback=installation_config['venv_dir_name'])
-            
+                installation_config['venv_dir_name'] = config.get('Paths', 'venv_dir',
+                                                                  fallback=installation_config['venv_dir_name'])
+
             if config.has_section('DEV'):
-                installation_config['auto_generate_files'] = config.getboolean('DEV', 'auto_generate_files', 
-                                                                              fallback=installation_config['auto_generate_files'])
-                installation_config['debug'] = config.getboolean('DEV', 'debug', 
-                                                                fallback=installation_config['debug'])
-            
+                installation_config['auto_generate_files'] = config.getboolean('DEV', 'auto_generate_files',
+                                                                               fallback=installation_config['auto_generate_files'])
+                installation_config['debug'] = config.getboolean('DEV', 'debug',
+                                                                 fallback=installation_config['debug'])
+
         except Exception as e:
-            self.wizard.log(f"Warning: Could not load installation config: {e}")
-        
+            self.wizard.log(
+                f"Warning: Could not load installation config: {e}")
+
         return installation_config
 
     def build_ui(self, parent):
@@ -212,20 +215,21 @@ class FilesStep:
     def _check_completion_after_manual_creation(self):
         """Check if Step 5 is now complete after manual file creation"""
         install_dir = Path(self.wizard.install_path.get())
-        
+
         # Check if required files exist
         required_paths = [
             install_dir / "run_app.pyw",
-            install_dir / "launch_config.ini", 
+            install_dir / "launch_config.ini",
             install_dir / "utils"
         ]
-        
+
         all_files_exist = all(path.exists() for path in required_paths)
 
         if all_files_exist:
             # Mark step as complete
             self.wizard.step_status["files"] = True
-            self.wizard.log("Step 5 completed - Manual file creation successful")
+            self.wizard.log(
+                "Step 5 completed - Manual file creation successful")
 
             # Show completion message
             if self.success_label:
@@ -293,14 +297,14 @@ class FilesStep:
                 config=self.config,
                 overwrite=True
             )
-            
+
             if success:
                 self.wizard.log("Successfully set up all application files")
-                
+
                 if show_dialog:
                     messagebox.showinfo("Files Created",
-                                      f"Successfully created application files!\n\n"
-                                      f"Double-click run_app.pyw to start {self.config['app_name']}!")
+                                        f"Successfully created application files!\n\n"
+                                        f"Double-click run_app.pyw to start {self.config['app_name']}!")
                 else:
                     # Silent mode - show success in UI
                     if self.status_label:
@@ -313,22 +317,25 @@ class FilesStep:
                     # Mark step as complete
                     self.wizard.step_status["files"] = True
                     self.wizard.update_progress()
-                    self.wizard.log("Step 5 completed - All files created successfully")
+                    self.wizard.log(
+                        "Step 5 completed - All files created successfully")
             else:
                 error_msg = "Failed to create application files"
                 self.wizard.log(error_msg, "error")
                 if show_dialog:
                     messagebox.showerror("File Creation Failed", error_msg)
                 elif self.status_label:
-                    self.status_label.config(text="❌ File creation failed", foreground="red")
-                    
+                    self.status_label.config(
+                        text="❌ File creation failed", foreground="red")
+
         except Exception as e:
             error_msg = f"Error creating files: {e}"
             self.wizard.log(error_msg, "error")
             if show_dialog:
                 messagebox.showerror("File Creation Error", error_msg)
             elif self.status_label:
-                self.status_label.config(text="❌ File creation error", foreground="red")
+                self.status_label.config(
+                    text="❌ File creation error", foreground="red")
 
     def auto_detect(self):
         """Auto-detect if files should be created"""
