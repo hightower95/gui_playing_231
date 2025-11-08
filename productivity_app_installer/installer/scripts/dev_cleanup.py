@@ -66,9 +66,7 @@ class BootstrapCleanup:
         # Files created in project root by Step 5
         project_files = [
             "run_app.pyw",
-            "launch_config.ini",
-            "update.pyw",
-            "about.pyw"
+            "launch_config.ini"
         ]
 
         # Directories created by bootstrap process

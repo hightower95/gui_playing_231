@@ -61,9 +61,7 @@ BTN_VALIDATE = "Validate"
 # Required Files
 REQUIRED_FILES = [
     "run_app.pyw",
-    "launch_config.ini",
-    "update.pyw",
-    "about.pyw"
+    "launch_config.ini"
 ]
 
 # File Extensions

@@ -190,8 +190,7 @@ debug = {str(debug).lower()}
         required_paths = [
             self.utils_dir,
             self.templates_dir,
-            self.templates_dir / "run_app.pyw",
-            self.templates_dir / "launch_config.ini"
+            self.templates_dir / "run_app.pyw"
         ]
 
         missing_paths = []

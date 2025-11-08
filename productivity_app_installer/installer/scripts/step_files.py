@@ -3,7 +3,7 @@ from pathlib import Path
 import tkinter as tk
 from tkinter import ttk, messagebox
 import configparser
-from .file_operations import setup_files_in_target_folder
+from file_operations import FileOperationsManager
 
 
 class FilesStep:
@@ -292,7 +292,9 @@ class FilesStep:
 
         try:
             # Use the new file operations manager
-            success = setup_files_in_target_folder(
+            installer_root = Path(__file__).parent.parent.parent  # Go up to productivity_app_installer
+            file_ops = FileOperationsManager(installer_root)
+            success = file_ops.setup_files_in_target_folder(
                 target_folder=install_dir,
                 config=self.config,
                 overwrite=True

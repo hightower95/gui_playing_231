@@ -1,7 +1,0 @@
-[Settings]
-# Configuration settings for {app_name}
-enable_log = false
-auto_upgrade_major_version = false
-auto_upgrade_minor_version = true
-auto_upgrade_patches = true
-allow_upgrade_to_test_releases = false
