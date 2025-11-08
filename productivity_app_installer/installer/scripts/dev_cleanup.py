@@ -3,6 +3,8 @@ Bootstrap Development Cleanup Tool
 Removes files created during development/testing of the bootstrap installer
 """
 
+from tkinter import messagebox, ttk
+import tkinter as tk
 import os
 import shutil
 from pathlib import Path
@@ -12,13 +14,6 @@ from constants import BOOTSTRAP_CONFIG_FILE, REQUIRED_FILES, DEFAULT_VENV_DIR
 
 
 class BootstrapCleanup:
-import os
-import sys
-import shutil
-from pathlib import Path
-import configparser
-import tkinter as tk
-from tkinter import messagebox, ttk
 
 
 class BootstrapCleanup:

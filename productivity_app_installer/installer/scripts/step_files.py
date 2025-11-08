@@ -5,7 +5,7 @@ from tkinter import ttk, messagebox
 import configparser
 from file_operations import FileOperationsManager
 from constants import (
-    BOOTSTRAP_CONFIG_FILE, REQUIRED_FILES, LAUNCH_CONFIG_FILE, 
+    BOOTSTRAP_CONFIG_FILE, REQUIRED_FILES, LAUNCH_CONFIG_FILE,
     DEFAULT_APP_NAME, DEFAULT_VENV_DIR, DEFAULT_LIBRARY_NAME, DEFAULT_CONFIG
 )
 
