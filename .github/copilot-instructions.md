@@ -164,3 +164,6 @@ When modifying this codebase, always consider the multi-layer architecture and m
 - When editing *.template files do not use f-strings. The template engine is not compatible with them.
 - Do not use the token '&&' when generating shell commands.
 - Avoid using emojis within python scripts.
+- Magic strings should be replaced with constants defined in a dedicated constants module wherever possible.
+- Duplicate declarations of similar constants should be consolidated into a single source of truth to enhance maintainability and reduce redundancy.
+- The code will be run on other windows machines so ensure any hardcoded paths or environment-specific settings are avoided.

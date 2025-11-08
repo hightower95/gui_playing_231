@@ -1,7 +1,17 @@
 """
-Bootstrap Cleanup Script
-Removes all files and directories created by the bootstrap process for testing purposes
+Bootstrap Development Cleanup Tool
+Removes files created during development/testing of the bootstrap installer
 """
+
+import os
+import shutil
+from pathlib import Path
+import configparser
+import sys
+from constants import BOOTSTRAP_CONFIG_FILE, REQUIRED_FILES, DEFAULT_VENV_DIR
+
+
+class BootstrapCleanup:
 import os
 import sys
 import shutil
@@ -25,18 +35,18 @@ class BootstrapCleanup:
     def get_venv_dir_name(self):
         """Load venv directory name from installation_settings.ini"""
         config = configparser.ConfigParser()
-        config_file = self.script_dir.parent / "installation_settings.ini"
+        config_file = self.script_dir.parent / BOOTSTRAP_CONFIG_FILE
 
         try:
             config.read(config_file)
-            return config.get('Paths', 'venv_dir', fallback='.venv')
+            return config.get('Paths', 'venv_dir', fallback=DEFAULT_VENV_DIR)
         except Exception:
-            return '.venv'
+            return DEFAULT_VENV_DIR
 
     def get_app_name(self):
         """Load app name from installation_settings.ini"""
         config = configparser.ConfigParser()
-        config_file = self.script_dir.parent / "installation_settings.ini"
+        config_file = self.script_dir.parent / BOOTSTRAP_CONFIG_FILE
 
         try:
             config.read(config_file)
@@ -64,10 +74,7 @@ class BootstrapCleanup:
         """Identify all files and directories that should be cleaned up"""
 
         # Files created in project root by Step 5
-        project_files = [
-            "run_app.pyw",
-            "launch_config.ini"
-        ]
+        project_files = REQUIRED_FILES.copy()
 
         # Directories created by bootstrap process
         project_dirs = [

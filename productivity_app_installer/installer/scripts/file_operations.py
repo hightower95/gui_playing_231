@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Dict, Any, Optional
 import configparser
 import logging
+from constants import REQUIRED_FILES, LAUNCH_CONFIG_FILE
 
 
 class FileOperationsManager:
@@ -83,7 +84,7 @@ class FileOperationsManager:
         """Copy template files and configure them"""
         try:
             # Copy run_app.pyw
-            if not self._copy_template_file("run_app.pyw", target_folder, overwrite):
+            if not self._copy_template_file(REQUIRED_FILES[0], target_folder, overwrite):
                 return False
 
             # Copy and configure launch_config.ini
@@ -121,11 +122,11 @@ class FileOperationsManager:
     def _configure_launch_config(self, target_folder: Path, config: Dict[str, Any], overwrite: bool) -> bool:
         """Create and configure launch_config.ini with installation settings"""
         try:
-            target_config = target_folder / "launch_config.ini"
+            target_config = target_folder / LAUNCH_CONFIG_FILE
 
             if target_config.exists() and not overwrite:
                 logging.info(
-                    f"launch_config.ini already exists, skipping configuration")
+                    f"{LAUNCH_CONFIG_FILE} already exists, skipping configuration")
                 return True
 
             # Create configuration content based on installation config
@@ -190,7 +191,7 @@ debug = {str(debug).lower()}
         required_paths = [
             self.utils_dir,
             self.templates_dir,
-            self.templates_dir / "run_app.pyw"
+            self.templates_dir / REQUIRED_FILES[0]  # run_app.pyw
         ]
 
         missing_paths = []

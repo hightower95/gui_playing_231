@@ -5,22 +5,18 @@ Handles reading and parsing of launch_config.ini with safe defaults
 import configparser
 from pathlib import Path
 from typing import Dict, Any
+import sys
+import os
+
+# Add the installer scripts to the path to import constants
+sys.path.append(str(Path(__file__).parent.parent / "installer" / "scripts"))
+from constants import DEFAULT_CONFIG
 
 
 def load_launch_config(config_file: Path) -> Dict[str, Any]:
     """Load launch configuration with safe defaults"""
-    # Safe defaults - everything disabled by default for security
-    config = {
-        'app_name': 'ProductivityApp',
-        'library_name': 'productivity_app', 
-        'venv_dir_name': '.test_venv',
-        'enable_log': False,
-        'auto_upgrade_major_version': False,
-        'auto_upgrade_minor_version': False, 
-        'auto_upgrade_patches': False,
-        'allow_upgrade_to_test_releases': False,
-        'debug': False
-    }
+    # Use centralized defaults from constants
+    config = DEFAULT_CONFIG.copy()
     
     if not config_file.exists():
         return config

@@ -101,10 +101,25 @@ COLOR_RED = "red"
 COLOR_ORANGE = "orange"
 COLOR_BLUE = "blue"
 
-# Default Values
-DEFAULT_APP_NAME = "My Application"
+# Default Configuration Values
+DEFAULT_CONFIG = {
+    'app_name': 'ProductivityApp',
+    'library_name': 'productivity_app',
+    'venv_dir_name': '.test_venv',
+    'auto_generate_files': True,
+    'auto_upgrade_major_version': False,
+    'auto_upgrade_minor_version': True,
+    'auto_upgrade_patches': True,
+    'allow_upgrade_to_test_releases': False,
+    'enable_log': False,
+    'debug': False
+}
+
+# Default Values (individual constants for backward compatibility)
+DEFAULT_APP_NAME = DEFAULT_CONFIG['app_name']
+DEFAULT_LIBRARY_NAME = DEFAULT_CONFIG['library_name']
 DEFAULT_VERSION = "1.0.0"
-DEFAULT_VENV_DIR = ".venv"
+DEFAULT_VENV_DIR = DEFAULT_CONFIG['venv_dir_name']
 DEFAULT_TOKEN_URL = "https://example.com/get-token"
 DEFAULT_HELP_URL = "https://example.com/help"
 

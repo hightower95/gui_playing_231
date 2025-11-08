@@ -4,6 +4,10 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import configparser
 from file_operations import FileOperationsManager
+from constants import (
+    BOOTSTRAP_CONFIG_FILE, REQUIRED_FILES, LAUNCH_CONFIG_FILE, 
+    DEFAULT_APP_NAME, DEFAULT_VENV_DIR, DEFAULT_LIBRARY_NAME, DEFAULT_CONFIG
+)
 
 
 class FilesStep:
@@ -11,30 +15,17 @@ class FilesStep:
         self.wizard = wizard
         self.status_label = None
         self.success_label = None
-        self.required_files = ["run_app.pyw",
-                               "launch_config.ini", "utils"]  # utils is a folder
+        self.required_files = REQUIRED_FILES + ["utils"]  # utils is a folder
         self.config = self._load_installation_config()
         self.auto_generate_files = self.config.get('auto_generate_files', True)
 
     def _load_installation_config(self):
         """Load configuration from installation_settings.ini"""
         config = configparser.ConfigParser()
-        config_file = Path(__file__).parent.parent / \
-            "installation_settings.ini"
+        config_file = Path(__file__).parent.parent / BOOTSTRAP_CONFIG_FILE
 
         # Default configuration
-        installation_config = {
-            'app_name': 'ProductivityApp',
-            'library_name': 'productivity_app',
-            'venv_dir_name': '.test_venv',
-            'auto_generate_files': True,
-            'auto_upgrade_major_version': False,
-            'auto_upgrade_minor_version': True,
-            'auto_upgrade_patches': True,
-            'allow_upgrade_to_test_releases': False,
-            'enable_log': False,
-            'debug': False
-        }
+        installation_config = DEFAULT_CONFIG.copy()
 
         try:
             config.read(config_file)
@@ -102,8 +93,7 @@ class FilesStep:
         """Check if all prerequisite steps (1-4) are complete"""
         # Check if skip_local_index is enabled to determine if PyIRC is required
         config = configparser.ConfigParser()
-        config_file = Path(__file__).parent.parent / \
-            "installation_settings.ini"
+        config_file = Path(__file__).parent.parent / BOOTSTRAP_CONFIG_FILE
 
         try:
             config.read(config_file)
@@ -125,8 +115,7 @@ class FilesStep:
         """Get appropriate waiting message based on which steps are incomplete"""
         # Check if skip_local_index is enabled to determine if PyIRC is required
         config = configparser.ConfigParser()
-        config_file = Path(__file__).parent.parent / \
-            "installation_settings.ini"
+        config_file = Path(__file__).parent.parent / BOOTSTRAP_CONFIG_FILE
 
         try:
             config.read(config_file)
@@ -218,8 +207,8 @@ class FilesStep:
 
         # Check if required files exist
         required_paths = [
-            install_dir / "run_app.pyw",
-            install_dir / "launch_config.ini",
+            install_dir / REQUIRED_FILES[0],  # run_app.pyw
+            install_dir / REQUIRED_FILES[1],  # launch_config.ini
             install_dir / "utils"
         ]
 
@@ -292,7 +281,8 @@ class FilesStep:
 
         try:
             # Use the new file operations manager
-            installer_root = Path(__file__).parent.parent.parent  # Go up to productivity_app_installer
+            # Go up to productivity_app_installer
+            installer_root = Path(__file__).parent.parent.parent
             file_ops = FileOperationsManager(installer_root)
             success = file_ops.setup_files_in_target_folder(
                 target_folder=install_dir,
@@ -343,8 +333,7 @@ class FilesStep:
         """Auto-detect if files should be created"""
         # Check DEV section for simulation first
         config = configparser.ConfigParser()
-        config_file = Path(__file__).parent.parent / \
-            "installation_settings.ini"
+        config_file = Path(__file__).parent.parent / BOOTSTRAP_CONFIG_FILE
 
         try:
             config.read(config_file)
