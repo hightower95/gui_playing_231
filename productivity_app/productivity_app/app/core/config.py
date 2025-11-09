@@ -90,6 +90,7 @@ APP_SETTINGS = {
     "window_title": "Swiss Army Tool",
     "default_window_size": (1200, 800),
     "show_maximized": True,
+    "theme_mode": "dark",  # Options: "light", "dark", "system"
 }
 
 # Configuration File Names

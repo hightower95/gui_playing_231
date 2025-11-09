@@ -162,8 +162,10 @@ When modifying this codebase, always consider the multi-layer architecture and m
 - Consider python modules will be installed via pip and ensure import statements reflect this structure.
 - Reuse existing functions and classes wherever possible to maintain consistency and reduce redundancy in the codebase.
 - When editing *.template files do not use f-strings. The template engine is not compatible with them.
-- Do not use the token '&&' when generating shell commands.
+- Do not use the token '&&' when generating shell commands. This will result in an error in my terminal
 - Avoid using emojis within python scripts.
 - Magic strings should be replaced with constants defined in a dedicated constants module wherever possible.
 - Duplicate declarations of similar constants should be consolidated into a single source of truth to enhance maintainability and reduce redundancy.
 - The code will be run on other windows machines so ensure any hardcoded paths or environment-specific settings are avoided.
+- Use of the token '&&' is not a valid statement separator in this version.
+- When creating code snippets to execute, always consider that there is a venv to be used. 
