@@ -10,10 +10,7 @@ import shutil
 from pathlib import Path
 import configparser
 import sys
-from constants import BOOTSTRAP_CONFIG_FILE, REQUIRED_FILES, DEFAULT_VENV_DIR
-
-
-class BootstrapCleanup:
+from .constants import BOOTSTRAP_CONFIG_FILE, REQUIRED_FILES, DEFAULT_VENV_DIR
 
 
 class BootstrapCleanup:

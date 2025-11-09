@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Dict, Any, Optional
 import configparser
 import logging
-from constants import REQUIRED_FILES, LAUNCH_CONFIG_FILE
+from .constants import REQUIRED_FILES, LAUNCH_CONFIG_FILE
 
 
 class FileOperationsManager:
@@ -146,7 +146,10 @@ class FileOperationsManager:
         """Generate launch_config.ini content from installation config"""
         app_name = config.get('app_name', 'ProductivityApp')
         library_name = config.get('library_name', 'productivity_app')
+        # Prefer explicit absolute path if provided; otherwise use directory name
         venv_dir = config.get('venv_dir_name', '.test_venv')
+        venv_dir_path = config.get('venv_dir_path', None)
+        venv_python_path = config.get('venv_python_path', None)
 
         # Default upgrade settings (conservative)
         auto_upgrade_major = config.get('auto_upgrade_major_version', False)
@@ -157,11 +160,19 @@ class FileOperationsManager:
         enable_log = config.get('enable_log', False)
         debug = config.get('debug', False)
 
-        return f"""[Settings]
+        base = f"""[Settings]
 # Application Configuration
 app_name = {app_name}
 library_name = {library_name}
-venv_dir_name = {venv_dir}
+venv_dir_name = {venv_dir}"""
+
+        # Add venv absolute paths if provided (as actual settings, not comments)
+        if venv_dir_path:
+            base += f"\nvenv_dir_path = {venv_dir_path}"
+        if venv_python_path:
+            base += f"\nvenv_python_path = {venv_python_path}"
+
+        base += f"""
 
 # Automatic upgrade permissions
 auto_upgrade_major_version = {str(auto_upgrade_major).lower()}
@@ -175,6 +186,8 @@ allow_upgrade_to_test_releases = {str(allow_test_releases).lower()}
 enable_log = {str(enable_log).lower()}
 debug = {str(debug).lower()}
 """
+
+        return base
 
     def _create_additional_files(self, target_folder: Path, config: Dict[str, Any], overwrite: bool) -> bool:
         """Create any additional files needed for the deployment"""

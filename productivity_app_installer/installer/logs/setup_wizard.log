@@ -1328,3 +1328,117 @@ urllib3==2.5.0
 2025-11-06 22:59:01,559 - INFO - Loaded external template for: update.pyw
 2025-11-06 22:59:01,559 - INFO - Loaded external template for: about.pyw
 2025-11-06 22:59:01,561 - INFO - Step 5 completed - All files already existed
+2025-11-09 00:26:06,336 - INFO - Setup Wizard started
+2025-11-09 00:26:06,336 - INFO - Script directory: C:\Users\peter\OneDrive\Documents\Coding\gui\productivity_app_installer
+2025-11-09 00:26:06,338 - INFO - DEV: Skip local index enabled - will use PyPI directly
+2025-11-09 00:26:06,338 - INFO - Main library: requests
+2025-11-09 00:26:06,338 - INFO - Additional packages: ['natsort']
+2025-11-09 00:26:06,797 - INFO - Step folder completed
+2025-11-09 00:26:06,798 - INFO - [folder] Folder validated: C:\Users\peter\OneDrive\Documents\Coding\gui\productivity_app_installer
+2025-11-09 00:26:06,798 - INFO - [venv] Checking for virtual environment:
+2025-11-09 00:26:06,798 - INFO - [venv]   Install directory: C:\Users\peter\OneDrive\Documents\Coding\gui\productivity_app_installer
+2025-11-09 00:26:06,798 - INFO - [venv]   Expected venv name: .test_venv
+2025-11-09 00:26:06,798 - INFO - [venv]   Full venv path: C:\Users\peter\OneDrive\Documents\Coding\gui\productivity_app_installer\.test_venv
+2025-11-09 00:26:06,798 - INFO - [venv] Virtual environment directory not found: C:\Users\peter\OneDrive\Documents\Coding\gui\productivity_app_installer\.test_venv
+2025-11-09 00:26:06,801 - INFO - [venv] Virtual environment validation failed for: C:\Users\peter\OneDrive\Documents\Coding\gui\productivity_app_installer\.test_venv
+2025-11-09 00:26:14,977 - INFO - [venv] === VENV CREATION - DETAILED LOG ===
+2025-11-09 00:26:14,977 - INFO - [venv] Install directory: C:\Users\peter\OneDrive\Documents\Coding\gui\productivity_app_installer
+2025-11-09 00:26:14,978 - INFO - [venv] Expected venv name (from config): .test_venv
+2025-11-09 00:26:14,978 - INFO - [venv] Full venv path: C:\Users\peter\OneDrive\Documents\Coding\gui\productivity_app_installer\.test_venv
+2025-11-09 00:26:14,978 - INFO - [venv] Current Python executable: C:\Users\peter\AppData\Local\Programs\Python\Python313\python.exe
+2025-11-09 00:26:14,978 - INFO - [venv] Python version: 3.13.1 (tags/v3.13.1:0671451, Dec  3 2024, 19:06:28) [MSC v.1942 64 bit (AMD64)]
+2025-11-09 00:26:14,978 - INFO - [venv] Operating system: nt
+2025-11-09 00:26:14,978 - INFO - [venv] Platform: win32
+2025-11-09 00:26:14,978 - INFO - [venv] Creating new virtual environment...
+2025-11-09 00:26:23,301 - INFO - [venv] Venv created successfully at: C:\Users\peter\OneDrive\Documents\Coding\gui\productivity_app_installer\.test_venv
+2025-11-09 00:26:23,302 - INFO - [venv] Verified Python executable at: C:\Users\peter\OneDrive\Documents\Coding\gui\productivity_app_installer\.test_venv\Scripts\python.exe
+2025-11-09 00:26:23,312 - INFO - Step venv completed
+2025-11-09 00:26:23,313 - INFO - [venv] Step 2 (venv creation) completed successfully
+2025-11-09 00:26:23,314 - INFO - [venv] Creating launch_config.ini with venv path information
+2025-11-09 00:26:23,315 - INFO - [venv] Copied template from c:\Users\peter\OneDrive\Documents\Coding\gui\productivity_app_installer\templates\launch_config.ini
+2025-11-09 00:26:23,317 - INFO - [venv] Updated launch_config.ini with venv paths:
+2025-11-09 00:26:23,317 - INFO - [venv]   venv_dir_name: .test_venv
+2025-11-09 00:26:23,317 - INFO - [venv]   venv_dir_path: C:\Users\peter\OneDrive\Documents\Coding\gui\productivity_app_installer\.test_venv
+2025-11-09 00:26:23,317 - INFO - [venv]   venv_python_path: C:\Users\peter\OneDrive\Documents\Coding\gui\productivity_app_installer\.test_venv\Scripts\python.exe
+2025-11-09 00:26:41,591 - INFO - DEV: Skipping PyIRC validation (using PyPI directly)
+2025-11-09 00:26:58,393 - INFO - Setup Wizard started
+2025-11-09 00:26:58,394 - INFO - Script directory: C:\Users\peter\OneDrive\Documents\Coding\gui\productivity_app_installer
+2025-11-09 00:26:58,395 - INFO - DEV: Skip local index enabled - will use PyPI directly
+2025-11-09 00:26:58,395 - INFO - Main library: requests
+2025-11-09 00:26:58,395 - INFO - Additional packages: ['natsort']
+2025-11-09 00:26:58,827 - INFO - Step folder completed
+2025-11-09 00:26:58,827 - INFO - [folder] Folder validated: C:\Users\peter\OneDrive\Documents\Coding\gui\productivity_app_installer
+2025-11-09 00:26:58,827 - INFO - [venv] Checking for virtual environment:
+2025-11-09 00:26:58,827 - INFO - [venv]   Install directory: C:\Users\peter\OneDrive\Documents\Coding\gui\productivity_app_installer
+2025-11-09 00:26:58,827 - INFO - [venv]   Expected venv name: .test_venv
+2025-11-09 00:26:58,827 - INFO - [venv]   Full venv path: C:\Users\peter\OneDrive\Documents\Coding\gui\productivity_app_installer\.test_venv
+2025-11-09 00:26:58,830 - INFO - Step venv completed
+2025-11-09 00:26:58,830 - INFO - [venv] Auto-detected existing venv at correct location: C:\Users\peter\OneDrive\Documents\Coding\gui\productivity_app_installer\.test_venv
+2025-11-09 00:26:58,831 - INFO - === LIBRARY AUTO-DETECTION ===
+2025-11-09 00:26:58,831 - INFO - Install directory: C:\Users\peter\OneDrive\Documents\Coding\gui\productivity_app_installer
+2025-11-09 00:26:58,831 - INFO - Venv directory: C:\Users\peter\OneDrive\Documents\Coding\gui\productivity_app_installer\.test_venv
+2025-11-09 00:26:58,831 - INFO - Checking for libraries in venv: C:\Users\peter\OneDrive\Documents\Coding\gui\productivity_app_installer\.test_venv\Scripts\python.exe
+2025-11-09 00:26:58,831 - INFO - Running: C:\Users\peter\OneDrive\Documents\Coding\gui\productivity_app_installer\.test_venv\Scripts\python.exe -m pip list --format=freeze
+2025-11-09 00:26:59,227 - INFO - Pip list return code: 0
+2025-11-09 00:26:59,227 - INFO - === PIP LIST OUTPUT ===
+2025-11-09 00:26:59,227 - INFO - pip==24.3.1
+
+2025-11-09 00:26:59,227 - INFO - Found 1 installed packages in venv
+2025-11-09 00:26:59,227 - INFO - Main library requests not found in pip list
+2025-11-09 00:27:06,714 - INFO - DEV: Skipping PyIRC validation (using PyPI directly)
+2025-11-09 00:27:06,715 - INFO - === LIBRARY INSTALLATION - DETAILED LOG ===
+2025-11-09 00:27:06,715 - INFO - Install directory: C:\Users\peter\OneDrive\Documents\Coding\gui\productivity_app_installer
+2025-11-09 00:27:06,715 - INFO - Venv directory: C:\Users\peter\OneDrive\Documents\Coding\gui\productivity_app_installer\.test_venv
+2025-11-09 00:27:06,715 - INFO - Venv Python: C:\Users\peter\OneDrive\Documents\Coding\gui\productivity_app_installer\.test_venv\Scripts\python.exe
+2025-11-09 00:27:06,716 - INFO - Main library path: requests
+2025-11-09 00:27:06,716 - INFO - Additional packages: ['natsort']
+2025-11-09 00:27:06,716 - INFO - Skip local index: True
+2025-11-09 00:27:06,716 - INFO - Index URL: Using PyPI directly (https://pypi.org/simple/) - DEV MODE
+2025-11-09 00:27:06,732 - INFO - Venv Python version: Python 3.13.1
+2025-11-09 00:27:06,732 - INFO - Venv Python path verified: C:\Users\peter\OneDrive\Documents\Coding\gui\productivity_app_installer\.test_venv\Scripts\python.exe
+2025-11-09 00:27:52,436 - INFO - Setup Wizard started
+2025-11-09 00:27:52,436 - INFO - Script directory: C:\Users\peter\OneDrive\Documents\Coding\gui\productivity_app_installer
+2025-11-09 00:27:52,437 - INFO - DEV: Skip local index enabled - will use PyPI directly
+2025-11-09 00:27:52,438 - INFO - Main library: requests
+2025-11-09 00:27:52,438 - INFO - Additional packages: ['natsort']
+2025-11-09 00:27:52,850 - INFO - Step folder completed
+2025-11-09 00:27:52,850 - INFO - [folder] Folder validated: C:\Users\peter\OneDrive\Documents\Coding\gui\productivity_app_installer
+2025-11-09 00:27:52,850 - INFO - [venv] Checking for virtual environment:
+2025-11-09 00:27:52,850 - INFO - [venv]   Install directory: C:\Users\peter\OneDrive\Documents\Coding\gui\productivity_app_installer
+2025-11-09 00:27:52,850 - INFO - [venv]   Expected venv name: .test_venv
+2025-11-09 00:27:52,850 - INFO - [venv]   Full venv path: C:\Users\peter\OneDrive\Documents\Coding\gui\productivity_app_installer\.test_venv
+2025-11-09 00:27:52,852 - INFO - Step venv completed
+2025-11-09 00:27:52,853 - INFO - [venv] Auto-detected existing venv at correct location: C:\Users\peter\OneDrive\Documents\Coding\gui\productivity_app_installer\.test_venv
+2025-11-09 00:27:52,854 - INFO - === LIBRARY AUTO-DETECTION ===
+2025-11-09 00:27:52,854 - INFO - Install directory: C:\Users\peter\OneDrive\Documents\Coding\gui\productivity_app_installer
+2025-11-09 00:27:52,854 - INFO - Venv directory: C:\Users\peter\OneDrive\Documents\Coding\gui\productivity_app_installer\.test_venv
+2025-11-09 00:27:52,854 - INFO - Checking for libraries in venv: C:\Users\peter\OneDrive\Documents\Coding\gui\productivity_app_installer\.test_venv\Scripts\python.exe
+2025-11-09 00:27:52,854 - INFO - Running: C:\Users\peter\OneDrive\Documents\Coding\gui\productivity_app_installer\.test_venv\Scripts\python.exe -m pip list --format=freeze
+2025-11-09 00:27:53,238 - INFO - Pip list return code: 0
+2025-11-09 00:27:53,238 - INFO - === PIP LIST OUTPUT ===
+2025-11-09 00:27:53,238 - INFO - pip==24.3.1
+
+2025-11-09 00:27:53,238 - INFO - Found 1 installed packages in venv
+2025-11-09 00:27:53,238 - INFO - Main library requests not found in pip list
+2025-11-09 00:27:57,147 - INFO - DEV: Skipping PyIRC validation (using PyPI directly)
+2025-11-09 00:27:57,148 - INFO - === LIBRARY INSTALLATION - DETAILED LOG ===
+2025-11-09 00:27:57,148 - INFO - Install directory: C:\Users\peter\OneDrive\Documents\Coding\gui\productivity_app_installer
+2025-11-09 00:27:57,148 - INFO - Venv directory: C:\Users\peter\OneDrive\Documents\Coding\gui\productivity_app_installer\.test_venv
+2025-11-09 00:27:57,148 - INFO - Venv Python: C:\Users\peter\OneDrive\Documents\Coding\gui\productivity_app_installer\.test_venv\Scripts\python.exe
+2025-11-09 00:27:57,148 - INFO - Main library path: requests
+2025-11-09 00:27:57,148 - INFO - Additional packages: ['natsort']
+2025-11-09 00:27:57,148 - INFO - Skip local index: True
+2025-11-09 00:27:57,148 - INFO - Index URL: Using PyPI directly (https://pypi.org/simple/) - DEV MODE
+2025-11-09 00:27:57,163 - INFO - Venv Python version: Python 3.13.1
+2025-11-09 00:27:57,163 - INFO - Venv Python path verified: C:\Users\peter\OneDrive\Documents\Coding\gui\productivity_app_installer\.test_venv\Scripts\python.exe
+2025-11-09 00:28:03,551 - INFO - DEV: Skipping PyIRC validation (using PyPI directly)
+2025-11-09 00:28:03,552 - INFO - === LIBRARY INSTALLATION - DETAILED LOG ===
+2025-11-09 00:28:03,553 - INFO - Install directory: C:\Users\peter\OneDrive\Documents\Coding\gui\productivity_app_installer
+2025-11-09 00:28:03,553 - INFO - Venv directory: C:\Users\peter\OneDrive\Documents\Coding\gui\productivity_app_installer\.test_venv
+2025-11-09 00:28:03,553 - INFO - Venv Python: C:\Users\peter\OneDrive\Documents\Coding\gui\productivity_app_installer\.test_venv\Scripts\python.exe
+2025-11-09 00:28:03,553 - INFO - Main library path: requests
+2025-11-09 00:28:03,553 - INFO - Additional packages: ['natsort']
+2025-11-09 00:28:03,553 - INFO - Skip local index: True
+2025-11-09 00:28:03,553 - INFO - Index URL: Using PyPI directly (https://pypi.org/simple/) - DEV MODE
+2025-11-09 00:28:03,568 - INFO - Venv Python version: Python 3.13.1
+2025-11-09 00:28:03,568 - INFO - Venv Python path verified: C:\Users\peter\OneDrive\Documents\Coding\gui\productivity_app_installer\.test_venv\Scripts\python.exe

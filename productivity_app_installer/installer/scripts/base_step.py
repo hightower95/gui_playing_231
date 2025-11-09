@@ -99,6 +99,41 @@ class BaseStep(ABC):
         venv_dir = self.config.get_venv_dir()
         return install_path / venv_dir
 
+    def invalidate_path_dependent_steps(self) -> None:
+        """
+        Invalidate steps that depend on installation path.
+        Should be called when installation folder changes.
+        """
+        # Steps that depend on installation path
+        path_dependent_steps = ['venv', 'library', 'files']
+
+        for step_key in path_dependent_steps:
+            if self.wizard.step_status.get(step_key, False):
+                self.wizard.step_status[step_key] = False
+                self.log(f"Invalidated step '{step_key}' due to path change")
+
+        # Update wizard progress to reflect changes
+        self.wizard.update_progress()
+        self.log("Path-dependent steps invalidated due to installation folder change")
+
+        # Trigger auto-detection on invalidated steps to see if they're still valid
+        self.wizard.after(100, self._trigger_path_dependent_revalidation)
+
+    def _trigger_path_dependent_revalidation(self) -> None:
+        """Trigger auto-detection on path-dependent steps after invalidation"""
+        try:
+            # Re-run auto-detection on steps that depend on paths
+            if hasattr(self.wizard, 'venv_step'):
+                self.wizard.venv_step.auto_detect()
+            if hasattr(self.wizard, 'library_step'):
+                self.wizard.library_step.auto_detect()
+            if hasattr(self.wizard, 'files_step'):
+                self.wizard.files_step.auto_detect()
+            self.log("Re-validated path-dependent steps after folder change")
+        except Exception as e:
+            self.log(
+                f"Error during path-dependent revalidation: {e}", "warning")
+
     def check_prerequisites(self) -> list:
         """
         Check if prerequisites for this step are met.

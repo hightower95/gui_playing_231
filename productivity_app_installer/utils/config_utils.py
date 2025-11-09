@@ -36,6 +36,10 @@ def load_launch_config(config_file: Path) -> Dict[str, Any]:
             config['venv_dir_name'] = section.get(
                 'venv_dir_name', config['venv_dir_name'])
 
+            # Virtual environment paths (added by installer)
+            config['venv_dir_path'] = section.get('venv_dir_path', '')
+            config['venv_python_path'] = section.get('venv_python_path', '')
+
             # Boolean values with safe parsing
             for bool_key in ['enable_log', 'auto_upgrade_major_version', 'auto_upgrade_minor_version',
                              'auto_upgrade_patches', 'allow_upgrade_to_test_releases', 'debug']:

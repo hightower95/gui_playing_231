@@ -103,6 +103,19 @@ class VenvStep(BaseStep):
             self.mark_complete()
             self.log("Step 2 (venv creation) completed successfully")
 
+            # Publish venv information to the wizard state (caller will handle config/file generation)
+            try:
+                self.wizard.venv_info = {
+                    'venv_dir': str(venv_dir.absolute()),
+                    'venv_dir_name': venv_dir.name,
+                    'venv_python': str(python_exe.absolute())
+                }
+                self.log(
+                    f"[VENV] Published venv_info to wizard: {self.wizard.venv_info}")
+            except Exception as e:
+                self.log(
+                    f"[VENV] Warning: Could not publish venv_info to wizard: {e}", "warning")
+
         except Exception as e:
             self.log(f"Venv creation failed: {e}", "error")
             self.update_status(f"❌ Failed: {e}", COLOR_RED)
@@ -139,6 +152,17 @@ class VenvStep(BaseStep):
             self.mark_complete()
             self.log(
                 f"Auto-detected existing venv at correct location: {venv_dir}")
+            
+            # Publish venv information to wizard state (same as execute method)
+            try:
+                self.wizard.venv_info = {
+                    'venv_dir': str(venv_dir.absolute()),
+                    'venv_dir_name': venv_dir.name,
+                    'venv_python': str(python_exe.absolute())
+                }
+                self.log(f"[VENV-AUTODETECT] Published venv_info to wizard: {self.wizard.venv_info}")
+            except Exception as e:
+                self.log(f"[VENV-AUTODETECT] Warning: Could not publish venv_info to wizard: {e}", "warning")
         else:
             # Virtual environment doesn't exist or is invalid
             if not venv_dir.exists():
@@ -152,3 +176,8 @@ class VenvStep(BaseStep):
                 f"❌ Virtual environment not found at {venv_dir}", COLOR_RED)
             self.mark_incomplete()
             self.log(f"Virtual environment validation failed for: {venv_dir}")
+
+    # Historically this step wrote launch_config.ini directly. That behavior was
+    # removed: VenvStep now publishes `self.wizard.venv_info` and downstream
+    # steps (FilesStep / FileOperationsManager) are responsible for creating
+    # and populating configuration files.

@@ -48,6 +48,9 @@ class SetupWizard(tk.Tk):
             "files": False
         }
 
+        # Holder for data produced by steps (e.g. venv info)
+        self.venv_info = None
+
         # Track section labels for strikethrough styling
         self.section_labels = {}
 

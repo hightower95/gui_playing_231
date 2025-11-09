@@ -3,6 +3,13 @@ Bootstrap Wizard Launcher (No Console)
 Run this file to launch the wizard without a console window
 """
 import bootstrap
+import sys
+from pathlib import Path
+
+# Add installer directory to Python path
+installer_dir = Path(__file__).parent / "installer"
+sys.path.insert(0, str(installer_dir))
+
 
 if __name__ == "__main__":
     try:

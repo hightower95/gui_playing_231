@@ -8,6 +8,11 @@ from tkinter import ttk, messagebox
 import threading
 import configparser
 from .pyirc_bootstrapper import pip_exists_with_correct_sections
+from .base_step import BaseStep
+
+# Add utils to path for enhanced pip utilities
+sys.path.insert(0, str(Path(__file__).parent.parent.parent / "utils"))
+from pip_utils import TkinterPipProgress
 
 # Windows-specific flag to hide console window
 if sys.platform == "win32":
@@ -17,15 +22,18 @@ else:
     CREATE_NO_WINDOW = 0
 
 
-class LibraryStep:
+class LibraryStep(BaseStep):
     def __init__(self, wizard):
-        self.wizard = wizard
+        super().__init__(wizard)
         self.install_btn = None
         self.install_progress = None
         self.install_status = None
         self.main_library_path = None
         self.additional_packages = []
         self.load_config()
+
+    def get_step_key(self) -> str:
+        return "library"
 
     def load_config(self):
         """Load library configuration from installation_settings.ini"""
@@ -181,17 +189,26 @@ class LibraryStep:
 
     def execute(self):
         """Install the library"""
-        install_dir = Path(self.wizard.install_path.get())
-        venv_python = install_dir / self.venv_dir_name / \
-            ("Scripts/python.exe" if os.name == "nt" else "bin/python")
-
-        self.wizard.log("=== LIBRARY INSTALLATION - DETAILED LOG ===")
+        install_dir = self.get_install_path()
+        venv_dir = self.get_venv_path()
+        venv_python = venv_dir / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
+        
+        self.wizard.log("=== LIBRARY INSTALLATION ===")
         self.wizard.log(f"Install directory: {install_dir}")
-        self.wizard.log(f"Expected venv name: {self.venv_dir_name}")
-        self.wizard.log(f"Virtual environment Python: {venv_python}")
-        self.wizard.log(f"Main library path: {self.main_library_path}")
+        self.wizard.log(f"Venv directory: {venv_dir}")
+        self.wizard.log(f"Venv Python: {venv_python}")
+        self.wizard.log(f"Main library: {self.main_library_path}")
         self.wizard.log(f"Additional packages: {self.additional_packages}")
         self.wizard.log(f"Skip local index: {self.skip_local_index}")
+        
+        # Verify venv Python exists
+        if not venv_python.exists():
+            self.wizard.log(f"ERROR: Python executable not found at {venv_python}", "error")
+            self.wizard.log("This usually means step_venv.py hasn't been completed", "error")
+            self.install_status.config(
+                text="❌ Virtual environment not found", foreground="red")
+            self.wizard.step_status["library"] = False
+            return
 
         # Log index URL configuration
         if self.skip_local_index:
@@ -201,34 +218,17 @@ class LibraryStep:
             self.wizard.log("Index URL: Using local PyIRC configuration")
 
         try:
-            # Verify venv Python exists and get detailed info
-            if not venv_python.exists():
-                self.wizard.log(
-                    f"ERROR: Python executable not found at {venv_python}", "error")
-                self.wizard.log(
-                    f"Checked path: {venv_python.absolute()}", "error")
-                self.wizard.log(
-                    f"Parent directory exists: {venv_python.parent.exists()}", "error")
-                if venv_python.parent.exists():
-                    self.wizard.log(
-                        f"Contents of {venv_python.parent}: {list(venv_python.parent.iterdir())}", "error")
-                self.install_status.config(
-                    text="❌ venv Python not found at startup", foreground="red")
-                self.wizard.step_status["library"] = False
-                return
-
             # Verify which Python we're actually using
-            try:
-                python_version_result = subprocess.run([
-                    str(venv_python), "--version"
-                ], capture_output=True, text=True, timeout=10)
-                self.wizard.log(
-                    f"Venv Python version: {python_version_result.stdout.strip()}")
-                self.wizard.log(
-                    f"Venv Python path verified: {venv_python.absolute()}")
-            except Exception as e:
-                self.wizard.log(
-                    f"Could not get venv Python version: {e}", "warning")
+            python_version_result = subprocess.run([
+                str(venv_python), "--version"
+            ], capture_output=True, text=True, timeout=10)
+            self.wizard.log(
+                f"Venv Python version: {python_version_result.stdout.strip()}")
+            self.wizard.log(
+                f"Venv Python path verified: {venv_python}")
+        except Exception as e:
+            self.wizard.log(
+                f"Could not get venv Python version: {e}", "warning")
 
             # Step 1: Install main library
             self.install_progress.config(mode='indeterminate')
@@ -391,19 +391,18 @@ class LibraryStep:
         except Exception:
             pass  # Continue with normal detection if config read fails
 
-        install_dir = Path(self.wizard.install_path.get())
-        venv_python = install_dir / self.venv_dir_name / \
+        install_dir = self.get_install_path()
+        venv_dir = self.get_venv_path()
+        venv_python = venv_dir / \
             ("Scripts/python.exe" if os.name == "nt" else "bin/python")
 
         self.wizard.log("=== LIBRARY AUTO-DETECTION ===")
-        self.wizard.log(f"Checking for libraries in venv: {venv_python}")
-        self.wizard.log(f"Venv directory: {self.venv_dir_name}")
-        self.wizard.log(f"Install directory: {install_dir}")
+        self.wizard.log(f"Checking venv Python: {venv_python}")
 
         if not venv_python.exists():
             self.wizard.log(f"Venv Python not found at: {venv_python}")
             self.install_status.config(
-                text="❓ Virtual environment not found at startup", foreground="gray")
+                text="❓ Virtual environment not found", foreground="gray")
             self.wizard.step_status["library"] = False
             return
 

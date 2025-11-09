@@ -3,8 +3,8 @@ from pathlib import Path
 import tkinter as tk
 from tkinter import ttk, messagebox
 import configparser
-from file_operations import FileOperationsManager
-from constants import (
+from .file_operations import FileOperationsManager
+from .constants import (
     BOOTSTRAP_CONFIG_FILE, REQUIRED_FILES, LAUNCH_CONFIG_FILE,
     DEFAULT_APP_NAME, DEFAULT_VENV_DIR, DEFAULT_LIBRARY_NAME, DEFAULT_CONFIG
 )
@@ -284,9 +284,27 @@ class FilesStep:
             # Go up to productivity_app_installer
             installer_root = Path(__file__).parent.parent.parent
             file_ops = FileOperationsManager(installer_root)
+
+            # Merge venv info published by VenvStep into the installation config
+            merged_config = dict(self.config)
+            if hasattr(self.wizard, 'venv_info') and self.wizard.venv_info:
+                try:
+                    vinfo = self.wizard.venv_info
+                    # Provide both name and absolute path for downstream templating
+                    merged_config['venv_dir_name'] = vinfo.get(
+                        'venv_dir_name', merged_config.get('venv_dir_name'))
+                    merged_config['venv_dir_path'] = vinfo.get('venv_dir')
+                    merged_config['venv_python_path'] = vinfo.get(
+                        'venv_python')
+                    self.wizard.log(
+                        f"[FILES] Merged venv_info into config: {vinfo}")
+                except Exception as e:
+                    self.wizard.log(
+                        f"[FILES] Warning: failed to merge venv_info: {e}", "warning")
+
             success = file_ops.setup_files_in_target_folder(
                 target_folder=install_dir,
-                config=self.config,
+                config=merged_config,
                 overwrite=True
             )
 
