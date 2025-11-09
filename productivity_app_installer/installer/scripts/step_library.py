@@ -1,4 +1,5 @@
 """Step 4: Install Library"""
+from pip_utils import TkinterPipProgress
 import os
 import subprocess
 import sys
@@ -12,7 +13,6 @@ from .base_step import BaseStep
 
 # Add utils to path for enhanced pip utilities
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "utils"))
-from pip_utils import TkinterPipProgress
 
 # Windows-specific flag to hide console window
 if sys.platform == "win32":
@@ -191,8 +191,9 @@ class LibraryStep(BaseStep):
         """Install the library"""
         install_dir = self.get_install_path()
         venv_dir = self.get_venv_path()
-        venv_python = venv_dir / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
-        
+        venv_python = venv_dir / \
+            ("Scripts/python.exe" if os.name == "nt" else "bin/python")
+
         self.wizard.log("=== LIBRARY INSTALLATION ===")
         self.wizard.log(f"Install directory: {install_dir}")
         self.wizard.log(f"Venv directory: {venv_dir}")
@@ -200,11 +201,13 @@ class LibraryStep(BaseStep):
         self.wizard.log(f"Main library: {self.main_library_path}")
         self.wizard.log(f"Additional packages: {self.additional_packages}")
         self.wizard.log(f"Skip local index: {self.skip_local_index}")
-        
+
         # Verify venv Python exists
         if not venv_python.exists():
-            self.wizard.log(f"ERROR: Python executable not found at {venv_python}", "error")
-            self.wizard.log("This usually means step_venv.py hasn't been completed", "error")
+            self.wizard.log(
+                f"ERROR: Python executable not found at {venv_python}", "error")
+            self.wizard.log(
+                "This usually means step_venv.py hasn't been completed", "error")
             self.install_status.config(
                 text="❌ Virtual environment not found", foreground="red")
             self.wizard.step_status["library"] = False

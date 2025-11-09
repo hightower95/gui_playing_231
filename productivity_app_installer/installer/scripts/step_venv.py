@@ -152,7 +152,7 @@ class VenvStep(BaseStep):
             self.mark_complete()
             self.log(
                 f"Auto-detected existing venv at correct location: {venv_dir}")
-            
+
             # Publish venv information to wizard state (same as execute method)
             try:
                 self.wizard.venv_info = {
@@ -160,9 +160,11 @@ class VenvStep(BaseStep):
                     'venv_dir_name': venv_dir.name,
                     'venv_python': str(python_exe.absolute())
                 }
-                self.log(f"[VENV-AUTODETECT] Published venv_info to wizard: {self.wizard.venv_info}")
+                self.log(
+                    f"[VENV-AUTODETECT] Published venv_info to wizard: {self.wizard.venv_info}")
             except Exception as e:
-                self.log(f"[VENV-AUTODETECT] Warning: Could not publish venv_info to wizard: {e}", "warning")
+                self.log(
+                    f"[VENV-AUTODETECT] Warning: Could not publish venv_info to wizard: {e}", "warning")
         else:
             # Virtual environment doesn't exist or is invalid
             if not venv_dir.exists():
