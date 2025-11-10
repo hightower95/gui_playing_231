@@ -58,3 +58,4 @@ run_app.pyw
 alternative_app_installer/installer/logs/installer.log
 alternative_app_installer/logs/*.json
 alternative_app_installer/update_app.pyw
+alternative_app_installer/update_app.pyw

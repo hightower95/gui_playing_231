@@ -127,7 +127,8 @@ class GenerateFilesStep(BaseStep):
         checklist_items = [
             ("run_app", "1. run_app.pyw"),
             ("update_app", "2. update_app.pyw"),
-            ("launch_config", "3. launch_config.ini")
+            ("launch_config", "3. launch_config.ini"),
+            ("utilities", "4. utilities/")
         ]
 
         for key, text in checklist_items:
@@ -178,6 +179,7 @@ class GenerateFilesStep(BaseStep):
             self._generate_run_app()
             self._generate_update_app()
             self._generate_launch_config()
+            self._copy_utilities()
 
             # Mark as completed
             self._files_generated = True
@@ -264,9 +266,26 @@ class GenerateFilesStep(BaseStep):
 
         self._update_checklist_item("launch_config", "✅ Generated", "#28a745")
 
-    def _clone_utils_directory(self):
-        """No longer needed - utils functionality moved to generated files"""
-        self._update_checklist_item("utils", "✅ Not needed", "#28a745")
+    def _copy_utilities(self):
+        """Copy utilities directory to target location"""
+        self._update_checklist_item("utilities", "⏳ Copying...", "blue")
+        
+        # Find utilities directory in install_gui
+        installer_dir = Path(__file__).resolve().parents[2]  # installer dir
+        source_utilities = installer_dir / "install_gui" / "utilities"
+        target_utilities = self._target_folder / "utilities"
+        
+        if not source_utilities.exists():
+            raise FileNotFoundError(f"Utilities directory not found: {source_utilities}")
+        
+        # Remove existing utilities if present
+        if target_utilities.exists():
+            shutil.rmtree(target_utilities)
+        
+        # Copy utilities directory
+        shutil.copytree(source_utilities, target_utilities)
+        
+        self._update_checklist_item("utilities", "✅ Copied", "#28a745")
 
     def _get_template_path(self, template_name: str) -> Path:
         """Get path to a template file"""
@@ -294,6 +313,14 @@ class GenerateFilesStep(BaseStep):
         allow_test_releases = self.installation_settings.getboolean(
             'Step_Install_Libraries', 'allow_upgrade_to_test_releases', fallback=False)
 
+        # Get auto-upgrade settings
+        auto_upgrade_major = self.installation_settings.getboolean(
+            'DEFAULT', 'auto_upgrade_major_version', fallback=False)
+        auto_upgrade_minor = self.installation_settings.getboolean(
+            'DEFAULT', 'auto_upgrade_minor_version', fallback=True)
+        auto_upgrade_patches = self.installation_settings.getboolean(
+            'DEFAULT', 'auto_upgrade_patches', fallback=True)
+
         # Get logging settings
         enable_log = self.installation_settings.getboolean(
             'DEFAULT', 'enable_log', fallback=False)
@@ -305,6 +332,9 @@ class GenerateFilesStep(BaseStep):
             'LIBRARY_NAME': core_library,
             'ALWAYS_UPGRADE': str(always_upgrade).lower(),
             'ALLOW_UPGRADE_TO_TEST_RELEASES': str(allow_test_releases).lower(),
+            'AUTO_UPGRADE_MAJOR_VERSION': str(auto_upgrade_major).lower(),
+            'AUTO_UPGRADE_MINOR_VERSION': str(auto_upgrade_minor).lower(),
+            'AUTO_UPGRADE_PATCHES': str(auto_upgrade_patches).lower(),
             'ENABLE_LOG': str(enable_log).lower(),
             'LOG_LEVEL': log_level,
             'INSTALLED_FOLDER': installed_folder,
