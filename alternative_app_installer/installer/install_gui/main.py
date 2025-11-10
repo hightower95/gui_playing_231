@@ -1,28 +1,25 @@
 
 
 """
-Install GUI - Simple installation wizard interface
+Install GUI - Simple installation wizard interface using native tkinter
 
 Design Principles:
 - Provides a clean frame for each installation step
 - Handles step navigation (Next/Cancel buttons)
 - Displays step information and progress
 - Delegates all installation logic to the InstallConductor
+- Uses only native Python libraries (tkinter)
 """
 import sys
-from PySide6.QtWidgets import (
-    QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-    QPushButton, QLabel, QProgressBar, QFrame, QMessageBox, QTextEdit
-)
-from PySide6.QtCore import Qt, QTimer
-from PySide6.QtGui import QFont
+import tkinter as tk
+from tkinter import ttk, messagebox, scrolledtext
 
 from .conductor import InstallConductor
 
 
-class InstallGUI(QMainWindow):
+class InstallGUI(tk.Tk):
     """
-    Simple installation wizard GUI that provides a framework for steps.
+    Simple installation wizard GUI using native tkinter.
 
     The GUI is responsible only for presentation and user interaction,
     while all installation logic is handled by the InstallConductor.
@@ -46,160 +43,129 @@ class InstallGUI(QMainWindow):
 
     def setup_ui(self):
         """Setup the main installation wizard interface"""
-        self.setWindowTitle("Application Installer")
-        self.setGeometry(100, 100, 840, 700)  # 40% larger (was 600x500)
-        self.setFixedSize(840, 700)  # Fixed size for consistent layout
+        self.title("Application Installer")
+        self.geometry("840x700")
+        self.resizable(False, False)
 
-        # Central widget
-        central_widget = QWidget()
-        self.setCentralWidget(central_widget)
-        layout = QVBoxLayout(central_widget)
-        layout.setSpacing(10)  # Reduced from 20
-        layout.setContentsMargins(20, 15, 20, 15)  # Reduced from 30
+        # Main container
+        main_frame = ttk.Frame(self)
+        main_frame.pack(fill="both", expand=True, padx=20, pady=15)
 
         # Header section
-        self.create_header_section(layout)
+        self.create_header_section(main_frame)
 
         # Progress section
-        self.create_progress_section(layout)
+        self.create_progress_section(main_frame)
 
         # Step content frame (where each step displays its UI)
-        self.create_step_frame(layout)
+        self.create_step_frame(main_frame)
 
         # Navigation buttons
-        self.create_navigation_section(layout)
+        self.create_navigation_section(main_frame)
 
-    def create_header_section(self, layout):
+    def create_header_section(self, parent):
         """Create the header with title and description"""
         # Title
-        self.title_label = QLabel("Installing Application")
-        title_font = QFont()
-        title_font.setPointSize(16)
-        title_font.setBold(True)
-        self.title_label.setFont(title_font)
-        self.title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(self.title_label)
+        self.title_label = ttk.Label(parent, text="Installing Application",
+                                     font=("Arial", 16, "bold"))
+        self.title_label.pack(pady=(0, 5))
 
         # Description
-        self.description_label = QLabel("Setting up your application...")
-        self.description_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.description_label.setWordWrap(True)
-        layout.addWidget(self.description_label)
+        self.description_label = ttk.Label(
+            parent, text="Setting up your application...")
+        self.description_label.pack(pady=(0, 15))
 
-    def create_progress_section(self, layout):
+    def create_progress_section(self, parent):
         """Create the step indicator combined with title"""
-        # Combined title and step progress layout
-        title_progress_frame = QFrame()
-        title_progress_layout = QHBoxLayout(title_progress_frame)
-        title_progress_layout.setContentsMargins(0, 0, 0, 0)
-        title_progress_layout.setSpacing(15)
+        # Combined title and step progress frame
+        title_progress_frame = ttk.Frame(parent)
+        title_progress_frame.pack(fill="x", pady=(0, 10))
 
-        # Title (moved from header)
-        self.step_title_label = QLabel("Step Title")
-        title_font = QFont()
-        title_font.setPointSize(14)
-        title_font.setBold(True)
-        self.step_title_label.setFont(title_font)
-        title_progress_layout.addWidget(self.step_title_label)
-
-        title_progress_layout.addStretch()  # Push step indicator to right
+        # Title
+        self.step_title_label = ttk.Label(title_progress_frame, text="Step Title",
+                                          font=("Arial", 14, "bold"))
+        self.step_title_label.pack(side="left")
 
         # Step progress label
-        self.progress_label = QLabel("Step 1 of 5")
-        title_progress_layout.addWidget(self.progress_label)
-
-        layout.addWidget(title_progress_frame)
+        self.progress_label = ttk.Label(
+            title_progress_frame, text="Step 1 of 5")
+        self.progress_label.pack(side="right")
 
         # Progress bar
-        self.progress_bar = QProgressBar()
-        self.progress_bar.setTextVisible(False)
-        self.progress_bar.setFixedHeight(6)  # Slightly smaller
-        layout.addWidget(self.progress_bar)
+        self.progress_bar = ttk.Progressbar(parent, mode='determinate')
+        self.progress_bar.pack(fill="x", pady=(0, 15))
 
-    def create_step_frame(self, layout):
+    def create_step_frame(self, parent):
         """Create the frame where individual steps display their content"""
-        # Step frame with border - remove explicit colors to use system defaults
-        self.step_frame = QFrame()
-        self.step_frame.setFrameStyle(QFrame.Shape.Box)
-        self.step_frame.setLineWidth(1)
+        # Step frame with border
+        self.step_frame = ttk.LabelFrame(
+            parent, text="Step Content", padding=15)
+        self.step_frame.pack(fill="both", expand=True, pady=(0, 15))
 
-        # Layout for step content
-        self.step_layout = QVBoxLayout(self.step_frame)
-        self.step_layout.setSpacing(10)  # Reduced from 15
-        self.step_layout.setContentsMargins(15, 15, 15, 15)  # Reduced padding
-
-        # Hint text area - smaller font
-        self.hint_label = QLabel()
-        self.hint_label.setWordWrap(True)
-        hint_font = QFont()
-        hint_font.setPointSize(9)  # Smaller font for hints
-        hint_font.setItalic(True)
-        self.hint_label.setFont(hint_font)
-        self.step_layout.addWidget(self.hint_label)
+        # Hint text area
+        self.hint_label = ttk.Label(self.step_frame, text="",
+                                    font=("Arial", 9, "italic"),
+                                    wraplength=800)
+        self.hint_label.pack(fill="x", pady=(0, 10))
 
         # Content area where steps can add their widgets
-        self.step_content_frame = QFrame()
-        self.step_content_layout = QVBoxLayout(self.step_content_frame)
-        self.step_content_layout.setSpacing(8)  # Reduced spacing
-        self.step_layout.addWidget(self.step_content_frame)
+        self.step_content_frame = ttk.Frame(self.step_frame)
+        self.step_content_frame.pack(fill="both", expand=True)
 
-        # Add step frame to main layout with more space allocation
-        layout.addWidget(self.step_frame, 1)  # Expand to fill available space
-
-    def create_navigation_section(self, layout):
+    def create_navigation_section(self, parent):
         """Create the navigation buttons (Complete Step / Cancel)"""
-        # Button layout with reduced spacing
-        button_layout = QHBoxLayout()
-        button_layout.setSpacing(8)  # Reduced spacing between buttons
-        button_layout.addStretch()  # Push buttons to the right
+        button_frame = ttk.Frame(parent)
+        button_frame.pack(fill="x")
 
         # Cancel button
-        self.cancel_button = QPushButton("Cancel Installation")
-        self.cancel_button.setMinimumSize(140, 35)
-        self.cancel_button.clicked.connect(self.cancel_installation)
-        button_layout.addWidget(self.cancel_button)
+        self.cancel_button = ttk.Button(button_frame, text="Cancel Installation",
+                                        command=self.cancel_installation)
+        self.cancel_button.pack(side="right", padx=(8, 0))
 
         # Complete step button
-        self.complete_button = QPushButton("Complete Step")
-        self.complete_button.setMinimumSize(140, 35)
-        self.complete_button.setDefault(True)  # Default button for Enter key
-        self.complete_button.clicked.connect(self.complete_current_step)
-        button_layout.addWidget(self.complete_button)
-
-        layout.addLayout(button_layout)
+        self.complete_button = ttk.Button(button_frame, text="Complete Step",
+                                          command=self.complete_current_step)
+        self.complete_button.pack(side="right")
 
     def refresh_step_display(self):
         """Refresh the display to show current step information"""
         step_info = self.conductor.get_step_info()
 
-        # Update header (main app title stays the same)
-        self.title_label.setText("Installing Application")
-        self.description_label.setText(step_info.get(
+        # Update header
+        self.title_label.config(text="Installing Application")
+        self.description_label.config(text=step_info.get(
             "description", "Setting up your application..."))
 
-        # Update step title and progress on same line
-        self.step_title_label.setText(step_info.get("title", "Step"))
+        # Update step title and progress
+        self.step_title_label.config(text=step_info.get("title", "Step"))
         step_num = step_info.get("step_number", 1)
         total_steps = step_info.get("total_steps", 1)
-        self.progress_label.setText(f"Step {step_num} of {total_steps}")
+        self.progress_label.config(text=f"Step {step_num} of {total_steps}")
 
         progress_percent = int((step_num / total_steps) * 100)
-        self.progress_bar.setValue(progress_percent)
+        self.progress_bar['value'] = progress_percent
 
         # Update hint text
         hint_text = step_info.get("hint_text", "")
-        self.hint_label.setText(hint_text)
-        self.hint_label.setVisible(bool(hint_text))
+        self.hint_label.config(text=hint_text)
+        if hint_text:
+            self.hint_label.pack(fill="x", pady=(0, 10))
+        else:
+            self.hint_label.pack_forget()
 
         # Update button states
-        self.complete_button.setEnabled(step_info.get("can_complete", False))
-        self.cancel_button.setEnabled(step_info.get("can_cancel", True))
+        can_complete = step_info.get("can_complete", False)
+        self.complete_button.config(
+            state="normal" if can_complete else "disabled")
+
+        can_cancel = step_info.get("can_cancel", True)
+        self.cancel_button.config(state="normal" if can_cancel else "disabled")
 
         # Update button text for final step
         if self.conductor.is_installation_complete():
-            self.complete_button.setText("Finish")
+            self.complete_button.config(text="Finish")
         else:
-            self.complete_button.setText("Complete Step")
+            self.complete_button.config(text="Complete Step")
 
         # Clear and populate step content
         self.clear_step_content()
@@ -212,44 +178,24 @@ class InstallGUI(QMainWindow):
         if current_step and hasattr(current_step, 'cleanup_widgets'):
             current_step.cleanup_widgets()
 
-        # Remove all widgets from step content layout
-        while self.step_content_layout.count():
-            child = self.step_content_layout.takeAt(0)
-            if child.widget():
-                # Ensure proper widget cleanup
-                widget = child.widget()
-                widget.setParent(None)
-                widget.deleteLater()
-            elif child.layout():
-                # Clean up nested layouts
-                self._clear_layout_recursive(child.layout())
+        # Remove all widgets from step content frame
+        for widget in self.step_content_frame.winfo_children():
+            widget.destroy()
 
-        # Force immediate processing of delete events
-        QApplication.processEvents()
-
-    def _clear_layout_recursive(self, layout):
-        """Recursively clear a layout and all its children"""
-        while layout.count():
-            child = layout.takeAt(0)
-            if child.widget():
-                widget = child.widget()
-                widget.setParent(None)
-                widget.deleteLater()
-            elif child.layout():
-                self._clear_layout_recursive(child.layout())
+        # Force update
+        self.step_content_frame.update()
 
     def populate_step_content(self):
         """Populate the step content area with current step's widgets"""
         current_step = self.conductor.get_current_step()
         if current_step and hasattr(current_step, 'create_widgets'):
             # Let the step create its own widgets in the provided frame
-            current_step.create_widgets(
-                self.step_content_frame, self.step_content_layout)
+            current_step.create_widgets(self.step_content_frame)
         else:
             # Default content if step doesn't provide widgets
-            default_label = QLabel("Step content will appear here...")
-            default_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.step_content_layout.addWidget(default_label)
+            default_label = ttk.Label(self.step_content_frame,
+                                      text="Step content will appear here...")
+            default_label.pack(expand=True)
 
     def complete_current_step(self):
         """Handle Complete Step button click"""
@@ -270,41 +216,36 @@ class InstallGUI(QMainWindow):
                 self.show_completion_message()
         else:
             # Step could not be completed, show error
-            QMessageBox.warning(
-                self,
+            messagebox.showwarning(
                 "Step Incomplete",
                 "Please complete all required fields before proceeding to the next step."
             )
 
     def cancel_installation(self):
         """Handle Cancel Installation button click"""
-        reply = QMessageBox.question(
-            self,
+        reply = messagebox.askyesno(
             "Cancel Installation",
-            "Are you sure you want to cancel the installation?",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            QMessageBox.StandardButton.No
+            "Are you sure you want to cancel the installation?"
         )
 
-        if reply == QMessageBox.StandardButton.Yes:
+        if reply:
             self.conductor.cancel_installation()
-            self.close()
+            self.destroy()
 
     def show_completion_message(self):
         """Show installation completion message"""
-        QMessageBox.information(
-            self,
+        messagebox.showinfo(
             "Installation Complete",
             "The application has been installed successfully!\n\nYou can now close this installer."
         )
 
     def finish_installation(self):
         """Finish the installation and close the installer"""
-        self.close()
+        self.destroy()
 
     def launch(self):
         """Launch the installation GUI"""
-        self.show()
+        self.mainloop()
         return True
 
 
@@ -317,16 +258,9 @@ def launch_installer_gui(installation_settings):
     Returns:
         bool: True if installation completed successfully, False otherwise
     """
-    app = QApplication.instance()
-    if app is None:
-        app = QApplication(sys.argv)
-
     # Create and show installer GUI
     installer_gui = InstallGUI(installation_settings)
     installer_gui.launch()
-
-    # Run the application event loop
-    result = app.exec()
 
     # Return success based on whether installation completed
     return installer_gui.conductor.is_installation_complete()

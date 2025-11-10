@@ -1,17 +1,19 @@
 
 """
-Base Step Interface - Defines the contract for installation steps
+Base Step Interface - Defines the contract for installation steps using native tkinter
 
 Design Principles:
 - Each step is responsible for one specific installation task
 - Steps provide their own UI widgets and validation logic
 - Steps communicate through shared state variables
 - Simple interface makes steps easy to implement and test
+- Uses only native Python libraries (tkinter)
 """
 from abc import ABC, abstractmethod
 from configparser import ConfigParser
 from typing import Dict, Any, Optional
-from PySide6.QtWidgets import QWidget, QVBoxLayout
+import tkinter as tk
+from tkinter import ttk
 
 
 class BaseStep(ABC):
@@ -91,14 +93,13 @@ class BaseStep(ABC):
         """
         return True
 
-    def create_widgets(self, parent_widget: QWidget, layout: QVBoxLayout):
+    def create_widgets(self, parent_frame: tk.Frame):
         """Create UI widgets for this step
 
         Override this method to add custom widgets to the step frame.
 
         Args:
-            parent_widget: The parent widget to add components to
-            layout: The layout to add widgets to
+            parent_frame: The parent tkinter frame to add components to
         """
         # Default implementation - no custom widgets
         pass

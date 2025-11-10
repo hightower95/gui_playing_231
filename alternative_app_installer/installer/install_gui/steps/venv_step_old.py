@@ -1,3 +1,4 @@
+
 """
 Virtual Environment Creation Step - Creates and configures Python virtual environment using native tkinter
 
@@ -23,7 +24,7 @@ from .base_step import BaseStep
 
 class VenvCreationWorker(threading.Thread):
     """Worker thread for virtual environment creation to avoid blocking UI"""
-
+    
     def __init__(self, python_executable, venv_path, installation_path, progress_queue, result_queue):
         super().__init__()
         self.python_executable = python_executable
@@ -36,21 +37,19 @@ class VenvCreationWorker(threading.Thread):
     def run(self):
         """Execute venv creation in background thread with verbose output"""
         try:
-            self.progress_queue.put(
-                "Initializing virtual environment creation...")
+            self.progress_updated.emit(StatusMessages.VENV_INITIALIZING)
 
             # Check if venv already exists
             venv_path = Path(self.venv_path)
             if venv_path.exists():
-                self.progress_queue.put(
-                    "Removing existing virtual environment...")
+                self.progress_updated.emit(StatusMessages.VENV_REMOVING_OLD)
                 import shutil
                 shutil.rmtree(venv_path)
-                self.progress_queue.put("Existing environment removed")
+                self.progress_updated.emit(StatusMessages.VENV_OLD_REMOVED)
 
             # Create the virtual environment
-            self.progress_queue.put(
-                f"Creating virtual environment at {venv_path}...")
+            self.progress_updated.emit(
+                f"{StatusMessages.VENV_CREATING_AT} {venv_path}...")
 
             # Run venv creation command with verbose output
             cmd = [self.python_executable, '-m',
@@ -72,34 +71,35 @@ class VenvCreationWorker(threading.Thread):
                 if output == '' and process.poll() is not None:
                     break
                 if output.strip():
-                    self.progress_queue.put(f"Output: {output.strip()}")
+                    self.progress_updated.emit(f"Output: {output.strip()}")
 
             # Check if creation was successful
             return_code = process.poll()
 
             if return_code == 0:
-                self.progress_queue.put("Verifying virtual environment...")
+                self.progress_updated.emit(StatusMessages.VENV_VERIFYING)
 
                 # Verify the venv was created successfully
                 if self._verify_venv_creation(venv_path):
                     # Upgrade pip with verbose output for better visibility
-                    self.progress_queue.put(
-                        "Upgrading pip to latest version...")
+                    self.progress_updated.emit(
+                        StatusMessages.VENV_UPGRADING_PIP)
                     self._upgrade_pip_verbose(venv_path)
 
-                    self.progress_queue.put("Virtual environment ready!")
-                    self.result_queue.put(
-                        (True, "Virtual environment created and configured successfully"))
+                    self.progress_updated.emit(
+                        StatusMessages.VENV_READY_COMPLETE)
+                    self.finished.emit(
+                        True, "Virtual environment created and configured successfully")
                 else:
-                    self.result_queue.put(
-                        (False, "Virtual environment verification failed"))
+                    self.finished.emit(
+                        False, "Virtual environment verification failed")
             else:
-                self.result_queue.put(
-                    (False, f"Virtual environment creation failed (exit code: {return_code})"))
+                self.finished.emit(
+                    False, f"Virtual environment creation failed (exit code: {return_code})")
 
         except Exception as e:
-            self.result_queue.put(
-                (False, f"Error during virtual environment creation: {str(e)}"))
+            self.finished.emit(
+                False, f"Error during virtual environment creation: {str(e)}")
 
     def _upgrade_pip_verbose(self, venv_path: Path):
         """Upgrade pip with verbose output for better user feedback"""
@@ -111,8 +111,7 @@ class VenvCreationWorker(threading.Thread):
                 pip_exe = venv_path / 'bin' / 'pip'
 
             if not pip_exe.exists():
-                self.progress_queue.put(
-                    "Pip executable not found, skipping upgrade")
+                self.progress_updated.emit(StatusMessages.VENV_PIP_NOT_FOUND)
                 return
 
             # Run pip upgrade with verbose output
@@ -135,15 +134,16 @@ class VenvCreationWorker(threading.Thread):
                     # Filter out excessive verbosity but keep meaningful updates
                     line = output.strip()
                     if any(keyword in line.lower() for keyword in ['collecting', 'downloading', 'installing', 'successfully']):
-                        self.progress_queue.put(f"Pip: {line}")
+                        self.progress_updated.emit(f"Pip: {line}")
 
             if process.returncode == 0:
-                self.progress_queue.put("Pip upgraded successfully")
+                self.progress_updated.emit(StatusMessages.VENV_PIP_UPGRADED)
             else:
-                self.progress_queue.put("Pip upgrade completed with warnings")
+                self.progress_updated.emit(StatusMessages.VENV_PIP_WARNINGS)
 
         except Exception as e:
-            self.progress_queue.put(f"Pip upgrade failed: {e}")
+            self.progress_updated.emit(
+                f"{StatusMessages.VENV_PIP_FAILED}: {e}")
 
     def _verify_venv_creation(self, venv_path: Path) -> bool:
         """Verify that the virtual environment was created correctly"""
@@ -181,22 +181,15 @@ class VenvCreationWorker(threading.Thread):
 class CreateVenvStep(BaseStep):
     """
     Step to create a Python virtual environment for the application.
-    Uses native tkinter for UI components.
     """
 
     def __init__(self, installation_settings, shared_state):
         super().__init__(installation_settings, shared_state)
-
-        # UI components
         self.status_label = None
         self.progress_bar = None
         self.output_text = None
         self.create_button = None
-
-        # Worker thread and queues
         self.worker = None
-        self.progress_queue = queue.Queue()
-        self.result_queue = queue.Queue()
 
         # Venv configuration
         self._venv_name = self._get_venv_directory_name()
@@ -228,55 +221,64 @@ class CreateVenvStep(BaseStep):
         # Can complete if venv exists or simulation is enabled
         return self._is_venv_created() or self._is_simulation_enabled()
 
-    def create_widgets(self, parent_frame: tk.Frame):
-        """Create UI widgets for venv creation using tkinter"""
+    def create_widgets(self, parent_widget, layout):
+        """Create UI widgets for venv creation"""
         # Status information
-        info_label = ttk.Label(parent_frame, text=f"Virtual Environment: {self._venv_name}",
-                               font=("Arial", 10, "bold"))
-        info_label.pack(pady=(0, 10))
+        info_label = QLabel(f"Virtual Environment: {self._venv_name}")
+        info_label.setStyleSheet("font-weight: bold; margin-bottom: 10px;")
+        layout.addWidget(info_label)
 
         # Current status display
-        self.status_label = ttk.Label(
-            parent_frame, text="Ready to create virtual environment")
-        self.status_label.pack(pady=(0, 10))
+        self.status_label = QLabel("Ready to create virtual environment")
+        apply_status_styling(self.status_label, StatusTypes.INFO)
+        layout.addWidget(self.status_label)
 
         # Progress bar
-        self.progress_bar = ttk.Progressbar(parent_frame, mode='indeterminate')
-        self.progress_bar.pack(fill="x", pady=(0, 10))
-        self.progress_bar.pack_forget()  # Hidden initially
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setVisible(False)
+        layout.addWidget(self.progress_bar)
 
         # Action button
-        button_frame = ttk.Frame(parent_frame)
-        button_frame.pack(fill="x", pady=(0, 10))
-
-        self.create_button = ttk.Button(button_frame, text="Create Environment",
-                                        command=self._start_venv_creation)
-        self.create_button.pack(side="left")
+        button_row = QHBoxLayout()
+        self.create_button = QPushButton(ButtonLabels.CREATE_ENVIRONMENT)
+        self.create_button.clicked.connect(self._start_venv_creation)
+        button_row.addWidget(self.create_button)
+        button_row.addStretch()
+        layout.addLayout(button_row)
 
         # Output text area (hidden initially, made longer for better visibility)
-        self.output_text = scrolledtext.ScrolledText(parent_frame, height=15, width=80,
-                                                     font=("Courier New", 9),
-                                                     bg="#1e1e1e", fg="#d4d4d4",
-                                                     insertbackground="#d4d4d4")
-        self.output_text.pack(fill="both", expand=True, pady=(10, 0))
-        self.output_text.pack_forget()  # Hidden initially
+        self.output_text = QTextEdit()
+        # Increased from 150 for better terminal visibility
+        self.output_text.setMaximumHeight(300)
+        # Set minimum height to ensure visibility
+        self.output_text.setMinimumHeight(200)
+        self.output_text.setVisible(False)
+        self.output_text.setStyleSheet("""
+            QTextEdit {
+                font-family: 'Courier New', monospace;
+                font-size: 9pt;
+                background-color: #1e1e1e;
+                color: #d4d4d4;
+                border: 1px solid #3e3e3e;
+            }
+        """)
+        layout.addWidget(self.output_text)
 
         # Initial state check
         self._update_ui_state()
 
-        # Start monitoring queues
-        parent_frame.after(100, self._check_queues)
+        layout.addStretch()
 
     def cleanup_widgets(self):
         """Clean up step-specific resources when transitioning away"""
         # Stop any running worker thread
-        if self.worker and self.worker.is_alive():
-            # We can't force kill the thread, but we can clean up
-            self.worker = None
+        if self.worker and self.worker.isRunning():
+            self.worker.quit()
+            self.worker.wait(3000)  # Wait up to 3 seconds for clean shutdown
 
         # Clear output text to prevent memory buildup
         if self.output_text:
-            self.output_text.delete('1.0', tk.END)
+            self.output_text.clear()
 
         # Reset creation state
         self._creation_in_progress = False
@@ -287,8 +289,9 @@ class CreateVenvStep(BaseStep):
             return self._complete_simulation()
 
         if not self._is_venv_created():
-            messagebox.showwarning(
-                "Virtual Environment Not Created",
+            QMessageBox.warning(
+                None,
+                DialogTitles.VENV_NOT_CREATED,
                 "Please create the virtual environment before proceeding."
             )
             return False
@@ -301,8 +304,9 @@ class CreateVenvStep(BaseStep):
             return True
 
         except Exception as e:
-            messagebox.showerror(
-                "State Update Failed",
+            QMessageBox.critical(
+                None,
+                DialogTitles.STATE_UPDATE_FAILED,
                 f"Failed to update installation state:\n{e}"
             )
             return False
@@ -320,7 +324,7 @@ class CreateVenvStep(BaseStep):
             return '.test_venv'
 
     def _is_simulation_enabled(self) -> bool:
-        """Check if simulation mode is enabled"""
+        """Check if simulation mode is enabled for testing"""
         try:
             return self.installation_settings.getboolean(
                 'DEV', 'simulate_venv_complete', fallback=False)
@@ -329,49 +333,50 @@ class CreateVenvStep(BaseStep):
 
     def _get_installation_path(self) -> str:
         """Get the installation path from shared state"""
-        return self.get_shared_state("valid_installation_path", "")
+        return self.shared_state.get('valid_installation_path', '')
 
     def _calculate_venv_path(self) -> Path:
-        """Calculate the full path to the virtual environment directory"""
+        """Calculate the full path to the virtual environment"""
         install_path = self._get_installation_path()
         if not install_path:
-            raise ValueError("Installation path not set")
-
+            raise ValueError("Installation path not available")
         return Path(install_path) / self._venv_name
 
     def _find_python_executable(self) -> str:
-        """Find suitable Python executable for venv creation"""
-        # Try current Python executable first
-        python_exe = sys.executable
-        if self._test_python_executable(python_exe):
-            return python_exe
+        """Find the appropriate Python executable"""
+        # Try common Python executables
+        candidates = [
+            sys.executable,  # Current Python
+            'python',
+            'python3',
+            'py'  # Windows Python Launcher
+        ]
 
-        # Try common Python names
-        for name in ['python', 'python3', 'py']:
-            try:
-                result = subprocess.run(
-                    [name, '--version'],
-                    capture_output=True,
-                    text=True,
-                    timeout=5
-                )
-                if result.returncode == 0:
-                    return name
-            except (subprocess.TimeoutExpired, FileNotFoundError):
-                continue
+        for candidate in candidates:
+            if self._validate_python_executable(candidate):
+                return candidate
 
-        raise RuntimeError("No suitable Python installation found")
+        raise RuntimeError("No suitable Python executable found")
 
-    def _test_python_executable(self, python_exe: str) -> bool:
-        """Test if a Python executable can create virtual environments"""
+    def _validate_python_executable(self, executable: str) -> bool:
+        """Validate that a Python executable is suitable for venv creation"""
         try:
-            # Test that venv module is available
-            venv_result = subprocess.run(
-                [python_exe, '-m', 'venv', '--help'],
+            # Check if executable exists and can run
+            result = subprocess.run(
+                [executable, '--version'],
                 capture_output=True,
+                text=True,
                 timeout=10
             )
-            return venv_result.returncode == 0
+
+            if result.returncode == 0:
+                # Check if venv module is available
+                venv_result = subprocess.run(
+                    [executable, '-m', 'venv', '--help'],
+                    capture_output=True,
+                    timeout=10
+                )
+                return venv_result.returncode == 0
 
         except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
             pass
@@ -407,8 +412,9 @@ class CreateVenvStep(BaseStep):
         # Check installation path
         install_path = self._get_installation_path()
         if not install_path:
-            messagebox.showwarning(
-                "Missing Installation Path",
+            QMessageBox.warning(
+                None,
+                DialogTitles.MISSING_INSTALLATION_PATH,
                 "Installation folder must be selected first."
             )
             return False
@@ -419,8 +425,9 @@ class CreateVenvStep(BaseStep):
             try:
                 install_dir.mkdir(parents=True, exist_ok=True)
             except OSError as e:
-                messagebox.showwarning(
-                    "Path Not Accessible",
+                QMessageBox.warning(
+                    None,
+                    DialogTitles.PATH_NOT_ACCESSIBLE,
                     f"Cannot access installation directory:\n{e}"
                 )
                 return False
@@ -429,8 +436,9 @@ class CreateVenvStep(BaseStep):
         try:
             self._python_executable = self._find_python_executable()
         except RuntimeError as e:
-            messagebox.showwarning(
-                "Python Not Found",
+            QMessageBox.warning(
+                None,
+                DialogTitles.PYTHON_NOT_FOUND,
                 f"Cannot find suitable Python installation:\n{e}"
             )
             return False
@@ -439,7 +447,7 @@ class CreateVenvStep(BaseStep):
         try:
             self._venv_path = self._calculate_venv_path()
         except ValueError as e:
-            messagebox.showwarning("Invalid Path", str(e))
+            QMessageBox.warning(None, DialogTitles.INVALID_PATH, str(e))
             return False
 
         return True
@@ -449,47 +457,20 @@ class CreateVenvStep(BaseStep):
         self.worker = VenvCreationWorker(
             self._python_executable,
             str(self._venv_path),
-            self._get_installation_path(),
-            self.progress_queue,
-            self.result_queue
+            self._get_installation_path()
         )
+
+        # Connect signals
+        self.worker.progress_updated.connect(self._on_progress_update)
+        self.worker.finished.connect(self._on_creation_finished)
 
         # Start the worker
         self.worker.start()
 
-    def _check_queues(self):
-        """Check for messages from worker thread"""
-        try:
-            # Check for progress messages
-            while True:
-                try:
-                    message = self.progress_queue.get_nowait()
-                    self._on_progress_update(message)
-                except queue.Empty:
-                    break
-
-            # Check for result
-            try:
-                success, message = self.result_queue.get_nowait()
-                self._on_creation_finished(success, message)
-            except queue.Empty:
-                pass
-
-        except Exception as e:
-            print(f"Error checking queues: {e}")
-
-        # Schedule next check if still in progress
-        if self._creation_in_progress and self.status_label:
-            self.status_label.after(100, self._check_queues)
-
     def _on_progress_update(self, message: str):
         """Handle progress updates from worker thread"""
-        if self.output_text:
-            self.output_text.insert(tk.END, message + "\n")
-            self.output_text.see(tk.END)
-
-        if self.status_label:
-            self.status_label.config(text=message)
+        self.output_text.append(message)
+        self.status_label.setText(message)
 
     def _on_creation_finished(self, success: bool, message: str):
         """Handle completion of venv creation"""
@@ -503,7 +484,9 @@ class CreateVenvStep(BaseStep):
         self._update_ui_state()
 
         # Clean up worker
-        self.worker = None
+        if self.worker:
+            self.worker.deleteLater()
+            self.worker = None
 
     # ========================================================================
     # State Management and UI Update Methods
@@ -545,54 +528,39 @@ class CreateVenvStep(BaseStep):
 
     def _update_ui_for_simulation(self):
         """Update UI for simulation mode"""
-        if self.status_label:
-            self.status_label.config(
-                text="Simulation mode - venv creation will be skipped")
-        if self.create_button:
-            self.create_button.config(text="Skip (Simulation)", state="normal")
-        if self.progress_bar:
-            self.progress_bar.pack_forget()
-        if self.output_text:
-            self.output_text.pack_forget()
+        self.status_label.setText(StatusMessages.VENV_SIMULATION)
+        apply_status_styling(self.status_label, StatusTypes.INFO)
+        self.create_button.setText("Skip (Simulation)")
+        self.create_button.setEnabled(True)
+        self.progress_bar.setVisible(False)
+        self.output_text.setVisible(False)
 
     def _update_ui_for_ready(self):
         """Update UI for ready-to-create state"""
-        if self.status_label:
-            self.status_label.config(
-                text="Ready to create virtual environment")
-        if self.create_button:
-            self.create_button.config(
-                text="Create Environment", state="normal")
-        if self.progress_bar:
-            self.progress_bar.pack_forget()
-        if self.output_text:
-            self.output_text.pack_forget()
+        self.status_label.setText(StatusMessages.VENV_READY)
+        apply_status_styling(self.status_label, StatusTypes.INFO)
+        self.create_button.setText(ButtonLabels.CREATE_ENVIRONMENT)
+        self.create_button.setEnabled(True)
+        self.progress_bar.setVisible(False)
+        self.output_text.setVisible(False)
 
     def _update_ui_for_progress(self):
         """Update UI during creation progress"""
-        if self.status_label:
-            self.status_label.config(text="Creating virtual environment...")
-        if self.create_button:
-            self.create_button.config(state="disabled")
-        if self.progress_bar:
-            self.progress_bar.pack(fill="x", pady=(0, 10))
-            self.progress_bar.start()  # Start animation
-        if self.output_text:
-            self.output_text.pack(fill="both", expand=True, pady=(10, 0))
+        self.status_label.setText(StatusMessages.VENV_CREATING)
+        apply_status_styling(self.status_label, StatusTypes.INFO)
+        self.create_button.setEnabled(False)
+        self.progress_bar.setVisible(True)
+        self.progress_bar.setRange(0, 0)  # Indeterminate
+        self.output_text.setVisible(True)
 
     def _update_ui_for_completed(self):
         """Update UI for completed state"""
-        if self.status_label:
-            self.status_label.config(
-                text="Virtual environment created successfully")
-        if self.create_button:
-            self.create_button.config(
-                text="Recreate Environment", state="normal")
-        if self.progress_bar:
-            self.progress_bar.stop()
-            self.progress_bar.pack_forget()
-        if self.output_text:
-            self.output_text.pack(fill="both", expand=True, pady=(10, 0))
+        self.status_label.setText(StatusMessages.VENV_CREATED)
+        apply_status_styling(self.status_label, StatusTypes.SUCCESS)
+        self.create_button.setText("Recreate Environment")
+        self.create_button.setEnabled(True)
+        self.progress_bar.setVisible(False)
+        self.output_text.setVisible(True)
 
     # ========================================================================
     # Completion and Error Handling Methods
@@ -600,24 +568,19 @@ class CreateVenvStep(BaseStep):
 
     def _handle_creation_success(self, message: str):
         """Handle successful venv creation"""
-        if self.output_text:
-            self.output_text.insert(tk.END, f"\nSuccess: {message}\n")
-            self.output_text.see(tk.END)
-        if self.status_label:
-            self.status_label.config(
-                text="Virtual environment created successfully")
+        self.output_text.append(f"\nSuccess: {message}")
+        self.status_label.setText(StatusMessages.VENV_CREATED)
+        apply_status_styling(self.status_label, StatusTypes.SUCCESS)
 
     def _handle_creation_error(self, error_message: str):
         """Handle venv creation errors"""
-        if self.output_text:
-            self.output_text.insert(tk.END, f"\nError: {error_message}\n")
-            self.output_text.see(tk.END)
-        if self.status_label:
-            self.status_label.config(
-                text="Virtual environment creation failed")
+        self.output_text.append(f"\nError: {error_message}")
+        self.status_label.setText(StatusMessages.VENV_FAILED)
+        apply_status_styling(self.status_label, StatusTypes.ERROR)
 
-        messagebox.showerror(
-            "Virtual Environment Creation Failed",
+        QMessageBox.critical(
+            None,
+            DialogTitles.VENV_CREATION_FAILED,
             f"Failed to create virtual environment:\n\n{error_message}"
         )
 
@@ -630,8 +593,9 @@ class CreateVenvStep(BaseStep):
             self.mark_completed()
             return True
         except Exception as e:
-            messagebox.showerror(
-                "State Update Failed",
+            QMessageBox.critical(
+                None,
+                DialogTitles.STATE_UPDATE_FAILED,
                 f"Failed to simulate venv creation:\n{e}"
             )
             return False
