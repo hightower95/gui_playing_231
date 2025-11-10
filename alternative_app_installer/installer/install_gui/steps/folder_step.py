@@ -9,7 +9,6 @@ This step handles:
 - Uses only native Python libraries (tkinter)
 """
 import os
-import ast
 from pathlib import Path
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
@@ -31,6 +30,7 @@ class GetFolderStep(BaseStep):
 
         # State
         self._current_path = ""
+        self._default_path = self._get_default_installation_path()
         self._is_path_valid = False
 
     # ========================================================================
@@ -44,10 +44,6 @@ class GetFolderStep(BaseStep):
         return "Select where the application should be installed"
 
     def get_hint_text(self) -> str:
-        blocked_folders = self._get_blocked_folder_patterns()
-        if blocked_folders:
-            patterns = ", ".join(blocked_folders)
-            return f"Choose a folder for installation. Restricted patterns: {patterns}"
         return "Choose a folder for the application installation"
 
     def can_complete(self) -> bool:
@@ -126,16 +122,21 @@ class GetFolderStep(BaseStep):
     def _get_default_installation_path(self) -> str:
         """Get the default installation path from configuration"""
         try:
-            # Try to get from config
-            return self.installation_settings.get('Paths', 'default_install_path',
-                                                  fallback=str(Path.home() / "AppInstall"))
-        except:
-            return str(Path.home() / "AppInstall")
+            # Get default folder config value (template substitution already done)
+            default_folder_path = self.installation_settings.get(
+                'Step_Select_Folder', 'default_installation_folder',
+                fallback=str(Path.home())
+            )
+
+            # The path should already be substituted by run_installer.pyw
+            return default_folder_path
+
+        except Exception:
+            return str(Path.home())
 
     def _browse_for_folder(self):
         """Open folder browser dialog"""
-        initial_dir = self._current_path if self._current_path else str(
-            Path.home())
+        initial_dir = self._default_path  # must be default path else user gets a confusing / irritating experience
 
         # Use tkinter's native folder dialog
         selected_path = filedialog.askdirectory(
@@ -169,12 +170,6 @@ class GetFolderStep(BaseStep):
 
         path_obj = Path(self._current_path)
 
-        # Check blocked patterns
-        if self._is_path_blocked(path_obj):
-            self._is_path_valid = False
-            self._update_status("Path is restricted", "error")
-            return
-
         # Check if path is writable
         if not self._is_path_writable(path_obj):
             self._is_path_valid = False
@@ -190,29 +185,6 @@ class GetFolderStep(BaseStep):
         # Path is valid
         self._is_path_valid = True
         self._update_status("Path is valid", "success")
-
-    def _is_path_blocked(self, path: Path) -> bool:
-        """Check if path matches any blocked patterns"""
-        blocked_patterns = self._get_blocked_folder_patterns()
-        if not blocked_patterns:
-            return False
-
-        path_str = str(path).lower()
-        for pattern in blocked_patterns:
-            pattern_lower = pattern.lower()
-            if pattern_lower in path_str:
-                return True
-
-        return False
-
-    def _get_blocked_folder_patterns(self) -> list:
-        """Get list of blocked folder patterns from config"""
-        try:
-            blocked_str = self.installation_settings.get(
-                'Restrictions', 'blocked_folder_patterns', fallback='[]')
-            return ast.literal_eval(blocked_str)
-        except:
-            return []
 
     def _is_path_writable(self, path: Path) -> bool:
         """Check if path is writable"""

@@ -42,6 +42,7 @@ log_file = log_dir / "installer.log"
 # ============================================================================
 
 def get_installation_settings() -> ConfigParser:
+    import getpass
     """Read installation settings from install_settings.ini
 
     Loads configuration file that contains:
@@ -57,6 +58,26 @@ def get_installation_settings() -> ConfigParser:
     settings_path = Path(__file__).parent / "install_settings.ini"
     config = ConfigParser(interpolation=ExtendedInterpolation())
     config.read(settings_path)
+
+    # fill in f-strings in config values
+    available_vars = {
+        "parent_folder": str(Path(__file__).parent.parent),
+        "username": getpass.getuser(),  # Get current user's name
+    }
+
+    # Process all sections and substitute template variables
+    for section_name in config.sections():
+        for key, value in config[section_name].items():
+            # Replace f-string-like placeholders with actual values
+            new_value = value
+            for var_name, var_value in available_vars.items():
+                placeholder = "{" + var_name + "}"
+                new_value = new_value.replace(placeholder, var_value)
+
+            # Update the config value if it was changed
+            if new_value != value:
+                config.set(section_name, key, new_value)
+
     return config
 
 

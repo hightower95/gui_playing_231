@@ -117,12 +117,12 @@ class InstallGUI(tk.Tk):
         button_frame = ttk.Frame(parent)
         button_frame.pack(fill="x")
 
-        # Cancel button
+        # Cancel button (on left)
         self.cancel_button = ttk.Button(button_frame, text="Cancel Installation",
                                         command=self.cancel_installation)
-        self.cancel_button.pack(side="right", padx=(8, 0))
+        self.cancel_button.pack(side="left")
 
-        # Complete step button
+        # Complete step button (on right - primary action)
         self.complete_button = ttk.Button(button_frame, text="Complete Step",
                                           command=self.complete_current_step)
         self.complete_button.pack(side="right")
@@ -153,7 +153,13 @@ class InstallGUI(tk.Tk):
         else:
             self.hint_label.pack_forget()
 
-        # Update button states
+        # Clear and populate step content FIRST
+        self.clear_step_content()
+        self.populate_step_content()
+
+        # Update button states AFTER widgets are created and step is initialized
+        # Get fresh step info after widget creation
+        step_info = self.conductor.get_step_info()
         can_complete = step_info.get("can_complete", False)
         self.complete_button.config(
             state="normal" if can_complete else "disabled")
@@ -166,10 +172,6 @@ class InstallGUI(tk.Tk):
             self.complete_button.config(text="Finish")
         else:
             self.complete_button.config(text="Complete Step")
-
-        # Clear and populate step content
-        self.clear_step_content()
-        self.populate_step_content()
 
     def clear_step_content(self):
         """Clear the step content area and properly tear down previous step components"""
