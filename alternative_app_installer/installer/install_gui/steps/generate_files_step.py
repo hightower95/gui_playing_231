@@ -68,7 +68,8 @@ class GenerateFilesStep(BaseStep):
             parent_frame, text="Target Folder", padding=10)
         folder_frame.pack(fill="x", pady=(0, 15))
 
-        installation_folder = self.get_shared_state("valid_installation_path", "")
+        installation_folder = self.get_shared_state(
+            "valid_installation_path", "")
         if installation_folder:
             folder_text = f"Files will be generated in: {installation_folder}"
             folder_color = "black"
@@ -287,20 +288,6 @@ class GenerateFilesStep(BaseStep):
         core_library = self.get_shared_state(
             "core_library", "productivity_app")
 
-        # Process venv path
-        if venv_path:
-            venv_path_obj = Path(venv_path)
-            if os.name == 'nt':  # Windows
-                venv_python_path = str(
-                    venv_path_obj / 'Scripts' / 'python.exe')
-            else:  # Unix-like
-                venv_python_path = str(venv_path_obj / 'bin' / 'python')
-            venv_dir_name = venv_path_obj.name
-        else:
-            venv_python_path = ""
-            venv_dir_name = ""
-            venv_path = ""
-
         # Get upgrade settings from config
         always_upgrade = self.installation_settings.getboolean(
             'Step_Install_Libraries', 'always_upgrade', fallback=True)
@@ -314,9 +301,7 @@ class GenerateFilesStep(BaseStep):
             'DEFAULT', 'log_level', fallback='INFO')
 
         return {
-            'VENV_PYTHON_PATH': venv_python_path,
-            'VENV_DIR_PATH': venv_path,
-            'VENV_DIR_NAME': venv_dir_name,
+            'VENV_PATH': venv_path,
             'LIBRARY_NAME': core_library,
             'ALWAYS_UPGRADE': str(always_upgrade).lower(),
             'ALLOW_UPGRADE_TO_TEST_RELEASES': str(allow_test_releases).lower(),

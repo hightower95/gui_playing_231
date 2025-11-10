@@ -16,11 +16,10 @@ def load_launch_config(config_file):
     if config_file.exists():
         config.read(config_file)
         
-    # Return as dictionary with defaults
+    # Return as dictionary with minimal defaults
     defaults = {
         'library_name': 'requests',
-        'venv_python_path': 'c:\Users\peter\OneDrive\Documents\Coding\gui\alternative_app_installer\.test_venv\Scripts\python.exe',
-        'venv_dir_path': 'c:\Users\peter\OneDrive\Documents\Coding\gui\alternative_app_installer\.test_venv',
+        'venv_path': None,
     }
     
     if config.has_section('DEFAULT'):
@@ -30,23 +29,24 @@ def load_launch_config(config_file):
 
 def get_venv_python(config):
     """Get venv Python path from config"""
-    # Use absolute path from config
-    venv_python_path = config.get('venv_python_path', '')
-    if venv_python_path and Path(venv_python_path).exists():
-        return Path(venv_python_path)
-    
-    # Fallback: try to construct from venv_dir_path
-    venv_dir_path = config.get('venv_dir_path', '')
-    if venv_dir_path:
-        venv_dir = Path(venv_dir_path)
-        if sys.platform == 'win32':
-            python_path = venv_dir / 'Scripts' / 'python.exe'
-        else:
-            python_path = venv_dir / 'bin' / 'python'
+    # Get venv path from config
+    venv_path = config.get('venv_path', '')
+    if not venv_path:
+        return None
         
-        if python_path.exists():
-            return python_path
+    venv_dir = Path(venv_path)
+    if not venv_dir.exists():
+        return None
+        
+    # Construct Python executable path
+    if sys.platform == 'win32':
+        python_path = venv_dir / 'Scripts' / 'python.exe'
+    else:
+        python_path = venv_dir / 'bin' / 'python'
     
+    if python_path.exists():
+        return python_path
+        
     return None
 
 def get_installed_version(venv_python, library_name):
