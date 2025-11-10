@@ -543,6 +543,8 @@ class CreateVenvStep(BaseStep):
         self._venv_path = None
         self._python_executable = None
         self._creation_in_progress = False
+        # Track if verification has been completed this session
+        self._verification_completed = False
 
     # ========================================================================
     # Required BaseStep Methods
@@ -738,6 +740,9 @@ class CreateVenvStep(BaseStep):
         if self._creation_in_progress:
             return
 
+        # Reset verification flag when starting new creation/verification
+        self._verification_completed = False
+
         # Show immediate feedback in terminal
         self._append_output("=" * 60)
         self._append_output("🚀 STARTING VIRTUAL ENVIRONMENT CREATION")
@@ -915,7 +920,7 @@ class CreateVenvStep(BaseStep):
             self._update_ui_for_simulation()
         elif self._creation_in_progress:
             self._update_ui_for_progress()
-        elif self._is_venv_created():
+        elif self._verification_completed:
             self._update_ui_for_completed()
         else:
             self._update_ui_for_ready()
@@ -934,12 +939,26 @@ class CreateVenvStep(BaseStep):
 
     def _update_ui_for_ready(self):
         """Update UI for ready-to-create state"""
+        # Check if there's an existing venv directory (even if not verified)
+        venv_path = self._calculate_venv_path()
+        venv_exists = Path(venv_path).exists()
+
         if self.status_label:
-            self.status_label.config(
-                text="⏳ Ready to create virtual environment - Complete Step button disabled until verification")
+            if venv_exists:
+                # Venv directory exists but hasn't been verified yet
+                self.status_label.config(
+                    text="Virtual environment found - needs verification",
+                    foreground="black")  # Black text for unverified state
+            else:
+                # No venv directory found
+                self.status_label.config(
+                    text="⏳ Ready to create virtual environment - Complete Step button disabled until verification",
+                    foreground="black")  # Default black text
+
         if self.create_button:
+            button_text = "Verify Environment" if venv_exists else "Create Environment"
             self.create_button.config(
-                text="Create Environment", state="normal")
+                text=button_text, state="normal")
         if self.progress_bar:
             self.progress_bar.pack_forget()
         if self.output_text:
@@ -949,7 +968,8 @@ class CreateVenvStep(BaseStep):
         """Update UI during creation progress"""
         if self.status_label:
             self.status_label.config(
-                text="⏳ Creating and verifying virtual environment... Complete Step button disabled")
+                text="⏳ Creating and verifying virtual environment... Complete Step button disabled",
+                foreground="black")  # Reset to black during progress
         if self.create_button:
             self.create_button.config(state="disabled")
         if self.progress_bar:
@@ -962,10 +982,11 @@ class CreateVenvStep(BaseStep):
         """Update UI for completed state"""
         if self.status_label:
             self.status_label.config(
-                text="✅ Virtual environment created and verified! Complete Step button enabled")
+                text="✅ Virtual environment created and verified! Complete Step button enabled",
+                foreground="#28a745")  # Green text color
         if self.create_button:
             self.create_button.config(
-                text="Recreate Environment", state="normal")
+                text="Setup Environment", state="normal")
         if self.progress_bar:
             self.progress_bar.stop()
             self.progress_bar.pack_forget()
@@ -978,12 +999,16 @@ class CreateVenvStep(BaseStep):
 
     def _handle_creation_success(self, message: str):
         """Handle successful venv creation"""
+        # Set verification completed flag
+        self._verification_completed = True
+
         if self.output_text:
             self.output_text.insert(tk.END, f"\nSuccess: {message}\n")
             self.output_text.see(tk.END)
         if self.status_label:
             self.status_label.config(
-                text="Virtual environment created and verified successfully! ✅")
+                text="Virtual environment created and verified successfully! ✅",
+                foreground="#28a745")  # Green text color
 
         # Mark as completed - this will trigger the callback automatically
         self.mark_completed()

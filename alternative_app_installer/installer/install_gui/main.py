@@ -51,6 +51,34 @@ class InstallGUI(tk.Tk):
         self.geometry("840x700")
         self.resizable(False, False)
 
+        # Configure ttk styles
+        style = ttk.Style()
+
+        # Create a success/green style for the complete button
+        style.configure("Success.TButton",
+                        background="#28a745",        # Modern green background
+                        # Black text (more compatible)
+                        foreground="black",
+                        borderwidth=0,               # Remove border
+                        focuscolor="none",           # Remove focus outline
+                        relief="flat",               # Flat appearance
+                        font=("Segoe UI", 9, "normal"))
+
+        # Configure all button states for consistent green appearance
+        style.map("Success.TButton",
+                  background=[('active', '#218838'),    # Darker green on hover
+                              # Even darker when pressed
+                              ('pressed', '#1e7e34'),
+                              ('disabled', '#6c757d')],   # Gray when disabled
+                  foreground=[('active', 'black'),      # Keep text black on hover
+                              # Keep text black when pressed
+                              ('pressed', 'black'),
+                              # Light gray text when disabled
+                              ('disabled', '#adb5bd')],
+                  relief=[('pressed', 'flat'),          # Keep flat when pressed
+                          # Keep flat when not pressed
+                          ('!pressed', 'flat')])
+
         # Main container
         main_frame = ttk.Frame(self)
         main_frame.pack(fill="both", expand=True, padx=20, pady=15)
@@ -266,8 +294,19 @@ class InstallGUI(tk.Tk):
             can_complete: Whether the current step can be completed
         """
         print(f"Debug: Completion state changed to: {can_complete}")
-        self.complete_button.config(
-            state="normal" if can_complete else "disabled")
+
+        if can_complete:
+            # Enable button with green styling
+            self.complete_button.config(
+                state="normal",
+                style="Success.TButton"
+            )
+        else:
+            # Disable button with default styling
+            self.complete_button.config(
+                state="disabled",
+                style="TButton"
+            )
 
     def finish_installation(self):
         """Finish the installation and close the installer"""
