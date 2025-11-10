@@ -28,7 +28,8 @@ class TestParseInstallReport(unittest.TestCase):
         # Create a mock step instance with minimal required attributes
         self.mock_settings = Mock()
         self.mock_shared_state = {}
-        self.step = InstallLibraryStep(self.mock_settings, self.mock_shared_state)
+        self.step = InstallLibraryStep(
+            self.mock_settings, self.mock_shared_state)
 
     def test_parse_install_report_pypi_only(self):
         """Test parsing report with only PyPI URLs"""
@@ -143,7 +144,8 @@ class TestParseInstallReport(unittest.TestCase):
 
     def test_parse_install_report_missing_file(self):
         """Test parsing non-existent file"""
-        result = self.step._parse_install_report("/path/that/does/not/exist.json")
+        result = self.step._parse_install_report(
+            "/path/that/does/not/exist.json")
         self.assertIsNone(result)
 
     def test_parse_install_report_none_path(self):
@@ -217,7 +219,7 @@ class TestLibraryInstallationWorker(unittest.TestCase):
         mock_subprocess_run.assert_called_once()
         call_args = mock_subprocess_run.call_args
         cmd = call_args[0][0]
-        
+
         # Check command structure
         self.assertEqual(cmd[0], str(self.mock_venv_python))
         self.assertEqual(cmd[1:4], ["-m", "pip", "install"])
@@ -229,18 +231,21 @@ class TestLibraryInstallationWorker(unittest.TestCase):
         progress_messages = []
         while not self.progress_queue.empty():
             progress_messages.append(self.progress_queue.get_nowait())
-        
-        self.assertTrue(any("Starting library installation" in msg for msg in progress_messages))
-        self.assertTrue(any("Successfully installed" in msg for msg in progress_messages))
+
+        self.assertTrue(
+            any("Starting library installation" in msg for msg in progress_messages))
+        self.assertTrue(
+            any("Successfully installed" in msg for msg in progress_messages))
 
         # Check result tuple
         self.assertFalse(self.result_queue.empty())
         success, message, report_path, stdout, stderr = self.result_queue.get_nowait()
-        
+
         self.assertTrue(success)
         self.assertEqual(message, "Libraries installed successfully")
         self.assertTrue(report_path.endswith(".json"))
-        self.assertEqual(stdout, "Successfully installed requests-2.31.0 urllib3-1.26.16")
+        self.assertEqual(
+            stdout, "Successfully installed requests-2.31.0 urllib3-1.26.16")
         self.assertEqual(stderr, "")
 
     @patch('subprocess.run')
@@ -269,13 +274,14 @@ class TestLibraryInstallationWorker(unittest.TestCase):
         progress_messages = []
         while not self.progress_queue.empty():
             progress_messages.append(self.progress_queue.get_nowait())
-        
-        self.assertTrue(any("Library installation failed" in msg for msg in progress_messages))
+
+        self.assertTrue(
+            any("Library installation failed" in msg for msg in progress_messages))
 
         # Check result tuple
         self.assertFalse(self.result_queue.empty())
         success, message, report_path, stdout, stderr = self.result_queue.get_nowait()
-        
+
         self.assertFalse(success)
         self.assertTrue(message.startswith("Installation failed:"))
         self.assertTrue(report_path.endswith(".json"))
@@ -304,13 +310,14 @@ class TestLibraryInstallationWorker(unittest.TestCase):
         progress_messages = []
         while not self.progress_queue.empty():
             progress_messages.append(self.progress_queue.get_nowait())
-        
-        self.assertTrue(any("installation timed out" in msg for msg in progress_messages))
+
+        self.assertTrue(
+            any("installation timed out" in msg for msg in progress_messages))
 
         # Check result tuple
         self.assertFalse(self.result_queue.empty())
         success, message, report_path, stdout, stderr = self.result_queue.get_nowait()
-        
+
         self.assertFalse(success)
         self.assertEqual(message, "Installation timed out")
         self.assertTrue(report_path.endswith(".json"))
@@ -322,7 +329,8 @@ class TestLibraryInstallationWorker(unittest.TestCase):
     def test_worker_general_exception(self, mock_mkdir, mock_subprocess_run):
         """Test worker behavior when unexpected exception occurs"""
         # Mock general exception
-        mock_subprocess_run.side_effect = Exception("Unexpected error occurred")
+        mock_subprocess_run.side_effect = Exception(
+            "Unexpected error occurred")
 
         # Create worker
         worker = LibraryInstallationWorker(
@@ -339,13 +347,14 @@ class TestLibraryInstallationWorker(unittest.TestCase):
         progress_messages = []
         while not self.progress_queue.empty():
             progress_messages.append(self.progress_queue.get_nowait())
-        
-        self.assertTrue(any("Installation error:" in msg for msg in progress_messages))
+
+        self.assertTrue(
+            any("Installation error:" in msg for msg in progress_messages))
 
         # Check result tuple
         self.assertFalse(self.result_queue.empty())
         success, message, report_path, stdout, stderr = self.result_queue.get_nowait()
-        
+
         self.assertFalse(success)
         self.assertTrue(message.startswith("Installation error:"))
         self.assertTrue(report_path.endswith(".json"))
@@ -374,11 +383,11 @@ class TestLibraryInstallationWorker(unittest.TestCase):
 
             # Get result tuple
             result = self.result_queue.get_nowait()
-            
+
             # Verify tuple structure
             self.assertEqual(len(result), 5)
             success, message, report_path, stdout, stderr = result
-            
+
             # Verify types
             self.assertIsInstance(success, bool)
             self.assertIsInstance(message, str)

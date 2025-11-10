@@ -12,7 +12,7 @@ from .version_manager import (
 
 __all__ = [
     'get_latest_stable_version',
-    'get_installed_version', 
+    'get_installed_version',
     'detect_local_index',
     'parse_version',
     'is_stable_version'
