@@ -10,7 +10,7 @@ Design Principles:
 from configparser import ConfigParser
 from typing import List, Dict, Any, Optional
 
-from .steps import GetFolderStep, CreateVenvStep
+from .steps import GetFolderStep, CreateVenvStep, InstallLibraryStep
 
 
 class InstallConductor:
@@ -53,6 +53,8 @@ class InstallConductor:
             self.installation_settings, self._install_state_variables)
         self._createVenvStep = CreateVenvStep(
             self.installation_settings, self._install_state_variables)
+        self._libraryStep = InstallLibraryStep(
+            self.installation_settings, self._install_state_variables)
 
         # Define the complete installation sequence
         self._step_sequence: List = [
@@ -60,7 +62,7 @@ class InstallConductor:
             # Additional steps will be added here:
             # self._tokenSetupStep,
             self._createVenvStep,
-            # self._installDependenciesStep,
+            self._libraryStep,
             # self._generateRunScriptsStep,
         ]
 
