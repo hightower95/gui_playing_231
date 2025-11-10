@@ -47,7 +47,10 @@ class GetFolderStep(BaseStep):
 
     def get_hint_text(self) -> str:
         """Get hint text for this step"""
-        return "Instructions: Click browse button to change installation folder."
+        if self._is_folder_selection_enabled():
+            return "Instructions: Click browse button to change installation folder."
+        else:
+            return "Installation folder has been pre-configured and cannot be changed."
 
     def can_complete(self) -> bool:
         """Check if step can be completed"""
@@ -67,12 +70,32 @@ class GetFolderStep(BaseStep):
         self.path_input = QLineEdit()
         # Use local current path, not shared state
         self.path_input.setText(self._current_path)
-        self.path_input.textChanged.connect(self._on_path_changed)
+
+        # Check if folder selection is enabled
+        folder_selection_enabled = self._is_folder_selection_enabled()
+
+        if folder_selection_enabled:
+            self.path_input.textChanged.connect(self._on_path_changed)
+        else:
+            # Make read-only if folder selection is disabled
+            self.path_input.setReadOnly(True)
+            self.path_input.setStyleSheet(
+                "QLineEdit { background-color: #f0f0f0; color: #666; }")
+            # Connect signal to enforce path restrictions even if readonly is bypassed
+            self.path_input.textChanged.connect(self._on_path_changed)
+
         path_row.addWidget(self.path_input)
 
         self.browse_button = QPushButton(ButtonLabels.BROWSE)
         self.browse_button.setFixedWidth(LayoutConstants.BUTTON_MIN_WIDTH)
         self.browse_button.clicked.connect(self._browse_for_folder)
+
+        # Disable browse button if folder selection is disabled
+        if not folder_selection_enabled:
+            self.browse_button.setEnabled(False)
+            self.browse_button.setToolTip(
+                "Folder selection has been disabled by administrator")
+
         path_row.addWidget(self.browse_button)
 
         layout.addLayout(path_row)
@@ -84,9 +107,13 @@ class GetFolderStep(BaseStep):
         layout.addWidget(self.feedback_label)
 
         # Information label (actual hint text)
-        info_label = QLabel(
-            "The application will be installed to this location. "
-        )
+        folder_selection_enabled = self._is_folder_selection_enabled()
+        if folder_selection_enabled:
+            info_text = "The application will be installed to this location. "
+        else:
+            info_text = "The application will be installed to this pre-configured location. Folder selection has been disabled."
+
+        info_label = QLabel(info_text)
         info_label.setWordWrap(True)
         # Remove explicit styling to use system defaults
         layout.addWidget(info_label)
@@ -108,6 +135,19 @@ class GetFolderStep(BaseStep):
                 "Please select an installation folder before proceeding."
             )
             return False
+
+        # If folder selection is disabled, ensure path hasn't been changed from default
+        if not self._is_folder_selection_enabled():
+            if current_path != self._default_path:
+                QMessageBox.warning(
+                    None,
+                    DialogTitles.FOLDER_SELECTION_DISABLED,
+                    f"Folder selection is disabled. The installation path has been reverted to the default location:\n\n{self._default_path}"
+                )
+                # Reset to default path
+                self.path_input.setText(self._default_path)
+                self._current_path = self._default_path
+                current_path = self._default_path
 
         # Validate the path
         if not self._validate_installation_path(current_path):
@@ -187,6 +227,17 @@ class GetFolderStep(BaseStep):
         )
 
         return expanded
+
+    def _is_folder_selection_enabled(self) -> bool:
+        """Check if folder selection is enabled in configuration"""
+        if hasattr(self.installation_settings, 'getboolean'):
+            try:
+                return self.installation_settings.getboolean(
+                    'Step_Select_Folder', 'enable_folder_selection', fallback=True)
+            except Exception:
+                # If parsing fails, default to enabled
+                return True
+        return True
 
     def _is_location_accessible_and_allowed(self, location: str) -> bool:
         """Check if a location is accessible for installation and on allowed drive"""
@@ -301,12 +352,33 @@ class GetFolderStep(BaseStep):
 
     def _on_path_changed(self, new_path):
         """Handle path input changes - update local state only"""
+        # Only process changes if folder selection is enabled
+        if not self._is_folder_selection_enabled():
+            # If folder selection is disabled, revert any changes to default path
+            if hasattr(self, '_default_path') and new_path != self._default_path:
+                # Block the signal to prevent infinite recursion
+                self.path_input.blockSignals(True)
+                self.path_input.setText(self._default_path)
+                self.path_input.blockSignals(False)
+                self._current_path = self._default_path
+            return
+
         self._current_path = new_path
         self._path_is_valid(new_path)
 
     def _browse_for_folder(self):
         """Open folder browser dialog"""
-        current_path = self._current_path
+        # Check if folder selection is enabled
+        if not self._is_folder_selection_enabled():
+            QMessageBox.information(
+                None,
+                DialogTitles.FOLDER_SELECTION_DISABLED,
+                "Folder selection has been disabled by the administrator. "
+                "The installation will use the pre-configured location."
+            )
+            return
+        """Open folder browser dialog"""
+        current_path = self._default_path
 
         # # Start browsing from current path or default location
         # start_path = current_path if current_path and Path(
@@ -320,8 +392,7 @@ class GetFolderStep(BaseStep):
 
         if folder_path:
             self.path_input.setText(folder_path)
-            if self._path_is_valid(folder_path):
-                self._current_path = folder_path
+            self._current_path = folder_path
 
     def _validate_installation_path(self, path: str) -> bool:
         """Validate the selected installation path"""

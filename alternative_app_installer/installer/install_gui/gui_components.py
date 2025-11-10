@@ -161,3 +161,4 @@ class DialogTitles:
     CANNOT_CREATE_DIRECTORY = "Cannot Create Directory"
     DIRECTORY_NOT_EMPTY = "Directory Not Empty"
     NO_PATH_SELECTED = "No Path Selected"
+    FOLDER_SELECTION_DISABLED = "Folder Selection Disabled"
