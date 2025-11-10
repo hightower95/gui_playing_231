@@ -27,35 +27,205 @@ class VenvCreationWorker(threading.Thread):
     def __init__(self, python_executable, venv_path, installation_path, progress_queue, result_queue):
         super().__init__()
         self.python_executable = python_executable
-        self.venv_path = venv_path
+        self.venv_path = Path(venv_path)  # Ensure it's a Path object
         self.installation_path = installation_path
         self.progress_queue = progress_queue  # Queue for progress messages
         self.result_queue = result_queue      # Queue for final result
         self.daemon = True  # Dies when main thread dies
 
     def run(self):
-        """Execute venv creation in background thread with verbose output"""
+        """Execute venv creation following user requirements:
+        1. If venv exists and works, skip creation
+        2. Only create venv if needed 
+        3. Always verify with 'pip show pip' before claiming success
+        """
         try:
-            self.progress_queue.put(
-                "Initializing virtual environment creation...")
+            self.progress_queue.put("🔄 Worker thread started successfully")
+            self.progress_queue.put("🔧 Checking virtual environment status...")
+            self.progress_queue.put(f"📍 Target location: {self.venv_path}")
+            self.progress_queue.put(f"🐍 Python executable: {self.python_executable}")
+
+            # Step 1: Check if venv already exists and is functional
+            if self.venv_path.exists():
+                self.progress_queue.put("📁 Virtual environment directory found")
+                self.progress_queue.put("🔍 Testing existing virtual environment...")
+                
+                if self._test_existing_venv():
+                    self.progress_queue.put("✅ Existing virtual environment is working perfectly!")
+                    self.progress_queue.put("⏩ Skipping creation - using existing environment")
+                    self.result_queue.put((True, "Existing virtual environment verified and ready"))
+                    return
+                else:
+                    self.progress_queue.put("⚠️ Existing virtual environment is not functional")
+                    self.progress_queue.put("🗑️ Removing broken virtual environment...")
+                    self._remove_broken_venv()
+
+            # Step 2: Create new virtual environment  
+            self.progress_queue.put("🏗️ Creating new virtual environment...")
+            self.progress_queue.put(f"📁 Absolute path: {self.venv_path.resolve()}")
+
+            if not self._create_venv():
+                self.progress_queue.put("❌ Virtual environment creation failed")
+                self.result_queue.put((False, "Failed to create virtual environment"))
+                return
+
+            # Step 3: Verify the new venv works before claiming success
+            self.progress_queue.put("� Verifying newly created virtual environment...")
+            if self._test_existing_venv():
+                self.progress_queue.put("🎉 Virtual environment created and verified successfully!")
+                self.result_queue.put((True, "Virtual environment created and configured successfully"))
+            else:
+                self.progress_queue.put("❌ Virtual environment was created but is not functional")
+                self.result_queue.put((False, "Virtual environment created but failed verification"))
+
+        except Exception as e:
+            self.progress_queue.put(f"� Error during virtual environment creation: {e}")
+            self.result_queue.put((False, f"Error during virtual environment creation: {e}"))
+
+    def _test_existing_venv(self):
+        """Test if existing virtual environment is functional using 'pip show pip'"""
+        try:
+            # Get the python executable path from the venv
+            if sys.platform.startswith('win'):
+                venv_python = self.venv_path / "Scripts" / "python.exe"
+            else:
+                venv_python = self.venv_path / "bin" / "python"
+            
+            if not venv_python.exists():
+                self.progress_queue.put("❌ Virtual environment python executable not found")
+                return False
+            
+            self.progress_queue.put("🧪 Running 'pip show pip' to test venv functionality...")
+            self.progress_queue.put(f"▶️ Command: {str(venv_python)} -m pip show pip")
+            
+            # Run pip show pip to verify the venv works
+            result = subprocess.run(
+                [str(venv_python), "-m", "pip", "show", "pip"],
+                capture_output=True,
+                text=True,
+                timeout=30,
+                cwd=self.installation_path
+            )
+            
+            # Show the pip output to the user
+            self.progress_queue.put("=" * 40)
+            self.progress_queue.put("📄 pip show pip output:")
+            if result.stdout:
+                for line in result.stdout.strip().split('\n'):
+                    if line.strip():
+                        self.progress_queue.put(f"   {line}")
+            
+            if result.stderr:
+                self.progress_queue.put("⚠️ Error output:")
+                for line in result.stderr.strip().split('\n'):
+                    if line.strip():
+                        self.progress_queue.put(f"   {line}")
+            
+            self.progress_queue.put("=" * 40)
+            self.progress_queue.put(f"📊 Return code: {result.returncode}")
+            
+            if result.returncode == 0 and "Name: pip" in result.stdout:
+                self.progress_queue.put("✅ Virtual environment pip test successful")
+                return True
+            else:
+                self.progress_queue.put(f"❌ Virtual environment pip test failed: {result.stderr}")
+                return False
+                
+        except subprocess.TimeoutExpired:
+            self.progress_queue.put("❌ Virtual environment test timed out")
+            return False
+        except Exception as e:
+            self.progress_queue.put(f"❌ Error testing virtual environment: {e}")
+            return False
+
+    def _remove_broken_venv(self):
+        """Remove a broken virtual environment with Windows-compatible permissions handling"""
+        try:
+            import shutil
+            import stat
+            import os
+            
+            # Windows-specific: Handle read-only files that can't be deleted
+            def handle_remove_readonly(func, path, exc):
+                """Error handler for removing read-only files on Windows"""
+                if os.path.exists(path):
+                    os.chmod(path, stat.S_IWRITE)
+                    func(path)
+            
+            shutil.rmtree(self.venv_path, onerror=handle_remove_readonly)
+            self.progress_queue.put("✅ Broken virtual environment removed")
+        except Exception as e:
+            self.progress_queue.put(f"⚠️ Warning: Could not fully remove broken environment: {e}")
+
+    def _create_venv(self):
+        """Create a new virtual environment"""
+        try:
+            # Use --clear flag to ensure clean creation
+            cmd = [self.python_executable, '-m', 'venv', '--clear', str(self.venv_path)]
+
+            self.progress_queue.put(f"▶️ Running command: {' '.join(cmd)}")
+            self.progress_queue.put("=" * 60)
+
+            process = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT, 
+                text=True,
+                cwd=self.installation_path
+            )
+            
+            stdout, _ = process.communicate(timeout=180)
+            
+            if process.returncode == 0:
+                self.progress_queue.put("✅ Virtual environment creation completed")
+                return True
+            else:
+                self.progress_queue.put(f"❌ Virtual environment creation failed with code: {process.returncode}")
+                if stdout:
+                    self.progress_queue.put(f"Output: {stdout}")
+                return False
+
+        except subprocess.TimeoutExpired:
+            self.progress_queue.put("❌ Virtual environment creation timed out")
+            return False
+        except Exception as e:
+            self.progress_queue.put(f"💥 Error creating virtual environment: {e}")
+            return False
 
             # Check if venv already exists
-            venv_path = Path(self.venv_path)
-            if venv_path.exists():
+            # Remove existing venv if it exists with Windows-compatible permissions handling
+            if self.venv_path.exists():
                 self.progress_queue.put(
-                    "Removing existing virtual environment...")
+                    "🗑️ Removing existing virtual environment...")
                 import shutil
-                shutil.rmtree(venv_path)
-                self.progress_queue.put("Existing environment removed")
+                import stat
+                import os
+                
+                try:
+                    # Windows-specific: Handle read-only files that can't be deleted
+                    def handle_remove_readonly(func, path, exc):
+                        """Error handler for removing read-only files on Windows"""
+                        if os.path.exists(path):
+                            os.chmod(path, stat.S_IWRITE)
+                            func(path)
+                    
+                    shutil.rmtree(self.venv_path, onerror=handle_remove_readonly)
+                    self.progress_queue.put("✅ Existing environment removed")
+                except Exception as e:
+                    self.progress_queue.put(f"⚠️ Warning: Could not fully remove existing environment: {e}")
+                    self.progress_queue.put("📝 Using --clear flag to ensure clean creation")
 
-            # Create the virtual environment
-            self.progress_queue.put(
-                f"Creating virtual environment at {venv_path}...")
+            # Create the virtual environment with --clear flag for robust creation
+            self.progress_queue.put(f"🏗️ Creating virtual environment...")
+            self.progress_queue.put(f"📁 Absolute path: {self.venv_path.resolve()}")
 
-            # Run venv creation command with verbose output
-            cmd = [self.python_executable, '-m',
-                   'venv', str(venv_path), '--verbose']
+            # Use --clear flag to ensure clean creation even if removal failed
+            cmd = [self.python_executable, '-m', 'venv', '--clear', str(self.venv_path)]
 
+            self.progress_queue.put(f"▶️ Running command: {' '.join(cmd)}")
+            self.progress_queue.put("=" * 60)
+
+            self.progress_queue.put("🚀 Starting subprocess...")
             process = subprocess.Popen(
                 cmd,
                 stdout=subprocess.PIPE,
@@ -65,29 +235,74 @@ class VenvCreationWorker(threading.Thread):
                 bufsize=1,  # Line buffered for real-time output
                 universal_newlines=True
             )
+            self.progress_queue.put(f"📋 Process started with PID: {process.pid}")
 
-            # Monitor process output in real-time
+            # Monitor process output in real-time with timeout (Windows-compatible)
+            import time
+            
+            timeout_seconds = 180  # 3 minutes timeout for venv creation (increased for Windows)
+            start_time = time.time()
+            output_lines = []
+            
             while True:
-                output = process.stdout.readline()
-                if output == '' and process.poll() is not None:
+                # Check if process has finished
+                return_code = process.poll()
+                if return_code is not None:
+                    self.progress_queue.put(f"📊 Process finished with return code: {return_code}")
                     break
-                if output.strip():
-                    self.progress_queue.put(f"Output: {output.strip()}")
+                    
+                # Check for timeout
+                elapsed = time.time() - start_time
+                if elapsed > timeout_seconds:
+                    self.progress_queue.put("⏰ Timeout reached, terminating process...")
+                    process.terminate()
+                    try:
+                        process.wait(timeout=5)  # Give 5 seconds to terminate gracefully
+                    except subprocess.TimeoutExpired:
+                        process.kill()  # Force kill if needed
+                    self.result_queue.put((False, "Virtual environment creation timed out"))
+                    return
+                
+                # Show progress every 5 seconds
+                if int(elapsed) % 5 == 0 and elapsed > 0:
+                    self.progress_queue.put(f"⏳ Still running... ({int(elapsed)}s elapsed)")
+                
+                # Small delay to prevent tight loop
+                time.sleep(1)
+
+            # Get all output after process completes
+            try:
+                stdout, stderr = process.communicate(timeout=10)
+                if stdout:
+                    self.progress_queue.put("📜 Process output:")
+                    for line in stdout.strip().split('\n'):
+                        if line.strip():
+                            self.progress_queue.put(f"  {line.strip()}")
+                if stderr:
+                    self.progress_queue.put("⚠️ Process errors:")
+                    for line in stderr.strip().split('\n'):
+                        if line.strip():
+                            self.progress_queue.put(f"  {line.strip()}")
+            except subprocess.TimeoutExpired:
+                self.progress_queue.put("⚠️ Warning: Process cleanup timed out")
+                process.kill()
 
             # Check if creation was successful
             return_code = process.poll()
 
             if return_code == 0:
+                self.progress_queue.put("=" * 60)
+                self.progress_queue.put(
+                    "✅ VIRTUAL ENVIRONMENT CREATED SUCCESSFULLY")
                 self.progress_queue.put("Verifying virtual environment...")
 
                 # Verify the venv was created successfully
-                if self._verify_venv_creation(venv_path):
-                    # Upgrade pip with verbose output for better visibility
-                    self.progress_queue.put(
-                        "Upgrading pip to latest version...")
-                    self._upgrade_pip_verbose(venv_path)
+                if self._verify_venv_creation(self.venv_path):
+                    # Test pip functionality to ensure venv is working properly
+                    self.progress_queue.put("Testing pip functionality...")
+                    self._test_pip_functionality(self.venv_path)
 
-                    self.progress_queue.put("Virtual environment ready!")
+                    self.progress_queue.put("🎉 Virtual environment ready!")
                     self.result_queue.put(
                         (True, "Virtual environment created and configured successfully"))
                 else:
@@ -101,8 +316,8 @@ class VenvCreationWorker(threading.Thread):
             self.result_queue.put(
                 (False, f"Error during virtual environment creation: {str(e)}"))
 
-    def _upgrade_pip_verbose(self, venv_path: Path):
-        """Upgrade pip with verbose output for better user feedback"""
+    def _test_pip_functionality(self, venv_path: Path):
+        """Test pip functionality to verify the virtual environment is working properly"""
         try:
             # Determine pip executable path
             if os.name == 'nt':  # Windows
@@ -111,39 +326,107 @@ class VenvCreationWorker(threading.Thread):
                 pip_exe = venv_path / 'bin' / 'pip'
 
             if not pip_exe.exists():
-                self.progress_queue.put(
-                    "Pip executable not found, skipping upgrade")
+                self.progress_queue.put("❌ Pip executable not found - venv may be corrupted")
                 return
 
-            # Run pip upgrade with verbose output
-            cmd = [str(pip_exe), 'install', '--upgrade', 'pip', '--verbose']
+            # Test 1: Check pip version
+            self.progress_queue.put("🔍 Testing pip version...")
+            version_cmd = [str(pip_exe), '--version']
+            
+            try:
+                version_result = subprocess.run(
+                    version_cmd,
+                    capture_output=True,
+                    text=True,
+                    timeout=10
+                )
+                
+                if version_result.returncode == 0:
+                    self.progress_queue.put(f"✅ Pip version: {version_result.stdout.strip()}")
+                else:
+                    self.progress_queue.put("❌ Pip version check failed - venv may be corrupted")
+                    return
+            except subprocess.TimeoutExpired:
+                self.progress_queue.put("❌ Pip version check timed out - venv may be corrupted")
+                return
+            except Exception as e:
+                self.progress_queue.put(f"❌ Pip version check error: {e}")
+                return
 
-            process = subprocess.Popen(
-                cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                text=True,
-                bufsize=1,
-                universal_newlines=True
-            )
+            # Test 2: Use 'pip show pip' to verify pip package itself is installed
+            self.progress_queue.put("🔍 Verifying pip package installation...")
+            show_cmd = [str(pip_exe), 'show', 'pip']
+            
+            try:
+                show_result = subprocess.run(
+                    show_cmd,
+                    capture_output=True,
+                    text=True,
+                    timeout=15
+                )
+                
+                if show_result.returncode == 0 and show_result.stdout.strip():
+                    # Extract key info from pip show output
+                    lines = show_result.stdout.strip().split('\n')
+                    for line in lines[:3]:  # Show first few lines (Name, Version, Summary)
+                        if line.strip():
+                            self.progress_queue.put(f"✅ {line.strip()}")
+                    self.progress_queue.put("✅ Pip package verification successful")
+                else:
+                    self.progress_queue.put("❌ Pip show command failed - venv may be corrupted")
+                    self.progress_queue.put(f"   Return code: {show_result.returncode}")
+                    if show_result.stderr:
+                        self.progress_queue.put(f"   Error: {show_result.stderr.strip()}")
+                    return
+                    
+            except subprocess.TimeoutExpired:
+                self.progress_queue.put("❌ Pip show command timed out - venv may be corrupted")
+                return
+            except Exception as e:
+                self.progress_queue.put(f"❌ Pip show command error: {e}")
+                return
 
-            while True:
-                output = process.stdout.readline()
-                if output == '' and process.poll() is not None:
-                    break
-                if output.strip():
-                    # Filter out excessive verbosity but keep meaningful updates
-                    line = output.strip()
-                    if any(keyword in line.lower() for keyword in ['collecting', 'downloading', 'installing', 'successfully']):
-                        self.progress_queue.put(f"Pip: {line}")
+            # Test 3: List installed packages to verify pip environment is functional
+            self.progress_queue.put("🔍 Checking installed packages...")
+            list_cmd = [str(pip_exe), 'list', '--format=columns']
+            
+            try:
+                list_result = subprocess.run(
+                    list_cmd,
+                    capture_output=True,
+                    text=True,
+                    timeout=15
+                )
+                
+                if list_result.returncode == 0:
+                    lines = list_result.stdout.strip().split('\n')
+                    if len(lines) >= 2:  # Header + at least one package
+                        package_count = len(lines) - 2  # Subtract header lines
+                        self.progress_queue.put(f"✅ Found {package_count} installed packages")
+                        # Show first few packages as examples
+                        for line in lines[:4]:  # Header + first 2 packages
+                            if line.strip():
+                                self.progress_queue.put(f"   {line.strip()}")
+                    else:
+                        self.progress_queue.put("⚠️  No packages listed - minimal venv installation")
+                else:
+                    self.progress_queue.put("❌ Package listing failed")
+                    return
+                    
+            except subprocess.TimeoutExpired:
+                self.progress_queue.put("❌ Package listing timed out")
+                return
+            except Exception as e:
+                self.progress_queue.put(f"❌ Package listing error: {e}")
+                return
 
-            if process.returncode == 0:
-                self.progress_queue.put("Pip upgraded successfully")
-            else:
-                self.progress_queue.put("Pip upgrade completed with warnings")
+            self.progress_queue.put("=" * 60)
+            self.progress_queue.put("✅ ALL PIP TESTS PASSED - VIRTUAL ENVIRONMENT IS FUNCTIONAL")
+            self.progress_queue.put("=" * 60)
 
         except Exception as e:
-            self.progress_queue.put(f"Pip upgrade failed: {e}")
+            self.progress_queue.put(f"❌ ERROR during pip functionality test: {e}")
+            self.progress_queue.put("⚠️  Virtual environment may not be fully functional")
 
     def _verify_venv_creation(self, venv_path: Path) -> bool:
         """Verify that the virtual environment was created correctly"""
@@ -307,6 +590,13 @@ class CreateVenvStep(BaseStep):
             )
             return False
 
+    def _append_output(self, text: str):
+        """Append text to the output widget for immediate user feedback"""
+        if self.output_text:
+            self.output_text.insert(tk.END, text + "\n")
+            self.output_text.see(tk.END)  # Auto-scroll to bottom
+            self.output_text.update()  # Force immediate update
+
     # ========================================================================
     # Configuration and State Methods
     # ========================================================================
@@ -329,7 +619,11 @@ class CreateVenvStep(BaseStep):
 
     def _get_installation_path(self) -> str:
         """Get the installation path from shared state"""
-        return self.get_shared_state("valid_installation_path", "")
+        install_path = self.get_shared_state("valid_installation_path", None)
+
+        if install_path is None:
+            raise ValueError("Installation path not set in shared state")
+        return install_path
 
     def _calculate_venv_path(self) -> Path:
         """Calculate the full path to the virtual environment directory"""
@@ -387,10 +681,23 @@ class CreateVenvStep(BaseStep):
         if self._creation_in_progress:
             return
 
+        # Show immediate feedback in terminal
+        self._append_output("=" * 60)
+        self._append_output("🚀 STARTING VIRTUAL ENVIRONMENT CREATION")
+        self._append_output("=" * 60)
+
         try:
             # Validate prerequisites
             if not self._validate_prerequisites():
+                self._append_output("❌ Prerequisites validation failed")
                 return
+
+            # Show the absolute path that will be created
+            self._append_output(f"📁 Virtual environment will be created at:")
+            self._append_output(f"   {self._venv_path}")
+            self._append_output(
+                f"🐍 Using Python executable: {self._python_executable}")
+            self._append_output("")
 
             # Prepare for creation
             self._creation_in_progress = True
@@ -401,6 +708,7 @@ class CreateVenvStep(BaseStep):
 
         except Exception as e:
             self._handle_creation_error(f"Failed to start venv creation: {e}")
+            self._append_output(f"❌ ERROR: {e}")
 
     def _validate_prerequisites(self) -> bool:
         """Validate that all prerequisites for venv creation are met"""
@@ -446,16 +754,27 @@ class CreateVenvStep(BaseStep):
 
     def _start_worker_thread(self):
         """Start the background worker thread for venv creation"""
-        self.worker = VenvCreationWorker(
-            self._python_executable,
-            str(self._venv_path),
-            self._get_installation_path(),
-            self.progress_queue,
-            self.result_queue
-        )
+        try:
+            self.worker = VenvCreationWorker(
+                self._python_executable,
+                str(self._venv_path),
+                self._get_installation_path(),
+                self.progress_queue,
+                self.result_queue
+            )
 
-        # Start the worker
-        self.worker.start()
+            # Start the worker
+            self.worker.start()
+            self._append_output(f"🔄 Worker thread started (Thread ID: {self.worker.ident})")
+            
+            # Ensure queue checking starts
+            if self.status_label:
+                self.status_label.after(100, self._check_queues)
+                self._append_output("📡 Queue monitoring started")
+            
+        except Exception as e:
+            self._append_output(f"❌ Failed to start worker thread: {e}")
+            self._handle_creation_error(f"Worker thread failed: {e}")
 
     def _check_queues(self):
         """Check for messages from worker thread"""
