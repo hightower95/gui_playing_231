@@ -9,12 +9,14 @@ Available Steps:
 - FolderStep: Alias for GetFolderStep (backward compatibility)
 - CreateVenvStep: Virtual environment creation and verification
 - InstallLibraryStep: Library installation and verification
+- GenerateFilesStep: Generate deployment files from templates
 """
 
 from .base_step import BaseStep
 from .folder_step import GetFolderStep, FolderStep
 from .venv_step import CreateVenvStep
 from .libray_step import InstallLibraryStep
+from .generate_files_step import GenerateFilesStep
 
 __all__ = [
     'BaseStep',
@@ -22,4 +24,5 @@ __all__ = [
     'FolderStep',
     'CreateVenvStep',
     'InstallLibraryStep',
+    'GenerateFilesStep',
 ]
