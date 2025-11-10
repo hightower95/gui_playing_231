@@ -206,12 +206,37 @@ class InstallGUI(QMainWindow):
         self.populate_step_content()
 
     def clear_step_content(self):
-        """Clear the step content area"""
+        """Clear the step content area and properly tear down previous step components"""
+        # Get current step before clearing to call cleanup if available
+        current_step = self.conductor.get_current_step()
+        if current_step and hasattr(current_step, 'cleanup_widgets'):
+            current_step.cleanup_widgets()
+
         # Remove all widgets from step content layout
         while self.step_content_layout.count():
             child = self.step_content_layout.takeAt(0)
             if child.widget():
-                child.widget().deleteLater()
+                # Ensure proper widget cleanup
+                widget = child.widget()
+                widget.setParent(None)
+                widget.deleteLater()
+            elif child.layout():
+                # Clean up nested layouts
+                self._clear_layout_recursive(child.layout())
+
+        # Force immediate processing of delete events
+        QApplication.processEvents()
+
+    def _clear_layout_recursive(self, layout):
+        """Recursively clear a layout and all its children"""
+        while layout.count():
+            child = layout.takeAt(0)
+            if child.widget():
+                widget = child.widget()
+                widget.setParent(None)
+                widget.deleteLater()
+            elif child.layout():
+                self._clear_layout_recursive(child.layout())
 
     def populate_step_content(self):
         """Populate the step content area with current step's widgets"""

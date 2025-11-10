@@ -46,6 +46,26 @@ class StatusMessages:
     PATH_VALID = "Installation path is valid"
     PATH_INVALID = "Path is invalid"
 
+    # Virtual Environment Status Messages
+    VENV_READY = "Ready to create virtual environment"
+    VENV_CREATING = "Creating virtual environment..."
+    VENV_CREATED = "Virtual environment created successfully"
+    VENV_FAILED = "Virtual environment creation failed"
+    VENV_SIMULATION = "Simulation mode - venv creation will be skipped"
+
+    # Progress Messages
+    VENV_INITIALIZING = "Initializing virtual environment creation..."
+    VENV_REMOVING_OLD = "Removing existing virtual environment..."
+    VENV_OLD_REMOVED = "Existing environment removed"
+    VENV_CREATING_AT = "Creating virtual environment at"
+    VENV_VERIFYING = "Verifying virtual environment..."
+    VENV_UPGRADING_PIP = "Upgrading pip to latest version..."
+    VENV_READY_COMPLETE = "Virtual environment ready!"
+    VENV_PIP_UPGRADED = "Pip upgraded successfully"
+    VENV_PIP_WARNINGS = "Pip upgrade completed with warnings"
+    VENV_PIP_FAILED = "Pip upgrade failed"
+    VENV_PIP_NOT_FOUND = "Pip executable not found, skipping upgrade"
+
 
 def get_status_color(status_type: str) -> str:
     """Get color code for a given status type
@@ -150,6 +170,7 @@ class ButtonLabels:
     BACK = "Back"
     OK = "OK"
     CANCEL = "Cancel"
+    CREATE_ENVIRONMENT = "Create Environment"
 
 
 # Common Dialog Titles
@@ -162,3 +183,9 @@ class DialogTitles:
     DIRECTORY_NOT_EMPTY = "Directory Not Empty"
     NO_PATH_SELECTED = "No Path Selected"
     FOLDER_SELECTION_DISABLED = "Folder Selection Disabled"
+    VENV_NOT_CREATED = "Virtual Environment Not Created"
+    MISSING_INSTALLATION_PATH = "Missing Installation Path"
+    PATH_NOT_ACCESSIBLE = "Path Not Accessible"
+    PYTHON_NOT_FOUND = "Python Not Found"
+    VENV_CREATION_FAILED = "Virtual Environment Creation Failed"
+    STATE_UPDATE_FAILED = "State Update Failed"

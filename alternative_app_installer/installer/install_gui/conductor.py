@@ -9,7 +9,8 @@ Design Principles:
 """
 from configparser import ConfigParser
 from typing import List, Dict, Any, Optional
-from .steps import GetFolderStep
+
+from .steps import GetFolderStep, CreateVenvStep
 
 
 class InstallConductor:
@@ -47,13 +48,15 @@ class InstallConductor:
         """Initialize all installation steps in order"""
         self._folderStep = GetFolderStep(
             self.installation_settings, self._install_state_variables)
+        self._createVenvStep = CreateVenvStep(
+            self.installation_settings, self._install_state_variables)
 
         # Define the complete installation sequence
         self._step_sequence: List = [
             self._folderStep,
             # Additional steps will be added here:
             # self._tokenSetupStep,
-            # self._createVenvStep,
+            self._createVenvStep,
             # self._installDependenciesStep,
             # self._generateRunScriptsStep,
         ]
@@ -107,7 +110,10 @@ class InstallConductor:
 
         # Try to complete the current step
         if current_step.complete_step():
-            # Step completed successfully, advance to next
+            # Step completed successfully, deactivate current step
+            current_step.set_inactive()
+
+            # Advance to next step
             self._current_step_index += 1
             self._activate_current_step()
             return True

@@ -110,6 +110,9 @@ class BaseStep(ABC):
     def set_inactive(self):
         """Called when this step is no longer active"""
         self.is_active = False
+        # Call cleanup if implemented by subclass
+        if hasattr(self, 'cleanup_widgets'):
+            self.cleanup_widgets()
 
     def cancel_step(self):
         """Called when the installation is cancelled
