@@ -19,7 +19,7 @@ from PySide6.QtCore import Qt
 
 from .base_step import BaseStep
 from ..gui_components import (
-    StatusTypes, ButtonLabels, DialogTitles_step_folder, LayoutConstants,
+    StatusTypes, ButtonLabels, DialogTitles, LayoutConstants,
     apply_status_styling
 )
 
@@ -33,9 +33,9 @@ class GetFolderStep(BaseStep):
         self.browse_button = None
         self.feedback_label = None
 
-        # Set default installation path
-        default_path = self._get_default_installation_folder()
-        self.update_shared_state("installation_path", default_path)
+        # Store default path locally, don't update shared state until validation
+        self._default_path = self._get_default_installation_folder()
+        self._current_path = self._default_path
 
     def get_title(self) -> str:
         """Get the title for this step"""
@@ -51,7 +51,8 @@ class GetFolderStep(BaseStep):
 
     def can_complete(self) -> bool:
         """Check if step can be completed"""
-        current_path = self.get_shared_state("installation_path", "")
+        current_path = self._current_path if hasattr(
+            self, '_current_path') else ""
         return bool(current_path.strip())
 
     def create_widgets(self, parent_widget, layout):
@@ -64,8 +65,8 @@ class GetFolderStep(BaseStep):
         path_row = QHBoxLayout()
 
         self.path_input = QLineEdit()
-        current_path = self.get_shared_state("installation_path", "")
-        self.path_input.setText(current_path)
+        # Use local current path, not shared state
+        self.path_input.setText(self._current_path)
         self.path_input.textChanged.connect(self._on_path_changed)
         path_row.addWidget(self.path_input)
 
@@ -94,7 +95,7 @@ class GetFolderStep(BaseStep):
         layout.addStretch()
 
         # Initial validation of default path
-        self._validate_path_real_time(self.path_input.text())
+        self._path_is_valid(self.path_input.text())
 
     def complete_step(self) -> bool:
         """Complete the folder selection step"""
@@ -103,7 +104,7 @@ class GetFolderStep(BaseStep):
         if not current_path:
             QMessageBox.warning(
                 None,
-                DialogTitles_step_folder.NO_PATH_SELECTED,
+                DialogTitles.NO_PATH_SELECTED,
                 "Please select an installation folder before proceeding."
             )
             return False
@@ -112,13 +113,13 @@ class GetFolderStep(BaseStep):
         if not self._validate_installation_path(current_path):
             return False
 
-        # Update shared state and mark as completed
-        self.update_shared_state("installation_path", current_path)
+        # ONLY update shared state when path is validated and step completes successfully
+        self.update_shared_state("valid_installation_path", current_path)
         self.mark_completed()
         return True
 
     def _get_default_installation_folder(self) -> str:
-        """Get the default installation folder using install_locations_preferences"""
+        """Get the default installation folder using Step_Select_Folder configuration"""
         # Try to get app name from settings
         app_name = "AlternativeApp"
         if hasattr(self.installation_settings, 'get'):
@@ -128,32 +129,48 @@ class GetFolderStep(BaseStep):
             except:
                 pass
 
-        # Try to get install_locations_preferences from config
+        # Try to get default_installation_folder from Step_Select_Folder section
         if hasattr(self.installation_settings, 'get'):
             try:
-                preferences_str = self.installation_settings.get(
-                    'Settings', 'install_locations_preferences', fallback=None)
-                if preferences_str:
-                    # Parse the list string and find first valid location
-                    preferences_list = ast.literal_eval(preferences_str)
-                    for location_template in preferences_list:
+                # First try default_installation_folder
+                default_str = self.installation_settings.get(
+                    'Step_Select_Folder', 'default_installation_folder', fallback=None)
+                if default_str:
+                    default_list = ast.literal_eval(default_str)
+                    for location_template in default_list:
                         expanded_location = self._expand_template_variables(
                             location_template)
-                        # Create full path with app name
                         full_path = str(Path(expanded_location) / app_name)
-                        # Check if this location is valid/accessible
-                        if self._is_location_accessible(expanded_location):
+                        if self._is_location_accessible_and_allowed(expanded_location):
                             return full_path
+
+                # If default doesn't work, try fallback_installation_folders
+                fallback_str = self.installation_settings.get(
+                    'Step_Select_Folder', 'fallback_installation_folders', fallback=None)
+                if fallback_str:
+                    fallback_list = ast.literal_eval(fallback_str)
+                    for location_template in fallback_list:
+                        expanded_location = self._expand_template_variables(
+                            location_template)
+                        full_path = str(Path(expanded_location) / app_name)
+                        if self._is_location_accessible_and_allowed(expanded_location):
+                            return full_path
+
             except Exception as e:
                 # If parsing fails, continue to fallback
                 pass
 
-        # Fallback to standard program files location
+        # Final fallback to standard program files location
         if os.name == 'nt':  # Windows
             program_files = os.environ.get('PROGRAMFILES', r'C:\Program Files')
-            return str(Path(program_files) / app_name)
+            fallback_path = str(Path(program_files) / app_name)
+            if self._is_drive_allowed(fallback_path):
+                return fallback_path
         else:  # Unix-like systems
             return str(Path.home() / app_name)
+
+        # If all else fails, use current directory
+        return str(Path.cwd() / app_name)
 
     def _expand_template_variables(self, template: str) -> str:
         """Expand template variables like {username} and {parent_folder}"""
@@ -170,6 +187,10 @@ class GetFolderStep(BaseStep):
         )
 
         return expanded
+
+    def _is_location_accessible_and_allowed(self, location: str) -> bool:
+        """Check if a location is accessible for installation and on allowed drive"""
+        return self._is_location_accessible(location) and self._is_drive_allowed(location)
 
     def _is_location_accessible(self, location: str) -> bool:
         """Check if a location is accessible for installation"""
@@ -195,29 +216,112 @@ class GetFolderStep(BaseStep):
         except Exception:
             return False
 
+    def _is_drive_allowed(self, path: str) -> bool:
+        """Check if the path is on an allowed drive according to hard_drive_letter_restrictions"""
+        try:
+            # Get drive letter from path
+            path_obj = Path(path)
+            if not path_obj.is_absolute():
+                return False
+
+            # Extract drive letter (e.g., 'C' from 'C:\...')
+            drive_part = path_obj.parts[0]
+            if ':' in drive_part:
+                drive_letter = drive_part.rstrip(':\\').upper()
+            else:
+                # Handle network paths or non-standard paths
+                return False  # Reject non-local paths by default
+
+            # Check if hard drive restrictions are configured
+            if hasattr(self.installation_settings, 'get'):
+                try:
+                    lock_to_local = self.installation_settings.getboolean(
+                        'Step_Select_Folder', 'lock_install_to_local_hard_drive', fallback=False)
+
+                    if lock_to_local:
+                        restrictions_str = self.installation_settings.get(
+                            'Step_Select_Folder', 'hard_drive_letter_restrictions', fallback=None)
+
+                        if restrictions_str:
+                            try:
+                                # Try to parse as a proper list first
+                                allowed_drives = ast.literal_eval(
+                                    restrictions_str)
+                            except (ValueError, SyntaxError):
+                                # If that fails, try manual parsing for cases like [C] instead of ["C"]
+                                # Remove brackets and split by comma
+                                clean_str = restrictions_str.strip('[]')
+                                allowed_drives = [item.strip().strip(
+                                    '"\'') for item in clean_str.split(',')]
+
+                            # Convert to uppercase for comparison and ensure string type
+                            allowed_drives = [str(drive).upper()
+                                              for drive in allowed_drives]
+                            return drive_letter in allowed_drives
+                        else:
+                            # If lock is enabled but no restrictions specified, default to C drive
+                            return drive_letter == 'C'
+                except Exception as e:
+                    # If parsing fails, allow by default
+                    print(f"Drive validation error: {e}")  # Debug output
+                    return True
+
+            # If no restrictions, allow all drives
+            return True
+
+        except Exception as e:
+            # If path parsing fails, reject by default
+            print(f"Path parsing error: {e}")  # Debug output
+            return False
+
+    def _get_allowed_drives_display(self) -> str:
+        """Get a display string of allowed drives for error messages"""
+        try:
+            if hasattr(self.installation_settings, 'get'):
+                restrictions_str = self.installation_settings.get(
+                    'Step_Select_Folder', 'hard_drive_letter_restrictions', fallback=None)
+
+                if restrictions_str:
+                    try:
+                        # Try to parse as a proper list first
+                        allowed_drives = ast.literal_eval(restrictions_str)
+                    except (ValueError, SyntaxError):
+                        # If that fails, try manual parsing for cases like [C] instead of ["C"]
+                        # Remove brackets and split by comma
+                        clean_str = restrictions_str.strip('[]')
+                        allowed_drives = [item.strip().strip('"\'')
+                                          for item in clean_str.split(',')]
+
+                    # Format as "C:, D:, E:"
+                    return ", ".join([f"{drive}:" for drive in allowed_drives])
+                else:
+                    return "C:"  # Default
+        except Exception:
+            return "C:"  # Safe fallback
+
     def _on_path_changed(self, new_path):
-        """Handle path input changes"""
-        self.update_shared_state("installation_path", new_path)
-        self._validate_path_real_time(new_path)
+        """Handle path input changes - update local state only"""
+        self._current_path = new_path
+        self._path_is_valid(new_path)
 
     def _browse_for_folder(self):
         """Open folder browser dialog"""
-        current_path = self.path_input.text() if self.path_input else ""
+        current_path = self._current_path
 
-        # Start browsing from current path or default location
-        start_path = current_path if current_path and Path(
-            current_path).exists() else str(Path.home())
+        # # Start browsing from current path or default location
+        # start_path = current_path if current_path and Path(
+        #     current_path).exists() else str(Path.home())
 
         folder_path = QFileDialog.getExistingDirectory(
             None,
-            DialogTitles_step_folder.SELECT_FOLDER,
-            start_path
+            DialogTitles.SELECT_FOLDER,
+            current_path
         )
 
         if folder_path:
             self.path_input.setText(folder_path)
-            self.update_shared_state("installation_path", folder_path)
-            self._validate_path_real_time(folder_path)
+            if self._path_is_valid(folder_path):
+                self._current_path = folder_path
 
     def _validate_installation_path(self, path: str) -> bool:
         """Validate the selected installation path"""
@@ -228,8 +332,18 @@ class GetFolderStep(BaseStep):
             if not path_obj.is_absolute():
                 QMessageBox.warning(
                     None,
-                    DialogTitles_step_folder.INVALID_PATH,
+                    DialogTitles.INVALID_PATH,
                     "Please provide an absolute path (e.g., C:\\Program Files\\MyApp)."
+                )
+                return False
+
+            # Check drive restrictions first
+            if not self._is_drive_allowed(path):
+                allowed_drives = self._get_allowed_drives_display()
+                QMessageBox.warning(
+                    None,
+                    DialogTitles.INVALID_PATH,
+                    f"Installation is restricted to local hard drives: {allowed_drives}\n\nPlease choose a path on an allowed drive."
                 )
                 return False
 
@@ -241,7 +355,7 @@ class GetFolderStep(BaseStep):
                 except Exception as e:
                     QMessageBox.warning(
                         None,
-                        DialogTitles_step_folder.CANNOT_CREATE_DIRECTORY,
+                        DialogTitles.CANNOT_CREATE_DIRECTORY,
                         f"Cannot create parent directory:\n{parent_dir}\n\nError: {str(e)}"
                     )
                     return False
@@ -250,7 +364,7 @@ class GetFolderStep(BaseStep):
             if not os.access(parent_dir, os.W_OK):
                 QMessageBox.warning(
                     None,
-                    DialogTitles_step_folder.PERMISSION_DENIED,
+                    DialogTitles.PERMISSION_DENIED,
                     f"You don't have write permissions to:\n{parent_dir}\n\nPlease choose a different location or run as administrator."
                 )
                 return False
@@ -259,7 +373,7 @@ class GetFolderStep(BaseStep):
             if path_obj.exists() and any(path_obj.iterdir()):
                 reply = QMessageBox.question(
                     None,
-                    DialogTitles_step_folder.DIRECTORY_NOT_EMPTY,
+                    DialogTitles.DIRECTORY_NOT_EMPTY,
                     f"The directory already exists and contains files:\n{path_obj}\n\nDo you want to continue? Existing files may be overwritten.",
                     QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
                     QMessageBox.StandardButton.No
@@ -272,19 +386,19 @@ class GetFolderStep(BaseStep):
         except Exception as e:
             QMessageBox.warning(
                 None,
-                DialogTitles_step_folder.INVALID_PATH,
+                DialogTitles.INVALID_PATH,
                 f"The selected path is invalid:\n{str(e)}"
             )
             return False
 
-    def _validate_path_real_time(self, path: str):
+    def _path_is_valid(self, path: str) -> bool:
         """Validate path in real-time and update feedback"""
         if not self.feedback_label:
-            return
+            return False
 
         if not path.strip():
             self._update_feedback_status(StatusTypes.INFO, "No path selected")
-            return
+            return False
 
         try:
             path_obj = Path(path)
@@ -293,34 +407,43 @@ class GetFolderStep(BaseStep):
             if not path_obj.is_absolute():
                 self._update_feedback_status(
                     StatusTypes.ERROR, "Path must be absolute (e.g., C:\\Program Files\\MyApp)")
-                return
+                return False
+
+            # Check drive restrictions
+            if not self._is_drive_allowed(path):
+                allowed_drives = self._get_allowed_drives_display()
+                self._update_feedback_status(
+                    StatusTypes.ERROR, f"Path must be on allowed drive: {allowed_drives}")
+                return False
 
             # Check if parent directory exists or can be created
             parent_dir = path_obj.parent
             if not parent_dir.exists():
                 self._update_feedback_status(
                     StatusTypes.INFO, f"Parent directory will be created: {parent_dir}")
-                return
+                return True
 
             # Check if we have write permissions
             if not os.access(parent_dir, os.W_OK):
                 self._update_feedback_status(
                     StatusTypes.ERROR, "No write permissions to parent directory")
-                return
+                return False
 
             # Check if target directory already exists and is not empty
             if path_obj.exists() and any(path_obj.iterdir()):
                 self._update_feedback_status(
                     StatusTypes.INFO, "Directory exists and contains files - will prompt before overwriting")
-                return
+                return True
 
             # Path is valid
             self._update_feedback_status(
                 StatusTypes.SUCCESS, "Installation path is valid")
+            return True
 
         except Exception as e:
             self._update_feedback_status(
                 StatusTypes.ERROR, f"Invalid path: {str(e)}")
+            return False
 
     def _update_feedback_status(self, status_type: str, message: str = ""):
         """Update feedback label with color-coded status using GUI components"""

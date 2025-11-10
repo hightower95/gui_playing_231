@@ -29,10 +29,9 @@ class InstallConductor:
         self.installation_settings = installation_settings
 
         # Shared state variables that steps can read/write
+        # Only contains validated, accepted values from completed steps
         self._install_state_variables: Dict[str, Any] = {
-            "installation_path": "",
-            "venv_path": "",
-            "python_path": "",
+            "valid_installation_path": "",
             "library_installed": False,
             "scripts_generated": False,
         }

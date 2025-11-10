@@ -153,7 +153,7 @@ class ButtonLabels:
 
 
 # Common Dialog Titles
-class DialogTitles_step_folder:
+class DialogTitles:
     """Standard dialog title text"""
     SELECT_FOLDER = "Select Installation Folder"
     INVALID_PATH = "Invalid Path"
