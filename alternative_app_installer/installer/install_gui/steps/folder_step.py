@@ -78,6 +78,15 @@ class GetFolderStep(BaseStep):
         # Load initial path
         self._load_initial_path()
 
+        # Debug output
+        print(
+            f"DEBUG: Folder step initialized with path: {self._current_path}")
+        print(f"DEBUG: Path valid: {self._is_path_valid}")
+        print(f"DEBUG: Can complete: {self.can_complete()}")
+
+        # Always notify completion state after initial setup
+        self.notify_completion_state_changed()
+
     def complete_step(self) -> bool:
         """Complete the folder selection step"""
         if not self.can_complete():
@@ -163,28 +172,32 @@ class GetFolderStep(BaseStep):
 
     def _validate_current_path(self):
         """Validate the current path and update UI"""
+        old_can_complete = self.can_complete()
+
         if not self._current_path:
             self._is_path_valid = False
             self._update_status("No path selected", "error")
-            return
+        else:
+            path_obj = Path(self._current_path)
 
-        path_obj = Path(self._current_path)
+            # Check if path is writable
+            if not self._is_path_writable(path_obj):
+                self._is_path_valid = False
+                self._update_status("Path is not writable", "error")
+            # Check if path is not a system directory
+            elif self._is_system_directory(path_obj):
+                self._is_path_valid = False
+                self._update_status(
+                    "Cannot install in system directory", "error")
+            else:
+                # Path is valid
+                self._is_path_valid = True
+                self._update_status("Path is valid", "success")
 
-        # Check if path is writable
-        if not self._is_path_writable(path_obj):
-            self._is_path_valid = False
-            self._update_status("Path is not writable", "error")
-            return
-
-        # Check if path is not a system directory
-        if self._is_system_directory(path_obj):
-            self._is_path_valid = False
-            self._update_status("Cannot install in system directory", "error")
-            return
-
-        # Path is valid
-        self._is_path_valid = True
-        self._update_status("Path is valid", "success")
+        # Notify if completion state changed
+        new_can_complete = self.can_complete()
+        if old_can_complete != new_can_complete:
+            self.notify_completion_state_changed()
 
     def _is_path_writable(self, path: Path) -> bool:
         """Check if path is writable"""

@@ -36,6 +36,9 @@ class BaseStep(ABC):
         self.is_active = False
         self._completed = False
 
+        # Completion state change callback - called when can_complete status changes
+        self.completion_state_changed_callback = None
+
     # ========================================================================
     # Required Methods (must be implemented by subclasses)
     # ========================================================================
@@ -148,8 +151,14 @@ class BaseStep(ABC):
         return self.shared_state.get(key, default)
 
     def mark_completed(self):
-        """Mark this step as completed"""
+        """Mark this step as completed and notify completion state change"""
+        old_can_complete = self.can_complete()
         self._completed = True
+        new_can_complete = self.can_complete()
+
+        # Notify if completion state changed
+        if old_can_complete != new_can_complete:
+            self._notify_completion_state_changed()
 
     def is_completed(self) -> bool:
         """Check if this step has been completed
@@ -158,3 +167,23 @@ class BaseStep(ABC):
             True if step is completed, False otherwise
         """
         return self._completed
+
+    def set_completion_state_changed_callback(self, callback):
+        """Set the callback to be called when completion state changes
+
+        Args:
+            callback: Function to call when can_complete() result changes
+        """
+        self.completion_state_changed_callback = callback
+
+    def _notify_completion_state_changed(self):
+        """Notify listeners that the completion state has changed"""
+        if self.completion_state_changed_callback:
+            try:
+                self.completion_state_changed_callback(self.can_complete())
+            except Exception as e:
+                print(f"Error in completion state changed callback: {e}")
+
+    def notify_completion_state_changed(self):
+        """Public method for steps to manually trigger completion state change notification"""
+        self._notify_completion_state_changed()

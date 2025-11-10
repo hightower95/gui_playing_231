@@ -29,6 +29,9 @@ class InstallConductor:
         """
         self.installation_settings = installation_settings
 
+        # Callback for when completion state changes
+        self.completion_state_changed_callback = None
+
         # Shared state variables that steps can read/write
         # Only contains validated, accepted values from completed steps
         self._install_state_variables: Dict[str, Any] = {
@@ -60,6 +63,11 @@ class InstallConductor:
             # self._installDependenciesStep,
             # self._generateRunScriptsStep,
         ]
+
+        # Set up completion state change callbacks for all steps
+        for step in self._step_sequence:
+            step.set_completion_state_changed_callback(
+                self._on_step_completion_state_changed)
 
     def get_current_step(self):
         """Get the currently active installation step
@@ -163,3 +171,25 @@ class InstallConductor:
             True if installation is finished
         """
         return self.is_installation_complete()
+
+    def set_completion_state_changed_callback(self, callback):
+        """Set the callback to be called when current step's completion state changes
+
+        Args:
+            callback: Function to call when can_complete() result changes
+        """
+        self.completion_state_changed_callback = callback
+
+    def _on_step_completion_state_changed(self, can_complete: bool):
+        """Handle completion state change from a step
+
+        Args:
+            can_complete: Whether the step can be completed
+        """
+        # Forward the completion state change to the UI
+        if self.completion_state_changed_callback:
+            try:
+                self.completion_state_changed_callback(can_complete)
+            except Exception as e:
+                print(
+                    f"Error in conductor completion state changed callback: {e}")

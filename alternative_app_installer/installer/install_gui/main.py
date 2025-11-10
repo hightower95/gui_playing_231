@@ -37,6 +37,10 @@ class InstallGUI(tk.Tk):
         # Create the conductor to manage installation steps
         self.conductor = InstallConductor(installation_settings)
 
+        # Set up completion state change callback
+        self.conductor.set_completion_state_changed_callback(
+            self.on_completion_state_changed)
+
         # Setup the GUI
         self.setup_ui()
         self.refresh_step_display()
@@ -157,8 +161,22 @@ class InstallGUI(tk.Tk):
         self.clear_step_content()
         self.populate_step_content()
 
-        # Update button states AFTER widgets are created and step is initialized
         # Get fresh step info after widget creation
+        step_info = self.conductor.get_step_info()
+        can_cancel = step_info.get("can_cancel", True)
+        self.cancel_button.config(state="normal" if can_cancel else "disabled")
+
+        # Update button text for final step
+        if self.conductor.is_installation_complete():
+            self.complete_button.config(text="Finish")
+        else:
+            self.complete_button.config(text="Complete Step")
+
+        # Trigger initial button state update via callback system
+        self.on_completion_state_changed(step_info.get("can_complete", False))
+
+    def update_button_states(self):
+        """Update button states without refreshing the entire display"""
         step_info = self.conductor.get_step_info()
         can_complete = step_info.get("can_complete", False)
         self.complete_button.config(
@@ -240,6 +258,16 @@ class InstallGUI(tk.Tk):
             "Installation Complete",
             "The application has been installed successfully!\n\nYou can now close this installer."
         )
+
+    def on_completion_state_changed(self, can_complete: bool):
+        """Handle completion state change from the conductor
+
+        Args:
+            can_complete: Whether the current step can be completed
+        """
+        print(f"Debug: Completion state changed to: {can_complete}")
+        self.complete_button.config(
+            state="normal" if can_complete else "disabled")
 
     def finish_installation(self):
         """Finish the installation and close the installer"""
