@@ -55,3 +55,4 @@ installer/logs/
 last_run_log.txt
 installer/installation_settings.ini
 run_app.pyw
+alternative_app_installer/installer/logs/installer.log
