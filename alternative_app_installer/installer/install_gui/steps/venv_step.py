@@ -17,6 +17,7 @@ import threading
 import queue
 import tkinter as tk
 from tkinter import ttk, messagebox, scrolledtext
+import logging
 
 from .base_step import BaseStep
 
@@ -40,6 +41,11 @@ class VenvCreationWorker(threading.Thread):
         3. Always verify with 'pip show pip' before claiming success
         """
         try:
+            logging.info(f"VEnv worker: Starting venv creation process")
+            logging.debug(f"VEnv worker: Python executable: {self.python_executable}")
+            logging.debug(f"VEnv worker: Target venv path: {self.venv_path}")
+            logging.debug(f"VEnv worker: Installation path: {self.installation_path}")
+            
             self.progress_queue.put("🔄 Worker thread started successfully")
             self.progress_queue.put("🔧 Checking virtual environment status...")
             self.progress_queue.put(f"📍 Target location: {self.venv_path}")
@@ -48,12 +54,14 @@ class VenvCreationWorker(threading.Thread):
 
             # Step 1: Check if venv already exists and is functional
             if self.venv_path.exists():
+                logging.info(f"VEnv worker: Found existing venv directory at {self.venv_path}")
                 self.progress_queue.put(
                     "📁 Virtual environment directory found")
                 self.progress_queue.put(
                     "🔍 Testing existing virtual environment...")
 
                 if self._test_existing_venv():
+                    logging.info("VEnv worker: Existing venv is functional, using it")
                     self.progress_queue.put(
                         "✅ Existing virtual environment is working perfectly!")
                     self.progress_queue.put(
@@ -62,18 +70,23 @@ class VenvCreationWorker(threading.Thread):
                         (True, "Existing virtual environment verified and ready"))
                     return
                 else:
+                    logging.warning("VEnv worker: Existing venv is not functional, will recreate")
                     self.progress_queue.put(
                         "⚠️ Existing virtual environment is not functional")
                     self.progress_queue.put(
                         "🗑️ Removing broken virtual environment...")
                     self._remove_broken_venv()
+            else:
+                logging.info(f"VEnv worker: No existing venv found at {self.venv_path}")
 
             # Step 2: Create new virtual environment
+            logging.info("VEnv worker: Creating new virtual environment")
             self.progress_queue.put("🏗️ Creating new virtual environment...")
             self.progress_queue.put(
                 f"📁 Absolute path: {self.venv_path.resolve()}")
 
             if not self._create_venv():
+                logging.error("VEnv worker: Virtual environment creation failed")
                 self.progress_queue.put(
                     "❌ Virtual environment creation failed")
                 self.result_queue.put(
@@ -109,11 +122,15 @@ class VenvCreationWorker(threading.Thread):
             else:
                 venv_python = self.venv_path / "bin" / "python"
 
+            logging.debug(f"VEnv worker: Testing venv python at: {venv_python}")
+
             if not venv_python.exists():
+                logging.warning(f"VEnv worker: Python executable not found at {venv_python}")
                 self.progress_queue.put(
                     "❌ Virtual environment python executable not found")
                 return False
 
+            logging.info("VEnv worker: Running 'pip show pip' to test venv functionality")
             self.progress_queue.put(
                 "🧪 Running 'pip show pip' to test venv functionality...")
             self.progress_queue.put(
@@ -127,6 +144,12 @@ class VenvCreationWorker(threading.Thread):
                 timeout=30,
                 cwd=self.installation_path
             )
+
+            logging.debug(f"VEnv worker: pip show pip return code: {result.returncode}")
+            if result.stdout:
+                logging.debug(f"VEnv worker: pip show pip stdout:\n{result.stdout}")
+            if result.stderr:
+                logging.debug(f"VEnv worker: pip show pip stderr:\n{result.stderr}")
 
             # Show the pip output to the user
             self.progress_queue.put("=" * 40)
@@ -189,6 +212,9 @@ class VenvCreationWorker(threading.Thread):
             cmd = [self.python_executable, '-m',
                    'venv', '--clear', str(self.venv_path)]
 
+            logging.info(f"VEnv worker: Creating venv with command: {' '.join(cmd)}")
+            logging.debug(f"VEnv worker: Working directory: {self.installation_path}")
+
             self.progress_queue.put(f"▶️ Running command: {' '.join(cmd)}")
             self.progress_queue.put("=" * 60)
 
@@ -202,11 +228,17 @@ class VenvCreationWorker(threading.Thread):
 
             stdout, _ = process.communicate(timeout=180)
 
+            logging.debug(f"VEnv worker: venv creation return code: {process.returncode}")
+            if stdout:
+                logging.debug(f"VEnv worker: venv creation output:\n{stdout}")
+
             if process.returncode == 0:
+                logging.info("VEnv worker: Virtual environment creation completed successfully")
                 self.progress_queue.put(
                     "✅ Virtual environment creation completed")
                 return True
             else:
+                logging.error(f"VEnv worker: Virtual environment creation failed with code: {process.returncode}")
                 self.progress_queue.put(
                     f"❌ Virtual environment creation failed with code: {process.returncode}")
                 if stdout:
@@ -214,9 +246,11 @@ class VenvCreationWorker(threading.Thread):
                 return False
 
         except subprocess.TimeoutExpired:
+            logging.error("VEnv worker: Virtual environment creation timed out after 180 seconds")
             self.progress_queue.put("❌ Virtual environment creation timed out")
             return False
         except Exception as e:
+            logging.error(f"VEnv worker: Error creating virtual environment: {e}")
             self.progress_queue.put(
                 f"💥 Error creating virtual environment: {e}")
             return False
@@ -527,6 +561,11 @@ class CreateVenvStep(BaseStep):
     def __init__(self, installation_settings, shared_state):
         super().__init__(installation_settings, shared_state)
 
+        # Venv configuration
+        self._venv_name = self._get_venv_directory_name()
+        
+        logging.debug(f"VEnv step: Initialized with venv directory name: {self._venv_name}")
+
         # UI components
         self.status_label = None
         self.progress_bar = None
@@ -625,10 +664,14 @@ class CreateVenvStep(BaseStep):
 
     def complete_step(self) -> bool:
         """Complete the virtual environment creation step"""
+        logging.info("VEnv step: Attempting to complete step")
+        
         if self._is_simulation_enabled():
+            logging.info("VEnv step: Simulation mode enabled, completing simulation")
             return self._complete_simulation()
 
         if not self._is_venv_created():
+            logging.warning("VEnv step: Virtual environment not created yet")
             messagebox.showwarning(
                 "Virtual Environment Not Created",
                 "Please create the virtual environment before proceeding."
@@ -638,11 +681,13 @@ class CreateVenvStep(BaseStep):
         # Update shared state with ONLY venv_path - everything else can be derived
         try:
             venv_path = self._calculate_venv_path()
+            logging.info(f"VEnv step: Setting venv_path in shared state: {venv_path}")
             self.update_shared_state("venv_path", str(venv_path))
             # Don't mark completed here - only mark completed after verification in _handle_creation_success
             return True
 
         except Exception as e:
+            logging.error(f"VEnv step: Error completing step: {e}")
             messagebox.showerror(
                 "State Update Failed",
                 f"Failed to update installation state:\n{e}"
@@ -738,10 +783,13 @@ class CreateVenvStep(BaseStep):
     def _start_venv_creation(self):
         """Start the virtual environment creation process"""
         if self._creation_in_progress:
+            logging.debug("VEnv step: Creation already in progress, ignoring request")
             return
 
         # Reset verification flag when starting new creation/verification
         self._verification_completed = False
+
+        logging.info("VEnv step: Starting virtual environment creation/verification process")
 
         # Show immediate feedback in terminal
         self._append_output("=" * 60)
@@ -751,8 +799,12 @@ class CreateVenvStep(BaseStep):
         try:
             # Validate prerequisites
             if not self._validate_prerequisites():
+                logging.error("VEnv step: Prerequisites validation failed")
                 self._append_output("❌ Prerequisites validation failed")
                 return
+
+            logging.info(f"VEnv step: Virtual environment target path: {self._venv_path}")
+            logging.info(f"VEnv step: Python executable: {self._python_executable}")
 
             # Show the absolute path that will be created
             self._append_output(f"📁 Virtual environment will be created at:")
@@ -769,6 +821,7 @@ class CreateVenvStep(BaseStep):
             self._start_worker_thread()
 
         except Exception as e:
+            logging.error(f"VEnv step: Failed to start venv creation: {e}")
             self._handle_creation_error(f"Failed to start venv creation: {e}")
             self._append_output(f"❌ ERROR: {e}")
 
@@ -1002,6 +1055,9 @@ class CreateVenvStep(BaseStep):
         # Set verification completed flag
         self._verification_completed = True
 
+        logging.info(f"VEnv step: Virtual environment creation successful - {message}")
+        logging.info(f"VEnv step: Final venv path: {self._venv_path}")
+
         if self.output_text:
             self.output_text.insert(tk.END, f"\nSuccess: {message}\n")
             self.output_text.see(tk.END)
@@ -1018,6 +1074,8 @@ class CreateVenvStep(BaseStep):
 
     def _handle_creation_error(self, error_message: str):
         """Handle venv creation errors"""
+        logging.error(f"VEnv step: Virtual environment creation failed - {error_message}")
+        
         if self.output_text:
             self.output_text.insert(tk.END, f"\nError: {error_message}\n")
             self.output_text.see(tk.END)

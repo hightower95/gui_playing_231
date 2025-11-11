@@ -18,6 +18,7 @@ from typing import Dict, Any
 from configparser import ConfigParser
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
+import logging
 
 from .base_step import BaseStep
 
@@ -174,7 +175,10 @@ class GenerateFilesStep(BaseStep):
 
     def _open_target_folder(self):
         """Open the target folder with run_app.pyw selected"""
+        logging.info("Generate files step: User clicked 'Open Folder' button")
+        
         if not self._target_folder or not self._files_generated:
+            logging.warning("Generate files step: Cannot open folder - files not generated yet")
             messagebox.showwarning(
                 "No Files Generated",
                 "Please generate files first before opening the folder."
@@ -183,22 +187,25 @@ class GenerateFilesStep(BaseStep):
 
         run_app_path = self._target_folder / "run_app.pyw"
         if not run_app_path.exists():
+            logging.error(f"Generate files step: run_app.pyw not found at expected path: {run_app_path}")
             messagebox.showerror(
                 "File Not Found",
                 f"run_app.pyw not found in {self._target_folder}"
             )
             return
 
+        logging.info(f"Generate files step: Opening file explorer with selected file: {run_app_path}")
+
         try:
             # Use Windows explorer with /select parameter to highlight the file
             import subprocess
             result = subprocess.run(
-                ['explorer', '/select,', str(run_app_path)], 
+                ['explorer', '/select,', str(run_app_path)],
                 capture_output=True, text=True)
-            
+
             # Explorer often returns non-zero exit codes even when successful
             # So we don't check the return code for the /select command
-            
+
         except Exception as e:
             # Fallback: just open the folder
             try:
@@ -220,18 +227,28 @@ class GenerateFilesStep(BaseStep):
             return
 
         if not self._target_folder:
+            logging.error("Generate files step: No target folder available")
             messagebox.showerror("No Installation Folder",
                                  "Installation folder not found. Please complete the folder selection step first.")
             return
+
+        logging.info(f"Generate files step: Starting file generation in: {self._target_folder}")
 
         try:
             self._generation_in_progress = True
             self._update_ui_state()
 
             # Generate each file
+            logging.info("Generate files step: Generating run_app.pyw")
             self._generate_run_app()
+            
+            logging.info("Generate files step: Generating update_app.pyw")
             self._generate_update_app()
+            
+            logging.info("Generate files step: Generating launch_config.ini")
             self._generate_launch_config()
+            
+            logging.info("Generate files step: Copying utilities directory")
             self._copy_utilities()
 
             # Mark as completed
@@ -239,10 +256,12 @@ class GenerateFilesStep(BaseStep):
             self.notify_completion_state_changed()
             self._update_ui_state()  # Update button states
 
+            logging.info("Generate files step: File generation completed successfully")
             messagebox.showinfo("Generation Complete",
                                 f"Files generated successfully in:\\n{self._target_folder}")
 
         except Exception as e:
+            logging.error(f"Generate files step: File generation failed: {e}")
             messagebox.showerror("Generation Error",
                                  f"Failed to generate files: {e}")
             # Reset checklist on error

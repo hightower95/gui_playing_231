@@ -14,6 +14,7 @@ from configparser import ConfigParser
 from typing import Dict, Any, Optional
 import tkinter as tk
 from tkinter import ttk
+import logging
 
 
 class BaseStep(ABC):
@@ -110,10 +111,12 @@ class BaseStep(ABC):
     def set_active(self):
         """Called when this step becomes the active step"""
         self.is_active = True
+        logging.info(f"Entering step: {self.get_title()}")
 
     def set_inactive(self):
         """Called when this step is no longer active"""
         self.is_active = False
+        logging.info(f"Leaving step: {self.get_title()}")
         # Call cleanup if implemented by subclass
         if hasattr(self, 'cleanup_widgets'):
             self.cleanup_widgets()
@@ -136,6 +139,7 @@ class BaseStep(ABC):
             key: State variable name
             value: New value for the state variable
         """
+        logging.debug(f"Step '{self.get_title()}': Setting shared state {key} = {value}")
         self.shared_state[key] = value
 
     def get_shared_state(self, key: str, default: Any = None) -> Any:
@@ -155,6 +159,8 @@ class BaseStep(ABC):
         old_can_complete = self.can_complete()
         self._completed = True
         new_can_complete = self.can_complete()
+        
+        logging.info(f"Step '{self.get_title()}': Marked as completed")
 
         # Notify if completion state changed
         if old_can_complete != new_can_complete:

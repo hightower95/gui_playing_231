@@ -12,6 +12,7 @@ import os
 from pathlib import Path
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
+import logging
 
 from .base_step import BaseStep
 
@@ -89,7 +90,10 @@ class GetFolderStep(BaseStep):
 
     def complete_step(self) -> bool:
         """Complete the folder selection step"""
+        logging.info(f"Folder step: Attempting to complete with path: {self._current_path}")
+        
         if not self.can_complete():
+            logging.warning(f"Folder step: Cannot complete - invalid path: {self._current_path}")
             messagebox.showwarning(
                 "Invalid Path",
                 "Please select a valid installation folder before proceeding."
@@ -97,6 +101,7 @@ class GetFolderStep(BaseStep):
             return False
 
         # Update shared state with validated path
+        logging.info(f"Folder step: Validation successful, setting installation path: {self._current_path}")
         self.update_shared_state("valid_installation_path", self._current_path)
         self.mark_completed()
         return True
@@ -146,6 +151,8 @@ class GetFolderStep(BaseStep):
     def _browse_for_folder(self):
         """Open folder browser dialog"""
         initial_dir = self._default_path  # must be default path else user gets a confusing / irritating experience
+        
+        logging.info(f"Folder step: Opening folder browser dialog with initial directory: {initial_dir}")
 
         # Use tkinter's native folder dialog
         selected_path = filedialog.askdirectory(
@@ -154,16 +161,22 @@ class GetFolderStep(BaseStep):
         )
 
         if selected_path:
+            logging.info(f"Folder step: User selected path via browser: {selected_path}")
             self._current_path = selected_path
             if self.path_entry:
                 self.path_entry.delete(0, tk.END)
                 self.path_entry.insert(0, selected_path)
             self._validate_current_path()
+        else:
+            logging.debug("Folder step: User cancelled folder browser dialog")
 
     def _on_path_changed(self, event=None):
         """Handle manual path entry changes"""
         if self.path_entry:
+            old_path = self._current_path
             self._current_path = self.path_entry.get().strip()
+            if old_path != self._current_path:
+                logging.debug(f"Folder step: Path manually changed from '{old_path}' to '{self._current_path}'")
             self._validate_current_path()
 
     # ========================================================================

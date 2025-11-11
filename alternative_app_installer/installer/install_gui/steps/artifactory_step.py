@@ -15,6 +15,7 @@ from tkinter import ttk, messagebox
 import webbrowser
 import configparser
 from pathlib import Path
+import logging
 
 from .base_step import BaseStep
 from ..utilities.pyirc_bootstrapper import (
@@ -145,14 +146,18 @@ class ArtifactorySetupStep(BaseStep):
 
     def complete_step(self) -> bool:
         """Complete the Artifactory configuration step"""
+        logging.info("Artifactory step: Attempting to complete step")
+        
         if self._is_configured or pip_exists_with_correct_sections():
             # Already configured - just save state
+            logging.info("Artifactory step: Already configured, marking as complete")
             self.update_shared_state("artifactory_configured", True)
             self.mark_completed()
             return True
 
         # Check if placeholder is still showing
         if hasattr(self, 'showing_placeholder') and self.showing_placeholder:
+            logging.warning("Artifactory step: User has not replaced placeholder text")
             messagebox.showwarning(
                 "No Input",
                 "Please replace the example text with your actual Artifactory configuration.")
@@ -160,11 +165,16 @@ class ArtifactorySetupStep(BaseStep):
 
         # Get and validate input
         pyirc_entry_value = self.url_entry.get("1.0", tk.END).strip()
+        logging.debug(f"Artifactory step: User input received (length: {len(pyirc_entry_value)} chars)")
+        
         is_valid, error_msg = is_valid_index_url_value(pyirc_entry_value)
 
         if not is_valid:
+            logging.error(f"Artifactory step: Invalid configuration - {error_msg}")
             messagebox.showerror("Invalid Configuration", error_msg)
             return False
+
+        logging.info("Artifactory step: Configuration validation successful, saving to .pyirc")
 
         # Save configuration
         try:
@@ -175,7 +185,7 @@ class ArtifactorySetupStep(BaseStep):
             # Remove existing index-url if present
             if config.has_option('global', 'index-url'):
                 existing_url = config.get('global', 'index-url')
-                print(f"Overwriting existing index-url: {existing_url}")
+                logging.info(f"Artifactory step: Overwriting existing index-url: {existing_url[:50]}...")
                 config.remove_option('global', 'index-url')
 
             # Merge parsed configuration
@@ -333,19 +343,19 @@ class ArtifactorySetupStep(BaseStep):
     def _open_token_url(self):
         """Open the Artifactory token URL"""
         try:
+            logging.info(f"Artifactory step: Opening token URL: {self.token_url}")
             webbrowser.open(self.token_url)
-            print(f"Opened Artifactory token URL: {self.token_url}")
         except Exception as e:
-            print(f"Failed to open token URL: {e}")
+            logging.error(f"Artifactory step: Failed to open token URL: {e}")
             messagebox.showerror("Error", f"Failed to open URL: {e}")
 
     def _open_guide_url(self):
         """Open the Artifactory guide URL"""
         try:
+            logging.info(f"Artifactory step: Opening guide URL: {self.guide_url}")
             webbrowser.open(self.guide_url)
-            print(f"Opened Artifactory guide URL: {self.guide_url}")
         except Exception as e:
-            print(f"Failed to open guide URL: {e}")
+            logging.error(f"Artifactory step: Failed to open guide URL: {e}")
             messagebox.showerror("Error", f"Failed to open URL: {e}")
 
     def _create_tooltip(self, widget, text):

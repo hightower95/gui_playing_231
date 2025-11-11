@@ -20,7 +20,7 @@ def load_launch_config(config_file):
     # Return as dictionary with minimal defaults
     defaults = {
         'library_name': 'requests',
-        'venv_path': 'c:\Users\peter\OneDrive\Documents\Coding\gui\alternative_app_installer\.test_venv',
+        'venv_path': 'C:\Users\peter\OneDrive\Documents\Coding\gui\alternative_app_installer\.test_venv',
     }
 
     if config.has_section('DEFAULT'):
