@@ -33,6 +33,7 @@ class GenerateFilesStep(BaseStep):
         # UI components will be initialized in create_widgets
         self.folder_label = None
         self.generate_button = None
+        self.open_folder_button = None
         self._checklist_labels = {}
 
     @property
@@ -162,6 +163,53 @@ class GenerateFilesStep(BaseStep):
             self.generate_button.config(
                 state="normal" if can_generate else "disabled")
 
+        # Open folder button should be enabled when files are generated and target folder exists
+        can_open_folder = (self._target_folder is not None and
+                           self._files_generated and
+                           (self._target_folder / "run_app.pyw").exists())
+
+        if self.open_folder_button:
+            self.open_folder_button.config(
+                state="normal" if can_open_folder else "disabled")
+
+    def _open_target_folder(self):
+        """Open the target folder with run_app.pyw selected"""
+        if not self._target_folder or not self._files_generated:
+            messagebox.showwarning(
+                "No Files Generated",
+                "Please generate files first before opening the folder."
+            )
+            return
+
+        run_app_path = self._target_folder / "run_app.pyw"
+        if not run_app_path.exists():
+            messagebox.showerror(
+                "File Not Found",
+                f"run_app.pyw not found in {self._target_folder}"
+            )
+            return
+
+        try:
+            # Use Windows explorer with /select parameter to highlight the file
+            import subprocess
+            result = subprocess.run(
+                ['explorer', '/select,', str(run_app_path)], 
+                capture_output=True, text=True)
+            
+            # Explorer often returns non-zero exit codes even when successful
+            # So we don't check the return code for the /select command
+            
+        except Exception as e:
+            # Fallback: just open the folder
+            try:
+                import subprocess
+                subprocess.run(['explorer', str(self._target_folder)])
+            except Exception as e2:
+                messagebox.showerror(
+                    "Unable to Open Folder",
+                    f"Failed to open folder: {e}\nFallback also failed: {e2}"
+                )
+
     # ========================================================================
     # File Generation Methods
     # ========================================================================
@@ -189,6 +237,7 @@ class GenerateFilesStep(BaseStep):
             # Mark as completed
             self._files_generated = True
             self.notify_completion_state_changed()
+            self._update_ui_state()  # Update button states
 
             messagebox.showinfo("Generation Complete",
                                 f"Files generated successfully in:\\n{self._target_folder}")
@@ -197,10 +246,11 @@ class GenerateFilesStep(BaseStep):
             messagebox.showerror("Generation Error",
                                  f"Failed to generate files: {e}")
             # Reset checklist on error
-            for key in self.checklist_labels:
+            for key in self._checklist_labels:
                 self._update_checklist_item(key, "❌ Failed", "red")
         finally:
             self._generation_in_progress = False
+            self._update_ui_state()  # Update button states
             self._update_ui_state()
 
     def _generate_run_app(self):

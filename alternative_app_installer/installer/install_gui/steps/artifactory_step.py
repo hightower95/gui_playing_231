@@ -31,13 +31,13 @@ class ArtifactorySetupStep(BaseStep):
 
     def __init__(self, installation_settings, shared_state):
         super().__init__(installation_settings, shared_state)
-        
+
         # Configuration URLs
         self.token_url = self.installation_settings.get(
             'Step_Artifactory', 'token_url', fallback='https://example.com/get-token')
         self.guide_url = self.installation_settings.get(
             'Step_Artifactory', 'guide_url', fallback='https://example.com/help')
-        
+
         # Instructions text
         self.howto_instructions = get_howto_configure_index_url()
 
@@ -46,7 +46,7 @@ class ArtifactorySetupStep(BaseStep):
         self.index_url_status = None
         self.token_status = None
         self.showing_placeholder = False
-        
+
         # State
         self._is_configured = False
 
@@ -100,7 +100,8 @@ class ArtifactorySetupStep(BaseStep):
                    command=self._open_guide_url).pack(side="left")
 
         # Input section
-        input_frame = ttk.LabelFrame(frame, text="Pip Configuration", padding=10)
+        input_frame = ttk.LabelFrame(
+            frame, text="Pip Configuration", padding=10)
         input_frame.pack(fill="both", expand=True, pady=(0, 15))
 
         ttk.Label(input_frame, text="Paste the full text from the first section of 'Install'",
@@ -111,7 +112,8 @@ class ArtifactorySetupStep(BaseStep):
         text_frame.pack(fill="both", expand=True)
 
         self.url_entry = tk.Text(text_frame, height=4, width=80, wrap=tk.WORD)
-        scrollbar = ttk.Scrollbar(text_frame, orient="vertical", command=self.url_entry.yview)
+        scrollbar = ttk.Scrollbar(
+            text_frame, orient="vertical", command=self.url_entry.yview)
         self.url_entry.configure(yscrollcommand=scrollbar.set)
 
         self.url_entry.pack(side="left", fill="both", expand=True)
@@ -152,14 +154,14 @@ class ArtifactorySetupStep(BaseStep):
         # Check if placeholder is still showing
         if hasattr(self, 'showing_placeholder') and self.showing_placeholder:
             messagebox.showwarning(
-                "No Input", 
+                "No Input",
                 "Please replace the example text with your actual Artifactory configuration.")
             return False
 
         # Get and validate input
         pyirc_entry_value = self.url_entry.get("1.0", tk.END).strip()
         is_valid, error_msg = is_valid_index_url_value(pyirc_entry_value)
-        
+
         if not is_valid:
             messagebox.showerror("Invalid Configuration", error_msg)
             return False
@@ -189,11 +191,11 @@ class ArtifactorySetupStep(BaseStep):
                 self._is_configured = True
                 self.update_shared_state("artifactory_configured", True)
                 self.mark_completed()
-                
+
                 if self.token_status:
                     self.token_status.config(
                         text="✅ Artifactory configured successfully", foreground="green")
-                
+
                 messagebox.showinfo("Success",
                                     "Artifactory has been configured successfully!\n"
                                     "Pip will now use your private package repository.")
