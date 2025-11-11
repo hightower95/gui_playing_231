@@ -144,12 +144,15 @@ class GetFolderStep(BaseStep):
                 'Step_Select_Folder', 'default_installation_folder',
                 fallback=str(Path.home())
             )
+            logging.debug(f"Folder step: Retrieved default installation path from config: {default_folder_path}")
 
             # The path should already be substituted by run_installer.pyw
             return default_folder_path
 
         except Exception:
-            return str(Path.home())
+            fallback_path = str(Path.home())
+            logging.warning(f"Folder step: Using fallback path due to config error: {fallback_path}")
+            return fallback_path
 
     def _browse_for_folder(self):
         """Open folder browser dialog"""
@@ -221,27 +224,36 @@ class GetFolderStep(BaseStep):
     def _is_path_writable(self, path: Path) -> bool:
         """Check if path is writable"""
         try:
+            logging.debug(f"Folder step: Checking if path is writable: {path}")
             # If path doesn't exist, check if parent is writable
             if not path.exists():
                 # Find the first existing parent
                 test_path = path
                 while not test_path.exists() and test_path.parent != test_path:
                     test_path = test_path.parent
+                logging.debug(f"Folder step: Testing parent path for writability: {test_path}")
 
                 if test_path.exists():
-                    return os.access(str(test_path), os.W_OK)
+                    writable = os.access(str(test_path), os.W_OK)
+                    logging.debug(f"Folder step: Parent path writable: {writable}")
+                    return writable
                 else:
+                    logging.debug("Folder step: No existing parent found, path not writable")
                     return False
 
             # Path exists, check if it's writable
-            return os.access(str(path), os.W_OK)
-        except Exception:
+            writable = os.access(str(path), os.W_OK)
+            logging.debug(f"Folder step: Existing path writable: {writable}")
+            return writable
+        except Exception as e:
+            logging.error(f"Folder step: Error checking path writability: {e}")
             return False
 
     def _is_system_directory(self, path: Path) -> bool:
         """Check if path is a system directory that should be avoided"""
         try:
             path_str = str(path).lower()
+            logging.debug(f"Folder step: Checking if path is system directory: {path_str}")
 
             # Common system directories to avoid
             system_dirs = [
@@ -261,10 +273,13 @@ class GetFolderStep(BaseStep):
 
             for sys_dir in system_dirs:
                 if path_str.startswith(sys_dir):
+                    logging.debug(f"Folder step: Path is system directory (matches {sys_dir})")
                     return True
 
+            logging.debug("Folder step: Path is not a system directory")
             return False
-        except Exception:
+        except Exception as e:
+            logging.error(f"Folder step: Error checking system directory: {e}")
             return False
 
     # ========================================================================

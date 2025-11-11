@@ -33,6 +33,8 @@ class VenvCreationWorker(threading.Thread):
         self.progress_queue = progress_queue  # Queue for progress messages
         self.result_queue = result_queue      # Queue for final result
         self.daemon = True  # Dies when main thread dies
+        
+        logging.debug(f"VEnv worker: Initialized with venv path: {self.venv_path}")
 
     def run(self):
         """Execute venv creation following user requirements:
@@ -758,7 +760,9 @@ class CreateVenvStep(BaseStep):
         if not install_path:
             raise ValueError("Installation path not set")
 
-        return Path(install_path) / self._venv_name
+        venv_path = Path(install_path) / self._venv_name
+        logging.debug(f"VEnv step: Calculated venv path: {venv_path}")
+        return venv_path
 
     def _find_python_executable(self) -> str:
         """Find suitable Python executable for venv creation"""

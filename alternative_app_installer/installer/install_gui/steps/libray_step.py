@@ -65,19 +65,22 @@ class LibraryInstallationWorker(threading.Thread):
         # Prepare pip report path under installer/logs
         try:
             installer_dir = Path(__file__).resolve().parents[3]
-        except Exception:
+            logging.debug(f"Library worker: Resolved installer directory: {installer_dir}")
+        except Exception as e:
             installer_dir = Path.cwd()
+            logging.warning(f"Library worker: Failed to resolve installer dir, using cwd: {installer_dir} (error: {e})")
 
         logs_dir = installer_dir / 'logs'
+        logging.debug(f"Library worker: Logs directory path: {logs_dir}")
         try:
             logs_dir.mkdir(parents=True, exist_ok=True)
-        except Exception:
+        except Exception as e:
+            logging.error(f"Library worker: Failed to create logs directory: {e}")
             pass
 
         timestamp = int(time.time())
         report_path = logs_dir / f"pip_install_report_{timestamp}.json"
-        logging.debug(
-            f"Library step: Pip report will be saved to: {report_path}")
+        logging.debug(f"Library worker: Pip report will be saved to: {report_path}")
 
         # Build command
         cmd = [str(self.venv_python), "-m", "pip", "install",
@@ -266,10 +269,13 @@ class InstallLibraryStep(BaseStep):
 
         # Construct Python executable path
         venv_dir = Path(venv_path)
+        logging.debug(f"Library step: Virtual environment directory: {venv_dir}")
         if os.name == 'nt':  # Windows
             self._venv_python = venv_dir / 'Scripts' / 'python.exe'
         else:  # Unix-like
             self._venv_python = venv_dir / 'bin' / 'python'
+        
+        logging.debug(f"Library step: Python executable path: {self._venv_python}")
 
         if not self._venv_python.exists():
             raise ValueError(
@@ -579,7 +585,9 @@ class InstallLibraryStep(BaseStep):
 
         try:
             p = Path(report_path)
+            logging.debug(f"Library step: Checking pip report file: {p}")
             if not p.exists():
+                logging.warning(f"Library step: Pip report file does not exist: {p}")
                 return None
 
             with p.open('r', encoding='utf-8') as fh:
