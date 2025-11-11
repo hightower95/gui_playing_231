@@ -139,7 +139,8 @@ class BaseStep(ABC):
             key: State variable name
             value: New value for the state variable
         """
-        logging.debug(f"Step '{self.get_title()}': Setting shared state {key} = {value}")
+        logging.debug(
+            f"Step '{self.get_title()}': Setting shared state {key} = {value}")
         self.shared_state[key] = value
 
     def get_shared_state(self, key: str, default: Any = None) -> Any:
@@ -159,7 +160,7 @@ class BaseStep(ABC):
         old_can_complete = self.can_complete()
         self._completed = True
         new_can_complete = self.can_complete()
-        
+
         logging.info(f"Step '{self.get_title()}': Marked as completed")
 
         # Notify if completion state changed

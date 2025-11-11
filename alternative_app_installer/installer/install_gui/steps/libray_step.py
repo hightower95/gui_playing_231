@@ -52,9 +52,11 @@ class LibraryInstallationWorker(threading.Thread):
 
     def run(self):
         """Execute library installation and write pip --report JSON."""
-        logging.info(f"Library step: Starting installation worker for libraries: {self.libraries}")
-        logging.info(f"Library step: Using Python executable: {self.venv_python}")
-        
+        logging.info(
+            f"Library step: Starting installation worker for libraries: {self.libraries}")
+        logging.info(
+            f"Library step: Using Python executable: {self.venv_python}")
+
         self.progress_queue.put("🔄 Starting library installation...")
         self.progress_queue.put(f"🐍 Using Python: {self.venv_python}")
         self.progress_queue.put(
@@ -74,7 +76,8 @@ class LibraryInstallationWorker(threading.Thread):
 
         timestamp = int(time.time())
         report_path = logs_dir / f"pip_install_report_{timestamp}.json"
-        logging.debug(f"Library step: Pip report will be saved to: {report_path}")
+        logging.debug(
+            f"Library step: Pip report will be saved to: {report_path}")
 
         # Build command
         cmd = [str(self.venv_python), "-m", "pip", "install",
@@ -91,11 +94,14 @@ class LibraryInstallationWorker(threading.Thread):
                 cwd=self.venv_python.parent.parent
             )
 
-            logging.info(f"Library step: Pip install completed with return code: {process.returncode}")
+            logging.info(
+                f"Library step: Pip install completed with return code: {process.returncode}")
             if process.stdout:
-                logging.debug(f"Library step: Pip stdout: {process.stdout[:500]}...")
+                logging.debug(
+                    f"Library step: Pip stdout: {process.stdout[:500]}...")
             if process.stderr:
-                logging.debug(f"Library step: Pip stderr: {process.stderr[:500]}...")
+                logging.debug(
+                    f"Library step: Pip stderr: {process.stderr[:500]}...")
 
             # Emit stdout/stderr to progress queue
             if process.stdout:
