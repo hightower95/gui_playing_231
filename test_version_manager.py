@@ -8,7 +8,8 @@ import sys
 from pathlib import Path
 
 # Add installer to path to access utilities
-installer_dir = Path(__file__).parent / "alternative_app_installer" / "installer"
+installer_dir = Path(__file__).parent / \
+    "alternative_app_installer" / "installer"
 sys.path.insert(0, str(installer_dir))
 
 try:
@@ -25,6 +26,8 @@ except ImportError as e:
     sys.exit(1)
 
 # Color codes for output
+
+
 class Colors:
     GREEN = '\033[92m'
     RED = '\033[91m'
@@ -60,12 +63,15 @@ def test_parse_version():
             else:
                 status = f"{Colors.RED}❌{Colors.END}"
 
-            print(f"  {status} parse_version('{version_str}') = {result}, expected {expected}")
+            print(
+                f"  {status} parse_version('{version_str}') = {result}, expected {expected}")
 
         except Exception as e:
-            print(f"  {Colors.RED}❌{Colors.END} parse_version('{version_str}') raised: {e}")
+            print(
+                f"  {Colors.RED}❌{Colors.END} parse_version('{version_str}') raised: {e}")
 
-    print(f"  {Colors.BOLD}Result: {passed}/{len(test_cases)} tests passed{Colors.END}")
+    print(
+        f"  {Colors.BOLD}Result: {passed}/{len(test_cases)} tests passed{Colors.END}")
     return passed == len(test_cases)
 
 
@@ -95,18 +101,21 @@ def test_is_stable_version():
                 status = f"{Colors.RED}❌{Colors.END}"
 
             stability = "stable" if expected else "test"
-            print(f"  {status} is_stable_version('{version_str}') = {result} (expected {stability})")
+            print(
+                f"  {status} is_stable_version('{version_str}') = {result} (expected {stability})")
 
         except Exception as e:
-            print(f"  {Colors.RED}❌{Colors.END} is_stable_version('{version_str}') raised: {e}")
+            print(
+                f"  {Colors.RED}❌{Colors.END} is_stable_version('{version_str}') raised: {e}")
 
-    print(f"  {Colors.BOLD}Result: {passed}/{len(test_cases)} tests passed{Colors.END}")
+    print(
+        f"  {Colors.BOLD}Result: {passed}/{len(test_cases)} tests passed{Colors.END}")
     return passed == len(test_cases)
 
 
 def test_should_upgrade_logic():
     """Test the should_upgrade decision logic with real scenarios"""
-    
+
     # We'll test with mock scenarios since we can't make real network calls
     test_cases = [
         {
@@ -114,7 +123,7 @@ def test_should_upgrade_logic():
             "current": "1.2.3",
             "config": {
                 "auto_upgrade_major_version": False,
-                "auto_upgrade_minor_version": False, 
+                "auto_upgrade_minor_version": False,
                 "auto_upgrade_patches": True,
                 "allow_upgrade_to_test_releases": False
             },
@@ -145,32 +154,35 @@ def test_should_upgrade_logic():
     ]
 
     print(f"\n{Colors.CYAN}🧪 Testing should_upgrade decision logic{Colors.END}")
-    
+
     for test_case in test_cases:
         print(f"\n  {Colors.YELLOW}📋 {test_case['name']}{Colors.END}")
         print(f"    Current: {test_case['current']}")
         print(f"    Description: {test_case['description']}")
-        
+
         # Create fake paths for testing
         fake_venv = Path("/fake/venv/python")
         fake_library = "test_library"
-        
+
         try:
             # Note: This will likely fail because it tries to run subprocess commands
             # But it will test the config parsing logic
-            result = should_upgrade(test_case['current'], test_case['config'], fake_venv, fake_library)
-            print(f"    {Colors.GREEN}✅{Colors.END} Function executed, result: {result}")
+            result = should_upgrade(
+                test_case['current'], test_case['config'], fake_venv, fake_library)
+            print(
+                f"    {Colors.GREEN}✅{Colors.END} Function executed, result: {result}")
         except Exception as e:
             # Expected to fail due to subprocess calls, but config logic should work
-            print(f"    {Colors.YELLOW}⚠️{Colors.END} Function failed as expected (subprocess): {str(e)[:100]}...")
-    
+            print(
+                f"    {Colors.YELLOW}⚠️{Colors.END} Function failed as expected (subprocess): {str(e)[:100]}...")
+
     return True  # We just want to verify the function can be called
 
 
 def demo_config_scenarios():
     """Show how different configurations would behave"""
     print(f"\n{Colors.BLUE}{Colors.BOLD}🎭 CONFIGURATION SCENARIOS{Colors.END}")
-    
+
     scenarios = [
         {
             "name": "Conservative User (patches only)",
@@ -213,12 +225,13 @@ def demo_config_scenarios():
             "behavior": "Gets test releases for new features"
         }
     ]
-    
+
     for scenario in scenarios:
         print(f"\n{Colors.YELLOW}👤 {scenario['name']}{Colors.END}")
         print(f"   Configuration:")
         for key, value in scenario['config'].items():
-            clean_key = key.replace('auto_upgrade_', '').replace('_version', '').replace('allow_upgrade_to_', '')
+            clean_key = key.replace('auto_upgrade_', '').replace(
+                '_version', '').replace('allow_upgrade_to_', '')
             print(f"     {clean_key}: {value}")
         print(f"   {Colors.GREEN}Behavior: {scenario['behavior']}{Colors.END}")
 
@@ -227,15 +240,15 @@ def main():
     """Main test runner"""
     print(f"{Colors.BOLD}🔬 Testing utilities/version_manager.py functions{Colors.END}")
     print("=" * 60)
-    
+
     all_passed = True
-    
+
     tests = [
         ("Version Parsing", test_parse_version),
         ("Stable Version Detection", test_is_stable_version),
         ("Upgrade Decision Logic", test_should_upgrade_logic),
     ]
-    
+
     for test_name, test_func in tests:
         try:
             passed = test_func()
@@ -243,19 +256,20 @@ def main():
         except Exception as e:
             print(f"{Colors.RED}❌ {test_name} failed with exception: {e}{Colors.END}")
             all_passed = False
-    
+
     # Show configuration examples
     demo_config_scenarios()
-    
+
     print(f"\n{Colors.BOLD}📊 OVERALL RESULTS{Colors.END}")
     print("=" * 30)
-    
+
     if all_passed:
         print(f"{Colors.GREEN}🎉 Core functions are working! run_app.pyw should use these correctly.{Colors.END}")
         print(f"{Colors.CYAN}💡 The auto_upgrade_* settings in launch_config.ini will control upgrade behavior.{Colors.END}")
         return 0
     else:
-        print(f"{Colors.RED}💥 Some tests failed. Check the utilities implementation.{Colors.END}")
+        print(
+            f"{Colors.RED}💥 Some tests failed. Check the utilities implementation.{Colors.END}")
         return 1
 
 

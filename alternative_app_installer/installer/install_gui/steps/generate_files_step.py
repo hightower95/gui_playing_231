@@ -269,22 +269,23 @@ class GenerateFilesStep(BaseStep):
     def _copy_utilities(self):
         """Copy utilities directory to target location"""
         self._update_checklist_item("utilities", "⏳ Copying...", "blue")
-        
+
         # Find utilities directory in install_gui
         installer_dir = Path(__file__).resolve().parents[2]  # installer dir
         source_utilities = installer_dir / "install_gui" / "utilities"
         target_utilities = self._target_folder / "utilities"
-        
+
         if not source_utilities.exists():
-            raise FileNotFoundError(f"Utilities directory not found: {source_utilities}")
-        
+            raise FileNotFoundError(
+                f"Utilities directory not found: {source_utilities}")
+
         # Remove existing utilities if present
         if target_utilities.exists():
             shutil.rmtree(target_utilities)
-        
+
         # Copy utilities directory
         shutil.copytree(source_utilities, target_utilities)
-        
+
         self._update_checklist_item("utilities", "✅ Copied", "#28a745")
 
     def _get_template_path(self, template_name: str) -> Path:
