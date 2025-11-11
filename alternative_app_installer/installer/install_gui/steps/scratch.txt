@@ -1,0 +1,2 @@
+[global]
+index-url = https://u3uajiojdwaoijdwadkawkdi9218jhn@example.com/artifactory/api/pypi/common-pypi/simple

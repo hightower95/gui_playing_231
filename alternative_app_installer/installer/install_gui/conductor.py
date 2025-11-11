@@ -10,7 +10,7 @@ Design Principles:
 from configparser import ConfigParser
 from typing import List, Dict, Any, Optional
 
-from .steps import GetFolderStep, CreateVenvStep, InstallLibraryStep, GenerateFilesStep
+from .steps import GetFolderStep, ArtifactorySetupStep, CreateVenvStep, InstallLibraryStep, GenerateFilesStep
 
 
 class InstallConductor:
@@ -36,6 +36,7 @@ class InstallConductor:
         # Only contains validated, accepted values from completed steps
         self._install_state_variables: Dict[str, Any] = {
             "valid_installation_path": "",
+            "artifactory_configured": False,
             "library_installed": False,
             "scripts_generated": False,
         }
@@ -51,6 +52,8 @@ class InstallConductor:
         """Initialize all installation steps in order"""
         self._folderStep = GetFolderStep(
             self.installation_settings, self._install_state_variables)
+        self._artifactoryStep = ArtifactorySetupStep(
+            self.installation_settings, self._install_state_variables)
         self._createVenvStep = CreateVenvStep(
             self.installation_settings, self._install_state_variables)
         self._libraryStep = InstallLibraryStep(
@@ -61,8 +64,7 @@ class InstallConductor:
         # Define the complete installation sequence
         self._step_sequence: List = [
             self._folderStep,
-            # Additional steps will be added here:
-            # self._tokenSetupStep,
+            self._artifactoryStep,
             self._createVenvStep,
             self._libraryStep,
             self._generateFilesStep,

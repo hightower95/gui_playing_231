@@ -92,6 +92,11 @@ class GenerateFilesStep(BaseStep):
                                           command=self._start_file_generation)
         self.generate_button.pack(side="left")
 
+        # Open folder button - initially disabled until files are generated
+        self.open_folder_button = ttk.Button(button_frame, text="Open Folder",
+                                             command=self._open_target_folder)
+        self.open_folder_button.pack(side="left", padx=(10, 0))
+
         # Initial state
         self._update_ui_state()
 
