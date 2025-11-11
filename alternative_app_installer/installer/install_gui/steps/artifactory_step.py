@@ -73,7 +73,7 @@ class ArtifactorySetupStep(BaseStep):
         """Build the UI for Artifactory configuration"""
         frame = ttk.Frame(parent_frame)
         frame.pack(fill="both", expand=True)
-        
+
         # Store reference to our frame for configured state display
         self._main_frame = frame
 
@@ -103,7 +103,7 @@ class ArtifactorySetupStep(BaseStep):
 
         ttk.Button(button_frame, text="Open Guide",
                    command=self._open_guide_url).pack(side="left", padx=(0, 5))
-        
+
         ttk.Button(button_frame, text="Open Config Folder",
                    command=self._open_config_folder).pack(side="left")
 
@@ -151,9 +151,9 @@ class ArtifactorySetupStep(BaseStep):
         # Save button
         button_frame = ttk.Frame(frame)
         button_frame.pack(fill="x", pady=(10, 0))
-        
-        self.save_button = ttk.Button(button_frame, text="Save Configuration", 
-                                     command=self._save_configuration, state="disabled")
+
+        self.save_button = ttk.Button(button_frame, text="Save Configuration",
+                                      command=self._save_configuration, state="disabled")
         self.save_button.pack(side="left")
 
         # Initial validation
@@ -181,7 +181,8 @@ class ArtifactorySetupStep(BaseStep):
                 return False
 
         # No valid configuration available
-        logging.warning("Artifactory step: No valid configuration to complete step")
+        logging.warning(
+            "Artifactory step: No valid configuration to complete step")
         messagebox.showwarning(
             "No Configuration",
             "Please enter and save your Artifactory configuration before proceeding.")
@@ -225,13 +226,14 @@ class ArtifactorySetupStep(BaseStep):
         # Create frame to show existing configuration in our main frame
         if not hasattr(self, '_main_frame') or not self._main_frame:
             # Fallback to simple label if frame not available
-            logging.warning("Artifactory step: Main frame not available for configured state display")
+            logging.warning(
+                "Artifactory step: Main frame not available for configured state display")
             return
-            
+
         info_frame = ttk.LabelFrame(self._main_frame,
-                                   text="Current Artifactory Configuration", padding=10)
+                                    text="Current Artifactory Configuration", padding=10)
         info_frame.pack(fill="x", pady=(0, 10))
-        
+
         # Get current configuration details
         try:
             config = get_pip_config()
@@ -239,31 +241,31 @@ class ArtifactorySetupStep(BaseStep):
                 current_url = config.get('global', 'index-url')
                 # Mask sensitive token part
                 masked_url = self._mask_sensitive_url(current_url)
-                
+
                 ttk.Label(info_frame, text="✅ Artifactory already configured",
-                         foreground="green", font=("Arial", 10, "bold")).pack(anchor="w")
-                
+                          foreground="green", font=("Arial", 10, "bold")).pack(anchor="w")
+
                 ttk.Label(info_frame, text=f"Current index URL: {masked_url}",
-                         font=("Arial", 9)).pack(anchor="w", pady=(5, 0))
-                
+                          font=("Arial", 9)).pack(anchor="w", pady=(5, 0))
+
                 # Add button to view/edit current configuration
                 button_frame = ttk.Frame(info_frame)
                 button_frame.pack(fill="x", pady=(10, 0))
-                
-                ttk.Button(button_frame, text="View/Edit Configuration", 
-                          command=self._show_current_config).pack(side="left", padx=(0, 5))
-                
-                ttk.Button(button_frame, text="Test Configuration", 
-                          command=self._test_current_config).pack(side="left", padx=(0, 5))
-                
-                ttk.Button(button_frame, text="Open Config Folder", 
-                          command=self._open_config_folder).pack(side="left")
+
+                ttk.Button(button_frame, text="View/Edit Configuration",
+                           command=self._show_current_config).pack(side="left", padx=(0, 5))
+
+                ttk.Button(button_frame, text="Test Configuration",
+                           command=self._test_current_config).pack(side="left", padx=(0, 5))
+
+                ttk.Button(button_frame, text="Open Config Folder",
+                           command=self._open_config_folder).pack(side="left")
             else:
                 ttk.Label(info_frame, text="⚠️ Configuration file exists but no index-url found",
-                         foreground="orange", font=("Arial", 10)).pack(anchor="w")
+                          foreground="orange", font=("Arial", 10)).pack(anchor="w")
         except Exception as e:
             ttk.Label(info_frame, text=f"❌ Error reading configuration: {str(e)[:50]}",
-                     foreground="red", font=("Arial", 10)).pack(anchor="w")
+                      foreground="red", font=("Arial", 10)).pack(anchor="w")
 
     def _show_simulated_state(self):
         """Show simulated configuration state"""
@@ -379,19 +381,21 @@ class ArtifactorySetupStep(BaseStep):
         import subprocess
         import os
         from ..utilities.pyirc_bootstrapper import pip_config_dir
-        
+
         try:
-            logging.info(f"Artifactory step: Opening config folder: {pip_config_dir}")
-            
+            logging.info(
+                f"Artifactory step: Opening config folder: {pip_config_dir}")
+
             # Ensure the folder exists
             if not os.path.exists(pip_config_dir):
                 os.makedirs(pip_config_dir, exist_ok=True)
-                logging.info(f"Artifactory step: Created config directory: {pip_config_dir}")
-            
+                logging.info(
+                    f"Artifactory step: Created config directory: {pip_config_dir}")
+
             # Open folder in Windows Explorer
             subprocess.run(['explorer', pip_config_dir], check=False)
             logging.info("Artifactory step: Successfully opened config folder")
-            
+
         except Exception as e:
             error_msg = f"Failed to open config folder: {e}"
             logging.error(f"Artifactory step: {error_msg}")
@@ -537,48 +541,51 @@ class ArtifactorySetupStep(BaseStep):
             config = get_pip_config()
             if config.has_option('global', 'index-url'):
                 current_url = config.get('global', 'index-url')
-                
+
                 # Create dialog window
                 dialog = tk.Toplevel()
                 dialog.title("Current Artifactory Configuration")
                 dialog.geometry("600x400")
                 dialog.resizable(True, True)
-                
+
                 # Make it modal
                 dialog.transient()
                 dialog.grab_set()
-                
+
                 # Instructions
                 ttk.Label(dialog, text="Current pip configuration:",
-                         font=("Arial", 10, "bold")).pack(anchor="w", padx=10, pady=(10, 5))
-                
+                          font=("Arial", 10, "bold")).pack(anchor="w", padx=10, pady=(10, 5))
+
                 # Text area with current config
                 text_frame = ttk.Frame(dialog)
                 text_frame.pack(fill="both", expand=True, padx=10, pady=5)
-                
-                current_config_text = tk.Text(text_frame, height=10, width=70, wrap=tk.WORD)
-                scrollbar = ttk.Scrollbar(text_frame, orient="vertical", command=current_config_text.yview)
+
+                current_config_text = tk.Text(
+                    text_frame, height=10, width=70, wrap=tk.WORD)
+                scrollbar = ttk.Scrollbar(
+                    text_frame, orient="vertical", command=current_config_text.yview)
                 current_config_text.configure(yscrollcommand=scrollbar.set)
-                
+
                 # Load full config content
                 full_config = f"[global]\nindex-url = {current_url}\n"
                 current_config_text.insert("1.0", full_config)
-                
+
                 current_config_text.pack(side="left", fill="both", expand=True)
                 scrollbar.pack(side="right", fill="y")
-                
+
                 # Buttons
                 button_frame = ttk.Frame(dialog)
                 button_frame.pack(fill="x", padx=10, pady=10)
-                
-                ttk.Button(button_frame, text="Close", 
-                          command=dialog.destroy).pack(side="right", padx=(5, 0))
-                
-                ttk.Button(button_frame, text="Copy to Clipboard", 
-                          command=lambda: self._copy_to_clipboard(full_config)).pack(side="right")
-                
+
+                ttk.Button(button_frame, text="Close",
+                           command=dialog.destroy).pack(side="right", padx=(5, 0))
+
+                ttk.Button(button_frame, text="Copy to Clipboard",
+                           command=lambda: self._copy_to_clipboard(full_config)).pack(side="right")
+
         except Exception as e:
-            messagebox.showerror("Error", f"Failed to load current configuration: {e}")
+            messagebox.showerror(
+                "Error", f"Failed to load current configuration: {e}")
 
     def _test_current_config(self):
         """Test the current configuration by checking if it's valid"""
@@ -586,23 +593,24 @@ class ArtifactorySetupStep(BaseStep):
             config = get_pip_config()
             if config.has_option('global', 'index-url'):
                 current_url = config.get('global', 'index-url')
-                
+
                 # Create a test configuration string
                 test_config = f"[global]\nindex-url = {current_url}"
                 is_valid, error_msg = is_valid_index_url_value(test_config)
-                
+
                 if is_valid:
-                    messagebox.showinfo("Configuration Test", 
-                                       "✅ Current configuration is valid!")
+                    messagebox.showinfo("Configuration Test",
+                                        "✅ Current configuration is valid!")
                 else:
-                    messagebox.showwarning("Configuration Test", 
-                                          f"⚠️ Current configuration has issues:\n{error_msg}")
+                    messagebox.showwarning("Configuration Test",
+                                           f"⚠️ Current configuration has issues:\n{error_msg}")
             else:
-                messagebox.showerror("Configuration Test", 
-                                    "❌ No index-url found in configuration")
-                
+                messagebox.showerror("Configuration Test",
+                                     "❌ No index-url found in configuration")
+
         except Exception as e:
-            messagebox.showerror("Test Error", f"Failed to test configuration: {e}")
+            messagebox.showerror(
+                "Test Error", f"Failed to test configuration: {e}")
 
     def _copy_to_clipboard(self, text: str):
         """Copy text to clipboard"""
@@ -611,6 +619,8 @@ class ArtifactorySetupStep(BaseStep):
             if hasattr(self, 'url_entry') and self.url_entry:
                 self.url_entry.clipboard_clear()
                 self.url_entry.clipboard_append(text)
-                messagebox.showinfo("Copied", "Configuration copied to clipboard!")
+                messagebox.showinfo(
+                    "Copied", "Configuration copied to clipboard!")
         except Exception as e:
-            messagebox.showerror("Copy Error", f"Failed to copy to clipboard: {e}")
+            messagebox.showerror(
+                "Copy Error", f"Failed to copy to clipboard: {e}")

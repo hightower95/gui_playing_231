@@ -41,9 +41,16 @@ class GenerateFilesStep(BaseStep):
     def _target_folder(self) -> Path:
         """Get target folder from shared state"""
         folder_path = self.get_shared_state("valid_installation_path", "")
+        logging.debug(
+            f"Generate files step: Getting target folder from shared state: '{folder_path}'")
         if not folder_path:
+            logging.warning(
+                "Generate files step: No valid installation path found in shared state")
             return None
-        return Path(folder_path)
+        target_path = Path(folder_path)
+        logging.debug(
+            f"Generate files step: Target folder resolved to: {target_path}")
+        return target_path
 
     # ========================================================================
     # Required BaseStep Methods
@@ -72,12 +79,18 @@ class GenerateFilesStep(BaseStep):
 
         installation_folder = self.get_shared_state(
             "valid_installation_path", "")
+        logging.debug(
+            f"Generate files step: Installation folder from shared state: '{installation_folder}'")
         if installation_folder:
             folder_text = f"Files will be generated in: {installation_folder}"
             folder_color = "black"
+            logging.info(
+                f"Generate files step: UI displaying target folder: {installation_folder}")
         else:
             folder_text = "⚠️ No installation folder set - check previous steps"
             folder_color = "red"
+            logging.warning(
+                "Generate files step: No installation folder available for UI display")
 
         self.folder_label = ttk.Label(folder_frame, text=folder_text,
                                       font=("Arial", 9), foreground=folder_color)
@@ -169,6 +182,16 @@ class GenerateFilesStep(BaseStep):
                            self._files_generated and
                            (self._target_folder / "run_app.pyw").exists())
 
+        if self._target_folder:
+            run_app_check_path = self._target_folder / "run_app.pyw"
+            logging.debug(
+                f"Generate files step: Checking run_app.pyw existence at: {run_app_check_path}")
+            logging.debug(
+                f"Generate files step: run_app.pyw exists: {run_app_check_path.exists()}")
+        else:
+            logging.debug(
+                "Generate files step: No target folder available for run_app.pyw check")
+
         if self.open_folder_button:
             self.open_folder_button.config(
                 state="normal" if can_open_folder else "disabled")
@@ -187,6 +210,8 @@ class GenerateFilesStep(BaseStep):
             return
 
         run_app_path = self._target_folder / "run_app.pyw"
+        logging.debug(
+            f"Generate files step: Constructing run_app.pyw path: {run_app_path}")
         if not run_app_path.exists():
             logging.error(
                 f"Generate files step: run_app.pyw not found at expected path: {run_app_path}")
@@ -202,19 +227,33 @@ class GenerateFilesStep(BaseStep):
         try:
             # Use Windows explorer with /select parameter to highlight the file
             import subprocess
+            explorer_command = ['explorer', '/select,', str(run_app_path)]
+            logging.debug(
+                f"Generate files step: Executing explorer command: {explorer_command}")
             result = subprocess.run(
-                ['explorer', '/select,', str(run_app_path)],
+                explorer_command,
                 capture_output=True, text=True)
+            logging.debug(
+                f"Generate files step: Explorer command completed with return code: {result.returncode}")
 
             # Explorer often returns non-zero exit codes even when successful
             # So we don't check the return code for the /select command
 
         except Exception as e:
+            logging.error(
+                f"Generate files step: Explorer /select command failed: {e}")
             # Fallback: just open the folder
             try:
                 import subprocess
-                subprocess.run(['explorer', str(self._target_folder)])
+                fallback_command = ['explorer', str(self._target_folder)]
+                logging.info(
+                    f"Generate files step: Trying fallback explorer command: {fallback_command}")
+                subprocess.run(fallback_command)
+                logging.info(
+                    "Generate files step: Fallback explorer command succeeded")
             except Exception as e2:
+                logging.error(
+                    f"Generate files step: Fallback explorer command also failed: {e2}")
                 messagebox.showerror(
                     "Unable to Open Folder",
                     f"Failed to open folder: {e}\nFallback also failed: {e2}"
@@ -283,19 +322,34 @@ class GenerateFilesStep(BaseStep):
 
         template_path = self._get_template_path("run_app.pyw")
         target_path = self._target_folder / "run_app.pyw"
+        logging.info(
+            f"Generate files step: Generating run_app.pyw from template: {template_path} -> {target_path}")
 
         # Read template
+        logging.debug(
+            f"Generate files step: Reading template file: {template_path}")
         with template_path.open('r', encoding='utf-8') as f:
             content = f.read()
+        logging.debug(
+            f"Generate files step: Template content loaded, length: {len(content)} characters")
 
         # Perform template substitution
         substitutions = self._get_launch_config_substitutions()
+        logging.debug(
+            f"Generate files step: Applying {len(substitutions)} template substitutions")
         for placeholder, value in substitutions.items():
+            old_content_length = len(content)
             content = content.replace(f"{{{{{placeholder}}}}}", str(value))
+            logging.debug(
+                f"Generate files step: Substituted {{{{placeholder}}}} -> '{value}' (content length: {old_content_length} -> {len(content)})")
 
         # Write to target
+        logging.debug(
+            f"Generate files step: Writing generated content to: {target_path}")
         with target_path.open('w', encoding='utf-8') as f:
             f.write(content)
+        logging.info(
+            f"Generate files step: run_app.pyw successfully written to: {target_path}")
 
         self._update_checklist_item("run_app", "✅ Generated", "#28a745")
 
@@ -305,19 +359,34 @@ class GenerateFilesStep(BaseStep):
 
         template_path = self._get_template_path("update_app.pyw")
         target_path = self._target_folder / "update_app.pyw"
+        logging.info(
+            f"Generate files step: Generating update_app.pyw from template: {template_path} -> {target_path}")
 
         # Read template
+        logging.debug(
+            f"Generate files step: Reading template file: {template_path}")
         with template_path.open('r', encoding='utf-8') as f:
             content = f.read()
+        logging.debug(
+            f"Generate files step: Template content loaded, length: {len(content)} characters")
 
         # Perform template substitution
         substitutions = self._get_launch_config_substitutions()
+        logging.debug(
+            f"Generate files step: Applying {len(substitutions)} template substitutions")
         for placeholder, value in substitutions.items():
+            old_content_length = len(content)
             content = content.replace(f"{{{{{placeholder}}}}}", str(value))
+            logging.debug(
+                f"Generate files step: Substituted {{{{placeholder}}}} -> '{value}' (content length: {old_content_length} -> {len(content)})")
 
         # Write to target
+        logging.debug(
+            f"Generate files step: Writing generated content to: {target_path}")
         with target_path.open('w', encoding='utf-8') as f:
             f.write(content)
+        logging.info(
+            f"Generate files step: update_app.pyw successfully written to: {target_path}")
 
         self._update_checklist_item("update_app", "✅ Generated", "#28a745")
 
@@ -327,21 +396,37 @@ class GenerateFilesStep(BaseStep):
 
         template_path = self._get_template_path("launch_config.ini")
         target_path = self._target_folder / "launch_config.ini"
+        logging.info(
+            f"Generate files step: Generating launch_config.ini from template: {template_path} -> {target_path}")
 
         # Read template
+        logging.debug(
+            f"Generate files step: Reading template file: {template_path}")
         with template_path.open('r', encoding='utf-8') as f:
             content = f.read()
+        logging.debug(
+            f"Generate files step: Template content loaded, length: {len(content)} characters")
 
         # Get substitution values from shared state
         substitutions = self._get_launch_config_substitutions()
+        logging.debug(
+            f"Generate files step: Retrieved {len(substitutions)} substitution values from shared state")
 
         # Perform template substitution
+        logging.debug(f"Generate files step: Applying template substitutions")
         for placeholder, value in substitutions.items():
+            old_content_length = len(content)
             content = content.replace(f"{{{{{placeholder}}}}}", str(value))
+            logging.debug(
+                f"Generate files step: Substituted {{{{placeholder}}}} -> '{value}' (content length: {old_content_length} -> {len(content)})")
 
         # Write to target
+        logging.debug(
+            f"Generate files step: Writing generated content to: {target_path}")
         with target_path.open('w', encoding='utf-8') as f:
             f.write(content)
+        logging.info(
+            f"Generate files step: launch_config.ini successfully written to: {target_path}")
 
         self._update_checklist_item("launch_config", "✅ Generated", "#28a745")
 
@@ -351,19 +436,36 @@ class GenerateFilesStep(BaseStep):
 
         # Find utilities directory in install_gui
         installer_dir = Path(__file__).resolve().parents[2]  # installer dir
+        logging.debug(
+            f"Generate files step: Resolved current file path: {Path(__file__)}")
+        logging.debug(
+            f"Generate files step: Resolved installer directory: {installer_dir}")
+
         source_utilities = installer_dir / "install_gui" / "utilities"
         target_utilities = self._target_folder / "utilities"
+        logging.info(
+            f"Generate files step: Copying utilities directory: {source_utilities} -> {target_utilities}")
 
         if not source_utilities.exists():
+            logging.error(
+                f"Generate files step: Source utilities directory not found: {source_utilities}")
             raise FileNotFoundError(
                 f"Utilities directory not found: {source_utilities}")
 
         # Remove existing utilities if present
         if target_utilities.exists():
+            logging.info(
+                f"Generate files step: Removing existing target utilities directory: {target_utilities}")
             shutil.rmtree(target_utilities)
+            logging.debug(
+                f"Generate files step: Existing utilities directory removed successfully")
 
         # Copy utilities directory
+        logging.debug(
+            f"Generate files step: Executing shutil.copytree: {source_utilities} -> {target_utilities}")
         shutil.copytree(source_utilities, target_utilities)
+        logging.info(
+            f"Generate files step: Utilities directory successfully copied to: {target_utilities}")
 
         self._update_checklist_item("utilities", "✅ Copied", "#28a745")
 
@@ -371,15 +473,28 @@ class GenerateFilesStep(BaseStep):
         """Get path to a template file"""
         # Templates are in installer/templates directory
         installer_dir = Path(__file__).resolve().parents[2]  # installer dir
+        logging.debug(
+            f"Generate files step: Resolved current file path for template lookup: {Path(__file__)}")
+        logging.debug(
+            f"Generate files step: Resolved installer directory: {installer_dir}")
+
         template_path = installer_dir / "templates" / template_name
+        logging.debug(
+            f"Generate files step: Constructed template path: {template_path}")
 
         if not template_path.exists():
+            logging.error(
+                f"Generate files step: Template file not found: {template_path}")
             raise FileNotFoundError(f"Template not found: {template_path}")
 
+        logging.debug(
+            f"Generate files step: Template file found successfully: {template_path}")
         return template_path
 
     def _get_launch_config_substitutions(self) -> Dict[str, str]:
         """Get template substitution values from shared state"""
+        logging.debug(
+            "Generate files step: Building template substitution values from shared state and configuration")
 
         # Get values from shared state with defaults
         venv_path = self.get_shared_state("venv_path", "")
@@ -387,11 +502,23 @@ class GenerateFilesStep(BaseStep):
         core_library = self.get_shared_state(
             "core_library", "productivity_app")
 
+        logging.debug(
+            f"Generate files step: venv_path from shared state: '{venv_path}'")
+        logging.debug(
+            f"Generate files step: installed_folder from shared state: '{installed_folder}'")
+        logging.debug(
+            f"Generate files step: core_library from shared state: '{core_library}'")
+
         # Get upgrade settings from config
         always_upgrade = self.installation_settings.getboolean(
             'Step_Install_Libraries', 'always_upgrade', fallback=True)
         allow_test_releases = self.installation_settings.getboolean(
             'Step_Install_Libraries', 'allow_upgrade_to_test_releases', fallback=False)
+
+        logging.debug(
+            f"Generate files step: always_upgrade from config: {always_upgrade}")
+        logging.debug(
+            f"Generate files step: allow_test_releases from config: {allow_test_releases}")
 
         # Get auto-upgrade settings
         auto_upgrade_major = self.installation_settings.getboolean(
@@ -401,13 +528,29 @@ class GenerateFilesStep(BaseStep):
         auto_upgrade_patches = self.installation_settings.getboolean(
             'DEFAULT', 'auto_upgrade_patches', fallback=True)
 
+        logging.debug(
+            f"Generate files step: auto_upgrade_major from config: {auto_upgrade_major}")
+        logging.debug(
+            f"Generate files step: auto_upgrade_minor from config: {auto_upgrade_minor}")
+        logging.debug(
+            f"Generate files step: auto_upgrade_patches from config: {auto_upgrade_patches}")
+
         # Get logging settings
         enable_log = self.installation_settings.getboolean(
             'DEFAULT', 'enable_log', fallback=False)
         log_level = self.installation_settings.get(
             'DEFAULT', 'log_level', fallback='INFO')
 
-        return {
+        logging.debug(
+            f"Generate files step: enable_log from config: {enable_log}")
+        logging.debug(
+            f"Generate files step: log_level from config: '{log_level}'")
+
+        installation_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        logging.debug(
+            f"Generate files step: Generated installation_date: '{installation_date}'")
+
+        substitution_dict = {
             'VENV_PATH': venv_path,
             'LIBRARY_NAME': core_library,
             'ALWAYS_UPGRADE': str(always_upgrade).lower(),
@@ -419,8 +562,16 @@ class GenerateFilesStep(BaseStep):
             'LOG_LEVEL': log_level,
             'INSTALLED_FOLDER': installed_folder,
             'INSTALLER_VERSION': '1.0.0',  # Could be dynamic
-            'INSTALLATION_DATE': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            'INSTALLATION_DATE': installation_date
         }
+
+        logging.info(
+            f"Generate files step: Created substitution dictionary with {len(substitution_dict)} entries")
+        for key, value in substitution_dict.items():
+            logging.debug(
+                f"Generate files step: Substitution: {{{{{key}}}}} -> '{value}'")
+
+        return substitution_dict
 
 
 # Alias for backward compatibility
