@@ -388,12 +388,14 @@ class ArtifactorySetupStep(BaseStep):
 
             # Ensure the folder exists
             if not os.path.exists(pip_config_dir):
-                logging.debug(f"Artifactory step: Config folder does not exist, creating: {pip_config_dir}")
+                logging.debug(
+                    f"Artifactory step: Config folder does not exist, creating: {pip_config_dir}")
                 os.makedirs(pip_config_dir, exist_ok=True)
                 logging.info(
                     f"Artifactory step: Created config directory: {pip_config_dir}")
             else:
-                logging.debug(f"Artifactory step: Config folder already exists: {pip_config_dir}")
+                logging.debug(
+                    f"Artifactory step: Config folder already exists: {pip_config_dir}")
 
             # Open folder in Windows Explorer
             subprocess.run(['explorer', pip_config_dir], check=False)

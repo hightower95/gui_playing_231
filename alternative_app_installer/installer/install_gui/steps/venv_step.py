@@ -33,8 +33,9 @@ class VenvCreationWorker(threading.Thread):
         self.progress_queue = progress_queue  # Queue for progress messages
         self.result_queue = result_queue      # Queue for final result
         self.daemon = True  # Dies when main thread dies
-        
-        logging.debug(f"VEnv worker: Initialized with venv path: {self.venv_path}")
+
+        logging.debug(
+            f"VEnv worker: Initialized with venv path: {self.venv_path}")
 
     def run(self):
         """Execute venv creation following user requirements:
