@@ -1,6 +1,8 @@
 """
 Configuration settings for the Swiss Army Tool application
 """
+from pathlib import Path
+import os
 from enum import Enum
 
 
@@ -99,5 +101,37 @@ CONFIG_FILES = {
     "app_settings": "app_settings.json",
 }
 
-# Configuration Directory
-CONFIG_DIR = ".tool_config"
+# Configuration Directory Path Configuration
+
+# Configuration path variables - customize as needed
+CONFIG_PATH_VARIABLES = {
+    "APPDATA": Path(os.getenv("APPDATA", "~")),
+    "LOCALAPPDATA": Path(os.getenv("LOCALAPPDATA", "~")),
+    "USERPROFILE": Path(os.getenv("USERPROFILE", "~")),
+    "HOME": Path.home(),
+    "SYSTEM_NAME": "SwissArmyTool",  # Your system/organization name
+    "APP_NAME": "productivity_app"   # Your application name
+}
+
+# Configuration directory template - customize this pattern
+# Examples:
+# - "{APPDATA}/{SYSTEM_NAME}/{APP_NAME}"  -> C:/Users/user/AppData/Roaming/SwissArmyTool/productivity_app
+# - "{HOME}/.config/{APP_NAME}"           -> /home/user/.config/productivity_app
+# - ".tool_config"                        -> ./tool_config (relative to app)
+CONFIG_DIR_TEMPLATE = "{APPDATA}/{SYSTEM_NAME}/{APP_NAME}"
+
+
+def resolve_config_dir() -> Path:
+    """Resolve the configuration directory path from template and variables"""
+    try:
+        # Expand the template using the variables
+        resolved_path = CONFIG_DIR_TEMPLATE.format(**CONFIG_PATH_VARIABLES)
+        return Path(resolved_path).expanduser().resolve()
+    except (KeyError, ValueError) as e:
+        # Fallback to simple relative directory if template fails
+        print(f"Warning: Config path template failed ({e}), using fallback")
+        return Path(".tool_config")
+
+
+# Resolved configuration directory
+CONFIG_DIR = resolve_config_dir()

@@ -224,18 +224,18 @@ class InstallLibraryStep(BaseStep):
         self.install_button = ttk.Button(button_frame, text="Install Libraries",
                                          command=self._start_library_installation)
         self.install_button.pack(side="left")
-        
+
         # Additional buttons (initially disabled)
         self.open_log_button = ttk.Button(button_frame, text="Open Pip Log",
-                                         command=self._open_log_file, state="disabled")
+                                          command=self._open_log_file, state="disabled")
         self.open_log_button.pack(side="left", padx=(5, 0))
-        
+
         self.open_installer_log_button = ttk.Button(button_frame, text="Open Install Log",
-                                                   command=self._open_installer_log, state="normal")
+                                                    command=self._open_installer_log, state="normal")
         self.open_installer_log_button.pack(side="left", padx=(5, 0))
-        
+
         self.open_terminal_button = ttk.Button(button_frame, text="Open Terminal",
-                                              command=self._open_venv_terminal, state="disabled")
+                                               command=self._open_venv_terminal, state="disabled")
         self.open_terminal_button.pack(side="left", padx=(5, 0))
 
         # Output text area
@@ -475,7 +475,7 @@ class InstallLibraryStep(BaseStep):
                         message, self._install_output)
                 else:
                     self._handle_installation_failure(message)
-                
+
                 # Enable debugging buttons after any installation attempt
                 self._enable_debugging_buttons()
             except queue.Empty:
@@ -502,7 +502,7 @@ class InstallLibraryStep(BaseStep):
         """Handle failed library installation"""
         self._append_output(f"\nError: {message}")
         self._update_checklist_item("installed", "❌ Failed", "red")
-        
+
         # Keep output visible after failure so user can see what went wrong
         self._installation_failed = True
         self._update_ui_state()
@@ -726,32 +726,36 @@ class InstallLibraryStep(BaseStep):
     def _open_installer_log(self):
         """Open the main installer log file"""
         logging.info("Library step: User requested to open installer log file")
-        
+
         try:
             # Find installer directory - go up from current file to installer dir
-            installer_dir = Path(__file__).resolve().parents[3]  # installer dir
+            installer_dir = Path(
+                __file__).resolve().parents[3]  # installer dir
             logs_dir = installer_dir / 'logs'
             installer_log_path = logs_dir / 'installer.log'
-            
-            logging.debug(f"Library step: Looking for installer log at: {installer_log_path}")
-            
+
+            logging.debug(
+                f"Library step: Looking for installer log at: {installer_log_path}")
+
             if not installer_log_path.exists():
-                messagebox.showwarning("Installer Log Not Found", 
-                                      f"The installer log file could not be found:\n{installer_log_path}\n\nThe log may not have been created yet.")
+                messagebox.showwarning("Installer Log Not Found",
+                                       f"The installer log file could not be found:\n{installer_log_path}\n\nThe log may not have been created yet.")
                 return
-            
+
             import subprocess
             import os
             if os.name == 'nt':  # Windows
                 # Use notepad to open the log file (hide command prompt)
-                subprocess.run(['notepad', str(installer_log_path)], 
-                             creationflags=subprocess.CREATE_NO_WINDOW)
-                logging.info(f"Library step: Opened installer log in notepad: {installer_log_path}")
+                subprocess.run(['notepad', str(installer_log_path)],
+                               creationflags=subprocess.CREATE_NO_WINDOW)
+                logging.info(
+                    f"Library step: Opened installer log in notepad: {installer_log_path}")
             else:  # Unix-like
                 # Try to open with default text editor
                 subprocess.run(['xdg-open', str(installer_log_path)])
-                logging.info(f"Library step: Opened installer log with default editor: {installer_log_path}")
-                
+                logging.info(
+                    f"Library step: Opened installer log with default editor: {installer_log_path}")
+
         except Exception as e:
             error_msg = f"Failed to open installer log: {e}"
             logging.error(f"Library step: {error_msg}")
@@ -760,32 +764,34 @@ class InstallLibraryStep(BaseStep):
     def _open_log_file(self):
         """Open the installation log file"""
         logging.info("Library step: User requested to open log file")
-        
+
         if not self._last_install_report:
-            messagebox.showwarning("No Log Available", 
-                                  "No installation log file is available yet. Please run the installation first.")
+            messagebox.showwarning("No Log Available",
+                                   "No installation log file is available yet. Please run the installation first.")
             return
-        
+
         log_path = Path(self._last_install_report)
         logging.debug(f"Library step: Attempting to open log file: {log_path}")
-        
+
         if not log_path.exists():
-            messagebox.showerror("Log File Not Found", 
-                                f"The log file could not be found:\n{log_path}")
+            messagebox.showerror("Log File Not Found",
+                                 f"The log file could not be found:\n{log_path}")
             return
-        
+
         try:
             import subprocess
             import os
             if os.name == 'nt':  # Windows
                 # Use notepad to open the JSON file (hide command prompt)
-                subprocess.run(['notepad', str(log_path)], 
-                             creationflags=subprocess.CREATE_NO_WINDOW)
-                logging.info(f"Library step: Opened log file in notepad: {log_path}")
+                subprocess.run(['notepad', str(log_path)],
+                               creationflags=subprocess.CREATE_NO_WINDOW)
+                logging.info(
+                    f"Library step: Opened log file in notepad: {log_path}")
             else:  # Unix-like
                 # Try to open with default text editor
                 subprocess.run(['xdg-open', str(log_path)])
-                logging.info(f"Library step: Opened log file with default editor: {log_path}")
+                logging.info(
+                    f"Library step: Opened log file with default editor: {log_path}")
         except Exception as e:
             error_msg = f"Failed to open log file: {e}"
             logging.error(f"Library step: {error_msg}")
@@ -794,12 +800,12 @@ class InstallLibraryStep(BaseStep):
     def _open_venv_terminal(self):
         """Open a terminal with the virtual environment activated"""
         logging.info("Library step: User requested to open venv terminal")
-        
+
         if not self._venv_python or not self._venv_python.exists():
-            messagebox.showwarning("Virtual Environment Not Available", 
-                                  "The virtual environment is not available. Please ensure the venv step is completed.")
+            messagebox.showwarning("Virtual Environment Not Available",
+                                   "The virtual environment is not available. Please ensure the venv step is completed.")
             return
-        
+
         # Get the venv directory (parent of Scripts/bin)
         if os.name == 'nt':  # Windows
             venv_dir = self._venv_python.parent.parent
@@ -807,15 +813,16 @@ class InstallLibraryStep(BaseStep):
         else:  # Unix-like
             venv_dir = self._venv_python.parent.parent
             activate_script = venv_dir / 'bin' / 'activate'
-        
-        logging.debug(f"Library step: Virtual environment directory: {venv_dir}")
+
+        logging.debug(
+            f"Library step: Virtual environment directory: {venv_dir}")
         logging.debug(f"Library step: Activate script path: {activate_script}")
-        
+
         if not activate_script.exists():
-            messagebox.showerror("Activation Script Not Found", 
-                                f"The virtual environment activation script could not be found:\n{activate_script}")
+            messagebox.showerror("Activation Script Not Found",
+                                 f"The virtual environment activation script could not be found:\n{activate_script}")
             return
-        
+
         try:
             import subprocess
             if os.name == 'nt':  # Windows
@@ -835,13 +842,14 @@ cmd /k
                 with tempfile.NamedTemporaryFile(mode='w', suffix='.bat', delete=False) as f:
                     f.write(batch_content)
                     batch_path = f.name
-                
+
                 # Open new terminal window with the batch file
-                subprocess.Popen(['cmd', '/c', 'start', 'cmd', '/k', batch_path], 
-                               cwd=str(venv_dir.parent),
-                               creationflags=subprocess.CREATE_NEW_CONSOLE)
-                logging.info(f"Library step: Opened new terminal window with activated venv in: {venv_dir.parent}")
-                
+                subprocess.Popen(['cmd', '/c', 'start', 'cmd', '/k', batch_path],
+                                 cwd=str(venv_dir.parent),
+                                 creationflags=subprocess.CREATE_NEW_CONSOLE)
+                logging.info(
+                    f"Library step: Opened new terminal window with activated venv in: {venv_dir.parent}")
+
                 # Clean up batch file after a delay (in a separate thread to not block UI)
                 def cleanup_batch():
                     import time
@@ -851,16 +859,18 @@ cmd /k
                         os.unlink(batch_path)
                     except:
                         pass
-                
+
                 import threading
                 threading.Thread(target=cleanup_batch, daemon=True).start()
-                
+
             else:  # Unix-like
                 # Open terminal with bash and activated venv
                 bash_command = f'cd "{venv_dir.parent}" && source "{activate_script}" && echo "Virtual environment activated. Type \'deactivate\' to exit venv." && exec bash'
-                subprocess.Popen(['gnome-terminal', '--', 'bash', '-c', bash_command])
-                logging.info(f"Library step: Opened terminal with activated venv in: {venv_dir.parent}")
-                
+                subprocess.Popen(
+                    ['gnome-terminal', '--', 'bash', '-c', bash_command])
+                logging.info(
+                    f"Library step: Opened terminal with activated venv in: {venv_dir.parent}")
+
         except Exception as e:
             error_msg = f"Failed to open terminal: {e}"
             logging.error(f"Library step: {error_msg}")

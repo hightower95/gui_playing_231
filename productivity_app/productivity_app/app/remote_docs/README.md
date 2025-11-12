@@ -4,6 +4,24 @@
 
 The Remote Docs tab provides functionality to view available remote documents and upload new versions. This allows users to access and manage shared documentation from a central location.
 
+# When user clicks "Refresh" button
+presenter.refresh_documents()
+  ↓
+model.refresh_documents() 
+  ↓
+worker.refresh_documents() # Starts background thread
+  ↓
+# UI remains responsive while worker runs in background
+worker.run() # 3-4 seconds of network operations
+  ↓
+worker.refresh_completed.emit(documents) # Signal completion
+  ↓
+model._on_refresh_completed() # Updates data
+  ↓
+model.documents_updated.emit() # Notify presenter
+  ↓
+presenter._on_documents_updated() # Updates view
+
 ## Features
 
 ### Current Implementation

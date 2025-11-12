@@ -28,7 +28,7 @@ def load_launch_config(config_file):
     # Return as dictionary with minimal defaults
     defaults = {
         'library_name': '{{LIBRARY_NAME}}',
-        'venv_path': '{{VENV_PATH}}',
+        'venv_path': r'{{VENV_PATH}}',
         'always_upgrade': '{{ALWAYS_UPGRADE}}',
         'allow_upgrade_to_test_releases': '{{ALLOW_UPGRADE_TO_TEST_RELEASES}}',
         'enable_log': '{{ENABLE_LOG}}',
@@ -149,7 +149,7 @@ if config_file.exists():
 # Import and run the library
 try:
     import {config['library_name']}
-    {config['library_name']}.run(launch_config)
+    {config['library_name']}.start(launch_config)
 except Exception as e:
     print("Runtime error: " + str(e))
     raise

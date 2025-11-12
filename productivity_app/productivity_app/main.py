@@ -9,6 +9,69 @@ from app.core.theme_manager import ThemeManager
 from app.core.config import APP_SETTINGS
 from app.tabs.main_window import MainWindow
 
+# UTF-8 Console Support for Windows
+# This fixes encoding issues when running from command prompt
+import io
+
+
+def setup_utf8_console():
+    """Setup UTF-8 console output safely"""
+    try:
+        # Only on Windows and only if we have encoding issues
+        if (sys.platform == 'win32'
+            and hasattr(sys.stdout, 'buffer')
+            and hasattr(sys.stdout, 'encoding')
+            and sys.stdout.encoding.lower() not in ('utf-8', 'utf8')
+                and not sys.stdout.closed):
+
+            # Create new wrapper but keep reference to original
+            original_stdout = sys.stdout
+            try:
+                sys.stdout = io.TextIOWrapper(
+                    sys.stdout.buffer,
+                    encoding='utf-8',
+                    errors='replace',
+                    line_buffering=True
+                )
+                # Test the new stdout works
+                sys.stdout.write("")
+                sys.stdout.flush()
+            except (AttributeError, ValueError, OSError, UnicodeError):
+                # Restore original if wrapping fails
+                sys.stdout = original_stdout
+
+    except Exception:
+        # Silently ignore any setup errors
+        pass
+
+
+# Setup UTF-8 console (only if needed)
+# setup_utf8_console()
+# import os
+# env = os.environ.copy()
+# env['PYTHONUTF8'] = '1'
+
+# result = subprocess.run(
+#     [str(venv_python), "-c", runner_script],
+#     cwd=str(app_dir),
+#     capture_output=True,
+#     text=True,
+#     creationflags=creation_flags,
+#     env=env  # Add this line
+# )
+# Option B:
+# result = subprocess.run(
+#     [str(venv_python), "-X", "utf8", "-c", runner_script],
+#     # ... rest of the parameters
+# # )
+# -X utf8 specifically:
+# The -X utf8 flag enables UTF-8 mode in Python, which:
+
+# Forces UTF-8 encoding for all text I/O (stdin, stdout, stderr)
+# Overrides system locale settings - ignores Windows' default CP1252/CP437 encodings
+# Sets locale.getpreferredencoding() to return 'utf-8'
+# Makes open() default to UTF-8 instead of system encoding
+# Equivalent to setting PYTHONUTF8=1 environment variable
 
 def main():
     """Main application entry point"""

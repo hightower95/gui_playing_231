@@ -1,7 +1,7 @@
 """
 Centralized Configuration Manager
 
-Handles all persistent configuration storage in the .tool_config directory.
+Handles all persistent configuration storage in configurable directory.
 """
 import json
 from pathlib import Path
@@ -10,10 +10,10 @@ from app.core.config import CONFIG_DIR, CONFIG_FILES
 
 
 class ConfigManager:
-    """Manages application configuration files in .tool_config directory"""
+    """Manages application configuration files in configurable directory"""
 
-    # Class-level config directory (relative to project root)
-    CONFIG_DIR = Path(CONFIG_DIR)
+    # Class-level config directory (resolved from template)
+    CONFIG_DIR = CONFIG_DIR
 
     # Configuration file names (from config.py)
     DOCUMENT_SCANNER_CONFIG = CONFIG_FILES["document_scanner"]
@@ -23,10 +23,10 @@ class ConfigManager:
     def initialize(cls):
         """Initialize the configuration directory
 
-        Creates .tool_config directory if it doesn't exist.
+        Creates configuration directory if it doesn't exist.
         Should be called on application startup.
         """
-        cls.CONFIG_DIR.mkdir(exist_ok=True)
+        cls.CONFIG_DIR.mkdir(parents=True, exist_ok=True)
         print(f"✓ Configuration directory: {cls.CONFIG_DIR.absolute()}")
 
     @classmethod
