@@ -555,8 +555,7 @@ class AddDocumentDialog(QDialog):
             item = QListWidgetItem(col_name)
             self.return_columns_list.addItem(item)
 
-        # Auto-select all by default
-        self.return_columns_list.selectAll()
+        # No auto-selection - user must manually select columns
 
     def _check_step3_complete(self):
         """Check if step 3 can be completed"""
