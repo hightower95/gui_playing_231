@@ -2,12 +2,24 @@
 Swiss Army Tool - Main Application Entry Point
 """
 import sys
+import os
+from pathlib import Path
+
+# Setup module path for productivity_core
+def setup_module_path():
+    """Add the directory containing productivity_core to Python path"""
+    current_dir = Path(__file__).parent
+    if str(current_dir) not in sys.path:
+        sys.path.insert(0, str(current_dir))
+
+setup_module_path()
+
 from PySide6.QtWidgets import QApplication
-from app.core.app_context import AppContext
-from app.core.config_manager import ConfigManager
-from app.core.theme_manager import ThemeManager
-from app.core.config import APP_SETTINGS
-from app.tabs.main_window import MainWindow
+from productivity_core.core.app_context import AppContext
+from productivity_core.core.config_manager import ConfigManager
+from productivity_core.core.theme_manager import ThemeManager
+from productivity_core.core.config import APP_SETTINGS
+from productivity_core.tabs.main_window import MainWindow
 
 # UTF-8 Console Support for Windows
 # This fixes encoding issues when running from command prompt

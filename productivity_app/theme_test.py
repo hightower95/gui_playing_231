@@ -1,8 +1,8 @@
 """
 Theme Test Script - Test different themes for the productivity app
 """
-from app.ui.components import StandardButton, ButtonRole, StandardLabel, TextStyle
-from app.core.theme_manager import ThemeManager
+from productivity_core.ui.components import StandardButton, ButtonRole, StandardLabel, TextStyle
+from productivity_core.core.theme_manager import ThemeManager
 from PySide6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QPushButton, QLabel
 import sys
 from pathlib import Path

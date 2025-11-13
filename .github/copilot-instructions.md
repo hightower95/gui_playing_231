@@ -169,3 +169,4 @@ When modifying this codebase, always consider the multi-layer architecture and m
 - The code will be run on other windows machines so ensure any hardcoded paths or environment-specific settings are avoided.
 - Use of the token '&&' is not a valid statement separator in this version.
 - When creating code snippets to execute, always consider that there is a venv to be used. 
+- Remember the VENV. 

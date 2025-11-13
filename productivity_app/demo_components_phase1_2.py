@@ -5,7 +5,7 @@ This demo showcases all the newly created components from Phase 1 and 2.
 Run this file to see the components in action.
 """
 
-from app.ui.components import (
+from productivity_core.ui.components import (
     StandardButton, ButtonRole, ButtonSize,
     StandardLabel, TextStyle,
     StandardCheckBox,
