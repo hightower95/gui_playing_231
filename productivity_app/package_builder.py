@@ -154,7 +154,8 @@ def get_current_version():
 
     content = pyproject_file.read_text()
     # Support both plain version and version with git hash
-    match = re.search(r'version = "(\d+)\.(\d+)\.(\d+)(?:\+[a-f0-9]+)?"', content)
+    match = re.search(
+        r'version = "(\d+)\.(\d+)\.(\d+)(?:\+[a-f0-9]+)?"', content)
     if not match:
         print("[ERROR] Could not find version in pyproject.toml")
         sys.exit(1)
@@ -180,7 +181,7 @@ def inject_git_hash_into_version():
 
     # Read current content
     content = pyproject_file.read_text()
-    
+
     # Get git hash
     git_hash = get_git_hash()
     if not git_hash:
@@ -194,18 +195,18 @@ def inject_git_hash_into_version():
 
     base_version = match.group(1)
     version_with_hash = f"{base_version}+{git_hash}"
-    
+
     # Replace version in content
     new_content = re.sub(
         r'version = "(\d+\.\d+\.\d+)(?:\+[a-f0-9]+)?"',
         f'version = "{version_with_hash}"',
         content
     )
-    
+
     # Write the updated content
     pyproject_file.write_text(new_content)
     print(f"[INFO] Injected git hash: {base_version} -> {version_with_hash}")
-    
+
     return content, version_with_hash
 
 
@@ -242,7 +243,7 @@ def update_version_in_toml(version_type="patch"):
 
     content = pyproject_file.read_text()
     # Remove any existing git hash before updating version
-    content = re.sub(r'version = "(\d+\.\d+\.\d+)(?:\+[a-f0-9]+)?"', 
+    content = re.sub(r'version = "(\d+\.\d+\.\d+)(?:\+[a-f0-9]+)?"',
                      r'version = "\1"', content)
     content = re.sub(r'version = "\d+\.\d+\.\d+"',
                      f'version = "{new_version}"', content)
@@ -268,7 +269,7 @@ def build_package():
     # Inject git hash into version before building
     print("[GIT] Injecting git hash into version...")
     original_content, version_with_hash = inject_git_hash_into_version()
-    
+
     try:
         # Install build tools first
         print("[PKG] Installing/upgrading build tools...")
@@ -303,7 +304,8 @@ def build_package():
                     "python -m pip install --index-url https://pypi.org/simple build")
                 print("[OK] Build module installed")
             except Exception as install_error:
-                print(f"[ERROR] Could not install build module: {install_error}")
+                print(
+                    f"[ERROR] Could not install build module: {install_error}")
                 print("[TIP] Try manually running: pip install build")
                 sys.exit(1)
 
@@ -342,14 +344,16 @@ def build_package():
                     print("[INFO] Build output:")
                     print(result.stdout)
             else:
-                print(f"[ERROR] Build failed with exit code {result.returncode}")
+                print(
+                    f"[ERROR] Build failed with exit code {result.returncode}")
                 if result.stderr:
                     print("[ERROR] Error details:")
                     print(result.stderr)
                 if result.stdout:
                     print("[INFO] Build output:")
                     print(result.stdout)
-                raise Exception(f"Build failed with exit code {result.returncode}")
+                raise Exception(
+                    f"Build failed with exit code {result.returncode}")
 
         except FileNotFoundError:
             print("[ERROR] Python not found in PATH")
