@@ -153,12 +153,69 @@ def get_current_version():
         sys.exit(1)
 
     content = pyproject_file.read_text()
-    match = re.search(r'version = "(\d+)\.(\d+)\.(\d+)"', content)
+    # Support both plain version and version with git hash
+    match = re.search(r'version = "(\d+)\.(\d+)\.(\d+)(?:\+[a-f0-9]+)?"', content)
     if not match:
         print("[ERROR] Could not find version in pyproject.toml")
         sys.exit(1)
 
     return tuple(map(int, match.groups()))
+
+
+def get_git_hash():
+    """Get the current git commit hash"""
+    try:
+        return run_command("git rev-parse --short HEAD")
+    except:
+        print("[WARN] Could not get git hash")
+        return None
+
+
+def inject_git_hash_into_version():
+    """Temporarily inject git hash into pyproject.toml version"""
+    pyproject_file = find_pyproject_toml()
+    if not pyproject_file:
+        print("[ERROR] Could not find pyproject.toml!")
+        return None, None
+
+    # Read current content
+    content = pyproject_file.read_text()
+    
+    # Get git hash
+    git_hash = get_git_hash()
+    if not git_hash:
+        return content, None
+
+    # Find current version and inject git hash
+    match = re.search(r'version = "(\d+\.\d+\.\d+)(?:\+[a-f0-9]+)?"', content)
+    if not match:
+        print("[ERROR] Could not find version in pyproject.toml")
+        return content, None
+
+    base_version = match.group(1)
+    version_with_hash = f"{base_version}+{git_hash}"
+    
+    # Replace version in content
+    new_content = re.sub(
+        r'version = "(\d+\.\d+\.\d+)(?:\+[a-f0-9]+)?"',
+        f'version = "{version_with_hash}"',
+        content
+    )
+    
+    # Write the updated content
+    pyproject_file.write_text(new_content)
+    print(f"[INFO] Injected git hash: {base_version} -> {version_with_hash}")
+    
+    return content, version_with_hash
+
+
+def restore_original_version(original_content):
+    """Restore the original pyproject.toml content"""
+    if original_content:
+        pyproject_file = find_pyproject_toml()
+        if pyproject_file:
+            pyproject_file.write_text(original_content)
+            print("[INFO] Restored original version in pyproject.toml")
 
 
 def update_version_in_toml(version_type="patch"):
@@ -184,6 +241,9 @@ def update_version_in_toml(version_type="patch"):
         sys.exit(1)
 
     content = pyproject_file.read_text()
+    # Remove any existing git hash before updating version
+    content = re.sub(r'version = "(\d+\.\d+\.\d+)(?:\+[a-f0-9]+)?"', 
+                     r'version = "\1"', content)
     content = re.sub(r'version = "\d+\.\d+\.\d+"',
                      f'version = "{new_version}"', content)
     pyproject_file.write_text(content)
@@ -193,7 +253,7 @@ def update_version_in_toml(version_type="patch"):
 
 
 def build_package():
-    """Build the package"""
+    """Build the package with git hash injection"""
     print("[BUILD] Building package...")
 
     # Find the directory containing pyproject.toml
@@ -205,96 +265,108 @@ def build_package():
     build_dir = pyproject_file.parent
     print(f"[DIR] Building in directory: {build_dir}")
 
-    # Install build tools first
-    print("[PKG] Installing/upgrading build tools...")
+    # Inject git hash into version before building
+    print("[GIT] Injecting git hash into version...")
+    original_content, version_with_hash = inject_git_hash_into_version()
+    
     try:
-        # Try with default PyPI index in case there are pip config issues
-        run_command(
-            "python -m pip install --upgrade --index-url https://pypi.org/simple build twine")
-    except:
-        print("[WARN] Warning: Could not upgrade build tools, continuing anyway...")
-
-    # Remove old builds from the build directory
-    print("[CLEAN] Cleaning old builds...")
-    for path in ["dist", "build", "*.egg-info"]:
-        try:
-            run_command(
-                f"python -c \"import shutil, glob, os; os.chdir('{build_dir}'); [shutil.rmtree(p, ignore_errors=True) for p in glob.glob('{path}')]\"")
-        except:
-            print(f"[WARN] Warning: Could not clean {path}")
-
-    # First, let's check if the build module is available
-    print("[CHECK] Checking if build module is available...")
-    try:
-        result = run_command(
-            "python -c \"import build; print('Build module found')\"")
-        print(f"[OK] {result}")
-    except:
-        print("[ERROR] Build module not found!")
-        print("[INFO] Installing build module...")
+        # Install build tools first
+        print("[PKG] Installing/upgrading build tools...")
         try:
             # Try with default PyPI index in case there are pip config issues
             run_command(
-                "python -m pip install --index-url https://pypi.org/simple build")
-            print("[OK] Build module installed")
-        except Exception as install_error:
-            print(f"[ERROR] Could not install build module: {install_error}")
-            print("[TIP] Try manually running: pip install build")
+                "python -m pip install --upgrade --index-url https://pypi.org/simple build twine")
+        except:
+            print("[WARN] Warning: Could not upgrade build tools, continuing anyway...")
+
+        # Remove old builds from the build directory
+        print("[CLEAN] Cleaning old builds...")
+        for path in ["dist", "build", "*.egg-info"]:
+            try:
+                run_command(
+                    f"python -c \"import shutil, glob, os; os.chdir('{build_dir}'); [shutil.rmtree(p, ignore_errors=True) for p in glob.glob('{path}')]\"")
+            except:
+                print(f"[WARN] Warning: Could not clean {path}")
+
+        # First, let's check if the build module is available
+        print("[CHECK] Checking if build module is available...")
+        try:
+            result = run_command(
+                "python -c \"import build; print('Build module found')\"")
+            print(f"[OK] {result}")
+        except:
+            print("[ERROR] Build module not found!")
+            print("[INFO] Installing build module...")
+            try:
+                # Try with default PyPI index in case there are pip config issues
+                run_command(
+                    "python -m pip install --index-url https://pypi.org/simple build")
+                print("[OK] Build module installed")
+            except Exception as install_error:
+                print(f"[ERROR] Could not install build module: {install_error}")
+                print("[TIP] Try manually running: pip install build")
+                sys.exit(1)
+
+        # Build the package in the correct directory
+        print(f"[BUILD] Running build in {build_dir}...")
+
+        # Let's also check what's in the build directory
+        print(f"[INFO] Contents of {build_dir}:")
+        try:
+            import os
+            for item in os.listdir(build_dir):
+                print(f"  - {item}")
+        except Exception as e:
+            print(f"[WARN] Could not list directory: {e}")
+
+        try:
+            # Use full path to python and be very explicit
+            import sys
+            python_exe = sys.executable
+            print(f"[INFO] Using Python: {python_exe}")
+
+            result = subprocess.run(
+                [python_exe, "-m", "build", "--verbose"],
+                cwd=str(build_dir),
+                capture_output=True,
+                text=True,
+                # Clear PYTHONPATH to avoid conflicts
+                env=dict(os.environ, PYTHONPATH="")
+            )
+
+            if result.returncode == 0:
+                print("[OK] Package built successfully!")
+                if version_with_hash:
+                    print(f"[INFO] Built with version: {version_with_hash}")
+                if result.stdout:
+                    print("[INFO] Build output:")
+                    print(result.stdout)
+            else:
+                print(f"[ERROR] Build failed with exit code {result.returncode}")
+                if result.stderr:
+                    print("[ERROR] Error details:")
+                    print(result.stderr)
+                if result.stdout:
+                    print("[INFO] Build output:")
+                    print(result.stdout)
+                raise Exception(f"Build failed with exit code {result.returncode}")
+
+        except FileNotFoundError:
+            print("[ERROR] Python not found in PATH")
+            print("[TIP] Make sure Python is properly installed and in your PATH")
             sys.exit(1)
+        except Exception as e:
+            print(f"[ERROR] Build failed: {e}")
+            print("[TIP] Possible solutions:")
+            print("  1. Make sure you're in a virtual environment")
+            print("  2. Check your pyproject.toml file is valid")
+            print("  3. Try running manually: python -m build --verbose")
+            raise
 
-    # Build the package in the correct directory
-    print(f"[BUILD] Running build in {build_dir}...")
-
-    # Let's also check what's in the build directory
-    print(f"[INFO] Contents of {build_dir}:")
-    try:
-        import os
-        for item in os.listdir(build_dir):
-            print(f"  - {item}")
-    except Exception as e:
-        print(f"[WARN] Could not list directory: {e}")
-
-    try:
-        # Use full path to python and be very explicit
-        import sys
-        python_exe = sys.executable
-        print(f"[INFO] Using Python: {python_exe}")
-
-        result = subprocess.run(
-            [python_exe, "-m", "build", "--verbose"],
-            cwd=str(build_dir),
-            capture_output=True,
-            text=True,
-            # Clear PYTHONPATH to avoid conflicts
-            env=dict(os.environ, PYTHONPATH="")
-        )
-
-        if result.returncode == 0:
-            print("[OK] Package built successfully!")
-            if result.stdout:
-                print("[INFO] Build output:")
-                print(result.stdout)
-        else:
-            print(f"[ERROR] Build failed with exit code {result.returncode}")
-            if result.stderr:
-                print("[ERROR] Error details:")
-                print(result.stderr)
-            if result.stdout:
-                print("[INFO] Build output:")
-                print(result.stdout)
-            raise Exception(f"Build failed with exit code {result.returncode}")
-
-    except FileNotFoundError:
-        print("[ERROR] Python not found in PATH")
-        print("[TIP] Make sure Python is properly installed and in your PATH")
-        sys.exit(1)
-    except Exception as e:
-        print(f"[ERROR] Build failed: {e}")
-        print("[TIP] Possible solutions:")
-        print("  1. Make sure you're in a virtual environment")
-        print("  2. Check your pyproject.toml file is valid")
-        print("  3. Try running manually: python -m build --verbose")
-        raise
+    finally:
+        # Always restore original version, even if build fails
+        print("[RESTORE] Restoring original version in pyproject.toml...")
+        restore_original_version(original_content)
 
 
 def main():
@@ -308,6 +380,7 @@ Examples:
   python package_builder.py --minor            # minor version (0.1.1 → 0.2.0)
   python package_builder.py --major            # major version (0.2.0 → 1.0.0)
   python package_builder.py --no-increment     # build without version change
+  python package_builder.py --dev              # development mode (skip git checks)
         """
     )
 
@@ -319,6 +392,8 @@ Examples:
 
     parser.add_argument('--no-increment', action='store_true',
                         help='Build without incrementing version number')
+    parser.add_argument('--dev', action='store_true',
+                        help='Development mode: skip git checks and allow uncommitted changes')
 
     args = parser.parse_args()
 
@@ -331,6 +406,7 @@ Examples:
         version_type = "patch"
 
     no_increment = args.no_increment
+    dev_mode = args.dev
 
     # Determine if we're running from the project root or the productivity_app directory
     script_dir = Path(__file__).parent
@@ -355,15 +431,18 @@ Examples:
 
     print("[CHECK] Checking git status...")
 
-    # First, check if git working directory is clean
-    if not git_has_changes_pending():
+    # First, check if git working directory is clean (skip in dev mode)
+    if not dev_mode and not git_has_changes_pending():
         sys.exit(1)
+
+    if dev_mode:
+        print("[DEV] Development mode: Skipping git checks")
 
     print(f"[CHECK] Checking for changes in watched paths...")
     print(f"   Watching: {', '.join(default_watch_paths)}")
 
-    # Then check if there are relevant changes in the watched paths
-    if not no_increment and not watched_paths_have_changed(default_watch_paths):
+    # Then check if there are relevant changes in the watched paths (skip in dev mode)
+    if not no_increment and not dev_mode and not watched_paths_have_changed(default_watch_paths):
         print("[SKIP] No relevant changes detected, skipping build")
         return
 
