@@ -160,10 +160,21 @@ class BaseTabView(QWidget):
         contact_label.setStyleSheet("color: gray; font-size: 10pt;")
 
         # Right side - Build info
+        try:
+            from importlib.metadata import version
+            app_version = version("productivity-app")
+        except Exception:
+            try:
+                from ... import __version__
+                app_version = __version__
+            except ImportError:
+                app_version = "dev"
+
         import datetime
         build_date = datetime.datetime.now().strftime("%Y-%m-%d")
-        build_info_label = QLabel(
-            f"Version 1.0.0 | Build Date: {build_date} | Python 3.x")
+        build_info_text = f"Version {app_version} | Build Date: {build_date} | Python 3.x"
+
+        build_info_label = QLabel(build_info_text)
         build_info_label.setStyleSheet(
             f"color: {UI_COLORS['muted_text']}; font-size: 9pt;")
         build_info_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)

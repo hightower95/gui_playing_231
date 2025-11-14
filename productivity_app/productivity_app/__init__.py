@@ -9,7 +9,14 @@ This package provides tools for:
 - Remote documentation access
 """
 
-__version__ = "0.1.0"
+# Read version from package metadata (includes git hash from build)
+try:
+    from importlib.metadata import version
+    __version__ = version("productivity-app")
+# Catch all exceptions (ImportError, PackageNotFoundError, etc.)
+except Exception:
+    __version__ = "dev"
+
 __author__ = "Productivity App Contributors"
 __license__ = "MIT"
 
