@@ -9,6 +9,7 @@ from utilities.version_manager import (
 )
 import subprocess
 import sys
+import os
 import configparser
 from pathlib import Path
 import tkinter as tk
@@ -27,8 +28,8 @@ def load_launch_config(config_file):
 
     # Return as dictionary with minimal defaults
     defaults = {
-        'library_name': 'requests',
-        'venv_path': 'c:\Users\peter\OneDrive\Documents\Coding\gui\alternative_app_installer\.test_venv',
+        'library_name': 'productivity_app',
+        'venv_path': r'c:\Users\peter\OneDrive\Documents\Coding\gui\.venv',
         'always_upgrade': 'true',
         'allow_upgrade_to_test_releases': 'false',
         'enable_log': 'false',
@@ -97,38 +98,6 @@ def main():
     creation_flags = 0x08000000 if sys.platform == 'win32' else 0
 
     try:
-        # Step 1: Intelligent version management with auto-upgrade
-        current_version = get_installed_version(
-            venv_python, config['library_name'])
-
-        if current_version:
-            # Check if we should upgrade based on auto-upgrade settings
-            target_version = should_upgrade(
-                current_version, config, venv_python, config['library_name'])
-
-            if target_version:
-                # Perform the upgrade
-                upgrade_success = upgrade_to_version(
-                    venv_python, config['library_name'], target_version)
-
-                if not upgrade_success:
-                    # Log upgrade failure but continue with current version
-                    print(
-                        f"Warning: Upgrade from {current_version} to {target_version} failed")
-        else:
-            # Library not installed, try to install it
-            try:
-                subprocess.run(
-                    [str(venv_python), "-m", "pip",
-                     "install", config['library_name']],
-                    capture_output=True, text=True, timeout=300, check=True
-                )
-            except subprocess.CalledProcessError:
-                root = tk.Tk()
-                root.withdraw()
-                messagebox.showerror("Installation Failed",
-                                     f"Could not install {config['library_name']}")
-                return
 
         # Step 2: Create runner script that handles launch config
         runner_script = f'''
@@ -149,19 +118,25 @@ if config_file.exists():
 # Import and run the library
 try:
     import {config['library_name']}
-    {config['library_name']}.run(launch_config)
+    {config['library_name']}.start(launch_config)
 except Exception as e:
     print("Runtime error: " + str(e))
     raise
 '''
 
-        # Step 3: Run the application
+        # Step 3: Run the application with UTF-8 support
+        env = os.environ.copy()
+        env['PYTHONUTF8'] = '1'
+
         result = subprocess.run(
-            [str(venv_python), "-c", runner_script],
+            [str(venv_python), "-X", "utf8", "-c", runner_script],
             cwd=str(app_dir),
             capture_output=True,
             text=True,
-            creationflags=creation_flags
+            encoding='utf-8',
+            errors='replace',
+            creationflags=creation_flags,
+            env=env
         )
 
         # Handle errors

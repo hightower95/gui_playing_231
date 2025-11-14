@@ -7,6 +7,7 @@ from utilities.version_manager import (
     should_upgrade,
     upgrade_to_version
 )
+import os
 import subprocess
 import sys
 import configparser
@@ -155,13 +156,17 @@ except Exception as e:
     raise
 '''
 
-        # Step 3: Run the application
+        # Step 3: Run the application with UTF-8 support
+        env = os.environ.copy()
+        env['PYTHONUTF8'] = '1'
+
         result = subprocess.run(
-            [str(venv_python), "-c", runner_script],
+            [str(venv_python), "-X", "utf8", "-c", runner_script],
             cwd=str(app_dir),
             capture_output=True,
             text=True,
-            creationflags=creation_flags
+            creationflags=creation_flags,
+            env=env
         )
 
         # Handle errors
