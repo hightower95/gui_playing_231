@@ -137,7 +137,7 @@ import configparser
 from pathlib import Path
 
 # Load launch config
-app_dir = Path(__file__).parent
+app_dir = Path(__name__).parent
 config = configparser.ConfigParser()
 config_file = app_dir / "launch_config.ini"
 launch_config = dict()
