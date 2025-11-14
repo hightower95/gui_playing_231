@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools>=65.0", "wheel", "setuptools_scm[toml]>=7.0"]
+requires = ["setuptools>=65.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "productivity-app"
-version = "0.1.4"
+version = "0.1.0"
 description = "A comprehensive productivity toolkit for connector management, EPD operations, document scanning, and Azure DevOps integration"
 readme = "README.md"
 requires-python = ">=3.8"
@@ -63,15 +63,15 @@ Repository = "https://github.com/yourusername/productivity-app"
 Changelog = "https://github.com/yourusername/productivity-app/blob/main/CHANGELOG.md"
 
 [project.scripts]
-productivity-app = "app.main:main"
+productivity-app = "productivity_app.main:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["app*"]
+include = ["productivity_app*"]
 exclude = ["tests*", "document_scanner_cache*", "e3_caches*", "*.pyc", "__pycache__"]
 
 [tool.setuptools.package-data]
-app = ["*.json", "*.csv", "*.md"]
+productivity_app = ["*.json", "*.csv", "*.md"]
 
 [tool.black]
 line-length = 100
