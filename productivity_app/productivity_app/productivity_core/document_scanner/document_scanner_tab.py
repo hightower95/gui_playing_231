@@ -2,11 +2,11 @@
 Document Scanner Module - Main tab containing Search, Configuration, History, and Compare Versions sub-tabs
 """
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QTabWidget
-from productivity_core.document_scanner.Search.presenter import SearchPresenter
-from productivity_core.document_scanner.Configuration.presenter import ConfigurationPresenter
-from productivity_core.document_scanner.History.presenter import HistoryPresenter
-from productivity_core.document_scanner.CompareVersions.presenter import CompareVersionsPresenter
-from productivity_core.document_scanner.document_scanner_model import DocumentScannerModel
+from ...document_scanner.Search.presenter import SearchPresenter
+from ...document_scanner.Configuration.presenter import ConfigurationPresenter
+from ...document_scanner.History.presenter import HistoryPresenter
+from ...document_scanner.CompareVersions.presenter import CompareVersionsPresenter
+from ...document_scanner.document_scanner_model import DocumentScannerModel
 
 
 class DocumentScannerModuleView(QWidget):

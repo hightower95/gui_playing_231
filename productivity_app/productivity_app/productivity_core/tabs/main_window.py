@@ -1,14 +1,14 @@
 from PySide6.QtWidgets import QMainWindow, QTabWidget
 from PySide6.QtCore import QTimer
 from typing import Dict, List, Callable, Optional, Any
-from productivity_core.epd.epd_presenter import EpdPresenter
-from productivity_core.presenters.connectors_presenter import ConnectorsPresenter
-from productivity_core.presenters.fault_presenter import FaultFindingPresenter
-from productivity_core.document_scanner import DocumentScannerModuleView
-from productivity_core.connector.connector_context_provider import ConnectorContextProvider
-from productivity_core.remote_docs import RemoteDocsPresenter
-from productivity_core.devops import DevOpsPresenter
-from productivity_core.tabs.settings_tab import SettingsTab
+from ..epd.epd_presenter import EpdPresenter
+from ..presenters.connectors_presenter import ConnectorsPresenter
+from ..presenters.fault_presenter import FaultFindingPresenter
+from ..document_scanner import DocumentScannerModuleView
+from ..connector.connector_context_provider import ConnectorContextProvider
+from ..remote_docs import RemoteDocsPresenter
+from ..devops import DevOpsPresenter
+from .settings_tab import SettingsTab
 
 
 # ============================================================================

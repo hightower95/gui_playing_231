@@ -1,9 +1,9 @@
 """
 Connectors Presenter - Main coordinator for connector module (updated to new structure)
 """
-from productivity_core.connector.connector_model import ConnectorModel
-from productivity_core.connector.connector_tab import ConnectorModuleView
-from productivity_core.core.base_presenter import BasePresenter
+from ..connector.connector_model import ConnectorModel
+from ..connector.connector_tab import ConnectorModuleView
+from ..core.base_presenter import BasePresenter
 
 
 class ConnectorsPresenter(BasePresenter):

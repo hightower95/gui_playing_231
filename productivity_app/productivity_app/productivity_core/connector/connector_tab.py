@@ -3,8 +3,8 @@ Connector Module - Connector configuration and lookup interface with multiple su
 """
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QTabWidget
 from PySide6.QtCore import QTimer
-from productivity_core.connector.Lookup.presenter import LookupConnectorPresenter
-from productivity_core.connector.CheckMultiple.presenter import CheckMultipleConnectorPresenter
+from .Lookup.presenter import LookupConnectorPresenter
+from .CheckMultiple.presenter import CheckMultipleConnectorPresenter
 
 
 class ConnectorModuleView(QWidget):

@@ -10,8 +10,8 @@ For example, if a part number is found, the Connector tab could provide:
 etc.
 """
 from typing import List
-from productivity_core.document_scanner.context_provider import ContextProvider
-from productivity_core.document_scanner.search_result import SearchResult, Context
+from ...document_scanner.context_provider import ContextProvider
+from ...document_scanner.search_result import SearchResult, Context
 
 
 class ConnectorContextProvider(ContextProvider):

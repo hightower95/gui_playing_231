@@ -6,7 +6,7 @@ from PySide6.QtWidgets import (
     QTableWidget, QTableWidgetItem, QSplitter, QComboBox, QLineEdit
 )
 from PySide6.QtCore import Qt, Signal
-from productivity_core.ui.components import (
+from ...ui.components import (
     StandardButton, StandardLabel, TextStyle, StandardInput, ButtonRole
 )
 
@@ -134,7 +134,7 @@ class QueryViewerView(QWidget):
 
     def _create_connection_section(self, parent_layout):
         """Create the Azure DevOps connection section"""
-        from productivity_core.ui.components import StandardGroupBox
+        from ...ui.components import StandardGroupBox
 
         conn_group = StandardGroupBox("Azure DevOps Connection")
         conn_layout = QVBoxLayout()

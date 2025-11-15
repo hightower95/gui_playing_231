@@ -1,29 +1,32 @@
 """
 Swiss Army Tool - Main Application Entry Point
 """
+import io
+from .productivity_core.tabs.main_window import MainWindow
+from .productivity_core.core.config import APP_SETTINGS
+from .productivity_core.core.theme_manager import ThemeManager
+from .productivity_core.core.config_manager import ConfigManager
+from .productivity_core.core.app_context import AppContext
+from PySide6.QtWidgets import QApplication
 import sys
 import os
 from pathlib import Path
 
 # Setup module path for productivity_core
+
+
 def setup_module_path():
     """Add the directory containing productivity_core to Python path"""
     current_dir = Path(__file__).parent
     if str(current_dir) not in sys.path:
         sys.path.insert(0, str(current_dir))
 
+
 setup_module_path()
 
-from PySide6.QtWidgets import QApplication
-from productivity_core.core.app_context import AppContext
-from productivity_core.core.config_manager import ConfigManager
-from productivity_core.core.theme_manager import ThemeManager
-from productivity_core.core.config import APP_SETTINGS
-from productivity_core.tabs.main_window import MainWindow
 
 # UTF-8 Console Support for Windows
 # This fixes encoding issues when running from command prompt
-import io
 
 
 def setup_utf8_console():
@@ -85,7 +88,7 @@ def setup_utf8_console():
 # Makes open() default to UTF-8 instead of system encoding
 # Equivalent to setting PYTHONUTF8=1 environment variable
 
-def main():
+def main(*args, **kwargs):
     """Main application entry point"""
     app = QApplication(sys.argv)
 

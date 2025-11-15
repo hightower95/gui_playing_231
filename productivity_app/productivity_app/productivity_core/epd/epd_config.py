@@ -1,7 +1,7 @@
 """
 EPD Module Configuration - Shared styling and settings for all EPD views
 """
-from productivity_core.core.config import UI_COLORS
+from ..core.config import UI_COLORS
 
 
 # Default columns to display in EPD results tables

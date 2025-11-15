@@ -3,7 +3,7 @@ Connector Model - Data management for connector lookups with threading support
 """
 from typing import Dict, List, Any, Optional
 from PySide6.QtCore import QObject, Signal, QThread, QMutex, QMutexLocker
-from productivity_core.core.base_model import BaseModel
+from ..core.base_model import BaseModel
 import time
 
 

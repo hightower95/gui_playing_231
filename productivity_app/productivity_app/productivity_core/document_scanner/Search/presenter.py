@@ -2,11 +2,11 @@
 Document Scanner Search Presenter
 """
 from PySide6.QtCore import QObject
-from productivity_core.document_scanner.Search.view import SearchView
-from productivity_core.document_scanner.search_result import SearchResult, Context
-from productivity_core.document_scanner.searchable_document import SearchableDocument
-from productivity_core.document_scanner.context_provider import ContextProvider
-from productivity_core.document_scanner.threaded_context_manager import ThreadedContextManager
+from ...document_scanner.Search.view import SearchView
+from ...document_scanner.search_result import SearchResult, Context
+from ...document_scanner.searchable_document import SearchableDocument
+from ...document_scanner.context_provider import ContextProvider
+from ...document_scanner.threaded_context_manager import ThreadedContextManager
 from typing import List
 
 

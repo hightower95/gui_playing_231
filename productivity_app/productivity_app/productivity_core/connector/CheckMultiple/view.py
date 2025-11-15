@@ -8,12 +8,12 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushB
                                QTreeWidgetItem, QRadioButton)
 from PySide6.QtCore import Signal, Qt, QSize, QRect
 from PySide6.QtGui import QDragEnterEvent, QDropEvent, QCursor, QPainter, QColor
-from productivity_core.ui.base_sub_tab_view import BaseTabView
-from productivity_core.ui.components.label import StandardLabel, TextStyle
-from productivity_core.ui.table_context_menu_mixin import TableContextMenuMixin
-from productivity_core.core.config import UI_COLORS, UI_STYLES
-from productivity_core.connector.CheckMultiple.config import SUPPORTED_FILE_EXTENSIONS, PREVIEW_ROWS, BATCH_OPERATIONS
-from productivity_core.connector.Lookup.config import (
+from ...ui.base_sub_tab_view import BaseTabView
+from ...ui.components.label import StandardLabel, TextStyle
+from ...ui.table_context_menu_mixin import TableContextMenuMixin
+from ...core.config import UI_COLORS, UI_STYLES
+from .config import SUPPORTED_FILE_EXTENSIONS, PREVIEW_ROWS, BATCH_OPERATIONS
+from ..Lookup.config import (
     FAMILIES, SHELL_TYPES, SHELL_SIZES, INSERT_ARRANGEMENTS,
     SOCKET_TYPES, KEYINGS, MATERIALS
 )
@@ -175,7 +175,7 @@ class FileUploadDialog(QDialog):
         project_layout.addWidget(project_label)
 
         # Use multiselect for projects
-        from productivity_core.ui.dual_column_multiselect import DualColumnMultiselect
+        from ...ui.dual_column_multiselect import DualColumnMultiselect
         self.e3_project_multiselect = DualColumnMultiselect([
             "Project_Alpha_Rev3",
             "Project_Beta_Final",
@@ -464,7 +464,7 @@ class FileUploadDialog(QDialog):
 
     def _show_preview(self):
         """Show preview of loaded data"""
-        from productivity_core.presenters.pandas_table_model import PandasTableModel
+        from ...presenters.pandas_table_model import PandasTableModel
 
         # Show first N rows
         preview_df = self.df.head(PREVIEW_ROWS)
@@ -1291,8 +1291,6 @@ class CheckMultipleConnectorView(BaseTabView, TableContextMenuMixin):
             return
 
         # Show filter dialog (similar to Lookup filters)
-        from productivity_core.connector.CheckMultiple.view import CheckMultipleFilterDialog
-
         dialog = CheckMultipleFilterDialog(self)
         if dialog.exec() == QDialog.Accepted:
             filters = dialog.get_filters()
@@ -1344,7 +1342,7 @@ class CheckMultipleConnectorView(BaseTabView, TableContextMenuMixin):
 
     def update_results(self, results_df: pd.DataFrame, is_original_import: bool = False):
         """Update results table with data"""
-        from productivity_core.presenters.pandas_table_model import PandasTableModel
+        from ...presenters.pandas_table_model import PandasTableModel
 
         self.imported_data = results_df
 
@@ -1503,7 +1501,7 @@ class CheckMultipleFilterDialog(QDialog):
         self._setup_ui()
 
     def _setup_ui(self):
-        from productivity_core.ui.dual_column_multiselect import DualColumnMultiselect
+        from ...ui.dual_column_multiselect import DualColumnMultiselect
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(20, 20, 20, 20)

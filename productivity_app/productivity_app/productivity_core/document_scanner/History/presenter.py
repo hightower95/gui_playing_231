@@ -2,7 +2,7 @@
 Document Scanner History Presenter
 """
 from PySide6.QtCore import QObject, Signal
-from productivity_core.document_scanner.History.view import HistoryView
+from ...document_scanner.History.view import HistoryView
 from typing import List
 
 

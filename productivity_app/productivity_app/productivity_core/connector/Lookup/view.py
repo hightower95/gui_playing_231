@@ -6,15 +6,15 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushB
                                QComboBox, QLineEdit, QMenu, QListWidgetItem)
 from PySide6.QtCore import Signal, Qt, QSize
 from PySide6.QtGui import QCursor, QPixmap
-from productivity_core.ui.base_sub_tab_view import BaseTabView
-from productivity_core.ui.components.label import StandardLabel, TextStyle
-from productivity_core.ui.table_context_menu_mixin import TableContextMenuMixin
-from productivity_core.core.config import UI_COLORS, UI_STYLES
-from productivity_core.connector.Lookup.config import (
+from ...ui.base_sub_tab_view import BaseTabView
+from ...ui.components.label import StandardLabel, TextStyle
+from ...ui.table_context_menu_mixin import TableContextMenuMixin
+from ...core.config import UI_COLORS, UI_STYLES
+from .config import (
     FAMILIES, SHELL_TYPES, SHELL_SIZES, INSERT_ARRANGEMENTS,
     SOCKET_TYPES, KEYINGS, MATERIALS
 )
-from productivity_core.shared.feature_toggles import ENABLE_PINOUT_IMAGE
+from ...shared.feature_toggles import ENABLE_PINOUT_IMAGE
 from collections import deque
 from datetime import datetime, timedelta
 

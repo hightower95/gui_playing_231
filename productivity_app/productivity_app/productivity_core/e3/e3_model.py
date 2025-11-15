@@ -8,14 +8,14 @@ from typing import List, Dict, Any, Optional
 from PySide6.QtCore import QObject, Signal, QThread, QMutex, QMutexLocker
 import pandas as pd
 
-from productivity_core.e3.e3_config import (
+from .e3_config import (
     E3_COM_PROG_ID,
     E3_CACHE_DIRECTORY,
     E3_OPERATION_TIMEOUT,
     E3_CONNECTOR_FIELDS,
     E3_PROGRESS_UPDATE_FREQUENCY
 )
-from productivity_core.e3.e3_service import get_e3_service
+from .e3_service import get_e3_service
 
 
 class E3DataWorker(QObject):

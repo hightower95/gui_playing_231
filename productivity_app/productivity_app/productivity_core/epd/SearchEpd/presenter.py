@@ -1,7 +1,7 @@
 from PySide6.QtCore import QSortFilterProxyModel, Qt, Signal, QObject, QTimer
-from productivity_core.epd.SearchEpd.view import SearchEpdView
-from productivity_core.epd.epd_config import DEFAULT_VISIBLE_COLUMNS
-from productivity_core.presenters.pandas_table_model import PandasTableModel
+from .view import SearchEpdView
+from ..epd_config import DEFAULT_VISIBLE_COLUMNS
+from ...presenters.pandas_table_model import PandasTableModel
 
 
 class SearchEpdPresenter(QObject):

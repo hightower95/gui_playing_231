@@ -10,8 +10,8 @@ __author__ = "Swiss Army Tool Contributors"
 __license__ = "MIT"
 
 # Expose key classes for library usage
-from productivity_core.core.app_context import AppContext
-from productivity_core.core.config_manager import ConfigManager, DocumentScannerConfig
+from .core.app_context import AppContext
+from .core.config_manager import ConfigManager, DocumentScannerConfig
 
 __all__ = [
     "AppContext",

@@ -3,9 +3,9 @@ Compare Versions Presenter - Logic for comparing document versions
 """
 from PySide6.QtCore import QObject
 from PySide6.QtWidgets import QFileDialog, QMessageBox
-from productivity_core.document_scanner.CompareVersions.view import CompareVersionsView
-from productivity_core.document_scanner.CompareVersions.config_dialog import ComparisonConfigDialog
-from productivity_core.document_scanner.document_store import DocumentStore
+from ...document_scanner.CompareVersions.view import CompareVersionsView
+from ...document_scanner.CompareVersions.config_dialog import ComparisonConfigDialog
+from ...document_scanner.document_store import DocumentStore
 from typing import Dict, Any, Optional
 import pandas as pd
 

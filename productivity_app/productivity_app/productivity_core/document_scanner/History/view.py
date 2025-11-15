@@ -4,8 +4,8 @@ Document Scanner History View
 from PySide6.QtWidgets import (QVBoxLayout, QHBoxLayout, QPushButton,
                                QListWidget, QListWidgetItem)
 from PySide6.QtCore import Signal, Qt
-from productivity_core.ui.base_sub_tab_view import BaseTabView
-from productivity_core.ui.components import StandardLabel, TextStyle
+from ...ui.base_sub_tab_view import BaseTabView
+from ...ui.components import StandardLabel, TextStyle
 from typing import List, Dict
 
 

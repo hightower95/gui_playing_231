@@ -1,9 +1,9 @@
 """
 EPD Presenter - Main coordinator for EPD module with sub-tabs
 """
-from productivity_core.epd.epd_model import EpdModel
-from productivity_core.core.base_presenter import BasePresenter
-from productivity_core.epd.epd_tab import EpdModuleView
+from .epd_model import EpdModel
+from ..core.base_presenter import BasePresenter
+from .epd_tab import EpdModuleView
 
 
 class EpdPresenter(BasePresenter):

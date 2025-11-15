@@ -1,6 +1,6 @@
-from productivity_core.models.fault_model import FaultFindingModel
-from productivity_core.tabs.fault_finding import FaultFindingView
-from productivity_core.core.base_presenter import BasePresenter
+from ..models.fault_model import FaultFindingModel
+from ..tabs.fault_finding import FaultFindingView
+from ..core.base_presenter import BasePresenter
 
 
 class FaultFindingPresenter(BasePresenter):

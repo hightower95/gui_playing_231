@@ -2,7 +2,7 @@
 DevOps Presenter - Manages the DevOps module
 """
 from PySide6.QtCore import QObject
-from productivity_core.devops import DevOpsModuleView
+from ..devops import DevOpsModuleView
 
 
 class DevOpsPresenter(QObject):

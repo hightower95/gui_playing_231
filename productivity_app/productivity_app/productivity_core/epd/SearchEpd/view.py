@@ -2,10 +2,10 @@ from PySide6.QtWidgets import (QWidget, QLineEdit, QHBoxLayout, QPushButton, QLa
                                QTextEdit, QTableView, QVBoxLayout, QProgressBar, QSizePolicy,
                                QApplication)
 from PySide6.QtCore import Signal, Qt
-from productivity_core.ui.base_sub_tab_view import BaseTabView
-from productivity_core.ui.components.label import StandardLabel, TextStyle
-from productivity_core.ui.table_context_menu_mixin import TableContextMenuMixin
-from productivity_core.core.config import UI_COLORS
+from ...ui.base_sub_tab_view import BaseTabView
+from ...ui.components.label import StandardLabel, TextStyle
+from ...ui.table_context_menu_mixin import TableContextMenuMixin
+from ...core.config import UI_COLORS
 
 
 class SearchEpdView(BaseTabView, TableContextMenuMixin):
@@ -133,7 +133,7 @@ class SearchEpdView(BaseTabView, TableContextMenuMixin):
 
     def _style_table(self):
         """Apply custom styling to the table using shared EPD config"""
-        from productivity_core.epd.epd_config import apply_epd_table_styling
+        from ..epd_config import apply_epd_table_styling
         apply_epd_table_styling(self.table)
 
     def _emit_search(self):

@@ -3,7 +3,7 @@ Dual Column Multiselect Widget - Reusable component for filter selections
 """
 from PySide6.QtWidgets import QWidget, QHBoxLayout, QListWidget, QListWidgetItem, QApplication
 from PySide6.QtCore import Qt, Signal
-from productivity_core.core.config import UI_COLORS
+from ..core.config import UI_COLORS
 
 
 class DualColumnMultiselect(QWidget):

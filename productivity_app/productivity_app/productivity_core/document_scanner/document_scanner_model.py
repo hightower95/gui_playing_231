@@ -3,8 +3,8 @@ Document Scanner Model - Manages searchable documents
 """
 from PySide6.QtCore import QObject, Signal, QThread
 from typing import List, Dict, Any
-from productivity_core.document_scanner.searchable_document import SearchableDocument
-from productivity_core.core.config_manager import DocumentScannerConfig
+from ...document_scanner.searchable_document import SearchableDocument
+from ..core.config_manager import DocumentScannerConfig
 
 
 class DocumentLoaderThread(QThread):
@@ -171,7 +171,7 @@ class DocumentScannerModel(QObject):
         Returns:
             List of search terms (max 10)
         """
-        from productivity_core.core.config_manager import DocumentScannerConfig
+        from ..core.config_manager import DocumentScannerConfig
         history = DocumentScannerConfig.load_search_history()
         return history
 
@@ -181,7 +181,7 @@ class DocumentScannerModel(QObject):
         Args:
             search_term: The search term to add
         """
-        from productivity_core.core.config_manager import DocumentScannerConfig
+        from ..core.config_manager import DocumentScannerConfig
 
         # Get current history
         history = DocumentScannerConfig.load_search_history()
@@ -204,7 +204,7 @@ class DocumentScannerModel(QObject):
 
     def clear_search_history(self):
         """Clear all search history"""
-        from productivity_core.core.config_manager import DocumentScannerConfig
+        from ..core.config_manager import DocumentScannerConfig
         DocumentScannerConfig.save_search_history([])
 
         # Emit signal to notify History view

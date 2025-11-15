@@ -5,7 +5,7 @@ This module contains all feature toggles/flags that can be used to enable or dis
 features across the application without changing code.
 
 Usage:
-    from productivity_core.shared.feature_toggles import ENABLE_PINOUT_IMAGE
+    from ...shared.feature_toggles import ENABLE_PINOUT_IMAGE
     
     if ENABLE_PINOUT_IMAGE:
         # Show pinout image

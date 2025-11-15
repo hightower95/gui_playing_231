@@ -2,7 +2,7 @@
 DevOps Module - Main tab containing Query Viewer and other DevOps tools
 """
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QTabWidget
-from productivity_core.devops.QueryViewer import QueryViewerPresenter
+from ..devops.QueryViewer import QueryViewerPresenter
 
 
 class DevOpsModuleView(QWidget):

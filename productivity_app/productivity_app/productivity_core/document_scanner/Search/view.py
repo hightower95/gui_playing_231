@@ -6,10 +6,10 @@ from PySide6.QtWidgets import (QVBoxLayout, QHBoxLayout, QPushButton,
                                QWidget, QScrollArea, QFrame, QSizePolicy)
 from PySide6.QtCore import Signal, Qt
 from PySide6.QtGui import QStandardItemModel, QStandardItem, QCursor
-from productivity_core.ui.base_sub_tab_view import BaseTabView
-from productivity_core.ui.components import StandardLabel, TextStyle, StandardGroupBox
-from productivity_core.document_scanner.search_result import SearchResult, Context
-from productivity_core.core.config import UI_COLORS
+from ...ui.base_sub_tab_view import BaseTabView
+from ...ui.components import StandardLabel, TextStyle, StandardGroupBox
+from ...document_scanner.search_result import SearchResult, Context
+from ...core.config import UI_COLORS
 from typing import List, Dict
 
 

@@ -2,8 +2,8 @@
 EPD Module - Electronic Parts Data analysis interface with multiple sub-tabs
 """
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QTabWidget
-from productivity_core.epd.SearchEpd.presenter import SearchEpdPresenter
-from productivity_core.epd.IdentifyBestEpd.presenter import IdentifyBestEpdPresenter
+from .SearchEpd.presenter import SearchEpdPresenter
+from .IdentifyBestEpd.presenter import IdentifyBestEpdPresenter
 
 
 class EpdModuleView(QWidget):

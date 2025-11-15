@@ -7,8 +7,8 @@ See docs/COMPONENT_LIBRARY.md for component documentation
 from PySide6.QtWidgets import (QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem,
                                QHeaderView, QMenu, QMessageBox, QFileDialog)
 from PySide6.QtCore import Signal, Qt
-from productivity_core.ui.base_sub_tab_view import BaseTabView
-from productivity_core.ui.components import (
+from ...ui.base_sub_tab_view import BaseTabView
+from ...ui.components import (
     StandardButton, ButtonRole, ButtonSize,
     StandardLabel, TextStyle,
     StandardComboBox, ComboSize,

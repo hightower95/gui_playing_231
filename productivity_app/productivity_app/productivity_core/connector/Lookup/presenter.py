@@ -2,9 +2,9 @@
 Connector Lookup Presenter - Mediates between model and view
 """
 from PySide6.QtCore import QObject, Signal, QSortFilterProxyModel, Qt, QTimer, QThread
-from productivity_core.connector.Lookup.view import LookupConnectorView
-from productivity_core.connector.Lookup.config import DEFAULT_VISIBLE_COLUMNS
-from productivity_core.presenters.pandas_table_model import PandasTableModel
+from .view import LookupConnectorView
+from .config import DEFAULT_VISIBLE_COLUMNS
+from ...presenters.pandas_table_model import PandasTableModel
 import pandas as pd
 
 

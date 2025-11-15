@@ -1,7 +1,7 @@
 """
 Configuration for Identify Best EPD feature
 """
-from productivity_core.core.config import FilterOperator
+from ...core.config import FilterOperator
 
 
 # Field-to-operator mappings

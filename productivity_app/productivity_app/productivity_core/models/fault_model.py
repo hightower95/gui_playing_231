@@ -1,4 +1,4 @@
-from productivity_core.shared.result_object import ResultObject
+from ..shared.result_object import ResultObject
 
 
 class FaultFindingModel:

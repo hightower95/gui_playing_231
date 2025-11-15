@@ -29,7 +29,7 @@ def load_launch_config(config_file):
     # Return as dictionary with minimal defaults
     defaults = {
         'library_name': 'productivity_app',
-        'venv_path': r'c:\Users\peter\OneDrive\Documents\Coding\gui\.venv',
+        'venv_path': r'c:\Users\peter\OneDrive\Documents\Coding\gui\.test_venv_2',
         'always_upgrade': 'true',
         'allow_upgrade_to_test_releases': 'false',
         'enable_log': 'false',
@@ -106,7 +106,7 @@ import configparser
 from pathlib import Path
 
 # Load launch config
-app_dir = Path(__file__).parent
+app_dir = Path(__name__).parent
 config = configparser.ConfigParser()
 config_file = app_dir / "launch_config.ini"
 launch_config = dict()

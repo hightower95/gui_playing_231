@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QMainWindow, QTabWidget
-from productivity_core.epd.epd_presenter import EpdPresenter
-from productivity_core.presenters.connectors_presenter import ConnectorsPresenter
-from productivity_core.document_scanner import DocumentScannerModuleView
+from ..epd.epd_presenter import EpdPresenter
+from ..presenters.connectors_presenter import ConnectorsPresenter
+from ..document_scanner import DocumentScannerModuleView
 
 
 class MainWindow(QMainWindow):

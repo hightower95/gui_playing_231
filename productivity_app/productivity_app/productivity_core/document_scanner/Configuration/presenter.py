@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 from PySide6.QtCore import QObject
 from PySide6.QtWidgets import QFileDialog, QMessageBox
-from productivity_core.document_scanner.Configuration.view import ConfigurationView
+from ...document_scanner.Configuration.view import ConfigurationView
 
 
 class ConfigurationPresenter(QObject):

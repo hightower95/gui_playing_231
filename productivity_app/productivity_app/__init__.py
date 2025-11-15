@@ -24,7 +24,7 @@ __license__ = "MIT"
 from .main import main as _main
 
 
-def start():
+def start(*args, **kwargs):
     """
     Start the Productivity App GUI application.
 
@@ -34,7 +34,7 @@ def start():
         >>> import productivity_app
         >>> productivity_app.start()
     """
-    _main()
+    _main(*args, **kwargs)
 
 
 # For backwards compatibility and direct execution

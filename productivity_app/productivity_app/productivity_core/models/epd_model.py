@@ -6,7 +6,7 @@ from ..core.base_model import BaseModel
 from ..core.app_context import AppContext
 import pandas as pd
 
-from productivity_core.core.base_model import BaseModel
+from ..core.base_model import BaseModel
 
 
 class EpdModel(BaseModel):

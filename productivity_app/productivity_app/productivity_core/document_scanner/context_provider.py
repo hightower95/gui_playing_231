@@ -3,7 +3,7 @@ Base class for modules that can provide context to search results
 """
 from abc import ABC, abstractmethod
 from typing import List
-from productivity_core.document_scanner.search_result import SearchResult, Context
+from ...document_scanner.search_result import SearchResult, Context
 
 
 class ContextProvider(ABC):

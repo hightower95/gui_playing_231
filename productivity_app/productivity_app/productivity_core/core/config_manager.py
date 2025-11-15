@@ -6,7 +6,7 @@ Handles all persistent configuration storage in configurable directory.
 import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional
-from productivity_core.core.config import CONFIG_DIR, CONFIG_FILES
+from .config import CONFIG_DIR, CONFIG_FILES
 
 
 class ConfigManager:

@@ -170,3 +170,4 @@ When modifying this codebase, always consider the multi-layer architecture and m
 - Use of the token '&&' is not a valid statement separator in this version.
 - When creating code snippets to execute, always consider that there is a venv to be used. 
 - Remember the VENV. 
+- Check for pylance availability and use it when possible, especially when manipulating module structure or naming

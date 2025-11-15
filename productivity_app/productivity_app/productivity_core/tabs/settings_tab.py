@@ -7,12 +7,12 @@ from PySide6.QtWidgets import (
     QMessageBox, QCheckBox, QScrollArea
 )
 from PySide6.QtCore import Signal
-from productivity_core.ui.components import (
+from ..ui.components import (
     StandardLabel, TextStyle,
     StandardButton, ButtonRole,
     StandardGroupBox
 )
-from productivity_core.core.config_manager import AppSettingsConfig
+from ..core.config_manager import AppSettingsConfig
 
 
 # ============================================================================

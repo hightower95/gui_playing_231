@@ -43,7 +43,7 @@ class RemoteDocsPresenter(QObject):
 
     def _update_upload_visibility(self):
         """Update upload section visibility based on feature flag"""
-        from productivity_core.tabs.settings_tab import FeatureFlagsConfig
+        from ..tabs.settings_tab import FeatureFlagsConfig
 
         upload_enabled = FeatureFlagsConfig.is_enabled('remote_docs_upload')
         self.view.set_upload_visible(upload_enabled)

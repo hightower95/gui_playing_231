@@ -10,7 +10,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt, Signal
 
-from productivity_core.ui.components import (
+from ..ui.components import (
     StandardLabel, TextStyle, StandardButton, ButtonRole,
     StandardGroupBox
 )

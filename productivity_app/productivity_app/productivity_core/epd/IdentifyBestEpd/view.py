@@ -2,11 +2,11 @@ from PySide6.QtWidgets import (QWidget, QLineEdit, QHBoxLayout, QPushButton, QLa
                                QTextEdit, QTableView, QVBoxLayout, QProgressBar, QSizePolicy,
                                QApplication, QComboBox, QSpacerItem, QFrame, QFormLayout)
 from PySide6.QtCore import Signal, Qt
-from productivity_core.ui.base_sub_tab_view import BaseTabView
-from productivity_core.ui.components import StandardLabel, TextStyle
-from productivity_core.ui.table_context_menu_mixin import TableContextMenuMixin
-from productivity_core.core.config import UI_COLORS, UI_STYLES, FilterOperator, get_all_operators
-from productivity_core.epd.IdentifyBestEpd.config import FIELD_OPERATOR_DEFAULTS
+from ...ui.base_sub_tab_view import BaseTabView
+from ...ui.components import StandardLabel, TextStyle
+from ...ui.table_context_menu_mixin import TableContextMenuMixin
+from ...core.config import UI_COLORS, UI_STYLES, FilterOperator, get_all_operators
+from .config import FIELD_OPERATOR_DEFAULTS
 
 
 class FilterWidget(QWidget):
@@ -422,7 +422,7 @@ class IdentifyBestEpdView(BaseTabView, TableContextMenuMixin):
 
     def _style_table(self):
         """Apply custom styling to the table using shared EPD config"""
-        from productivity_core.epd.epd_config import apply_epd_table_styling
+        from ..epd_config import apply_epd_table_styling
         apply_epd_table_styling(self.table)
 
     def _add_filter(self):

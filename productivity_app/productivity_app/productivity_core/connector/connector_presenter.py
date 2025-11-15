@@ -2,7 +2,7 @@
 Connector Presenter - Main coordinator for connector module
 """
 from PySide6.QtCore import QObject, Signal, QTimer
-from productivity_core.connector.connector_model import ConnectorModel
+from .connector_model import ConnectorModel
 
 
 class ConnectorPresenter(QObject):

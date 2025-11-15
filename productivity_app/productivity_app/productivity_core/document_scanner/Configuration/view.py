@@ -8,8 +8,8 @@ from PySide6.QtWidgets import (QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
                                QDialogButtonBox, QFormLayout, QMessageBox, QWidget, QFrame)
 from PySide6.QtCore import Signal, Qt
 from PySide6.QtGui import QStandardItemModel, QStandardItem, QDragEnterEvent, QDropEvent
-from productivity_core.ui.base_sub_tab_view import BaseTabView
-from productivity_core.ui.components.label import StandardLabel, TextStyle
+from ...ui.base_sub_tab_view import BaseTabView
+from ...ui.components.label import StandardLabel, TextStyle
 import pandas as pd
 from pathlib import Path
 

@@ -37,7 +37,7 @@ class AppContext:
         """
         # Core services can be registered here
         # Example:
-        # from productivity_core.core.config_manager import ConfigManager
+        # from ..core.config_manager import ConfigManager
         # self.register('config', ConfigManager())
         pass
 

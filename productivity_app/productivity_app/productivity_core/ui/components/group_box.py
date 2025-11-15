@@ -31,7 +31,7 @@ from PySide6.QtWidgets import QGroupBox, QWidget, QVBoxLayout, QPushButton, QFra
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QCursor
 from typing import Optional
-from productivity_core.core.config import UI_COLORS
+from ...core.config import UI_COLORS
 
 
 class StandardGroupBox(QGroupBox):

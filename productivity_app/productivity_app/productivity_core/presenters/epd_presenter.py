@@ -2,9 +2,9 @@
 EPD Presenter - Business logic for EPD analysis
 """
 from PySide6.QtCore import QAbstractTableModel, Qt, QSortFilterProxyModel, QModelIndex
-from swiss_army_tool.app.epd.epd_tab import EpdView
-from swiss_army_tool.app.epd.epd_model import EpdModel
-from productivity_core.core.base_presenter import BasePresenter
+from ..epd.epd_tab import EpdView
+from ..epd.epd_model import EpdModel
+from ..core.base_presenter import BasePresenter
 import pandas as pd
 
 

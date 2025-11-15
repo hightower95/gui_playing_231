@@ -3,9 +3,9 @@ Check Multiple Presenter - Handles batch operations on multiple connectors
 """
 from PySide6.QtCore import QObject, Signal
 from PySide6.QtWidgets import QFileDialog
-from productivity_core.connector.CheckMultiple.view import CheckMultipleConnectorView
-from productivity_core.connector.CheckMultiple.config import OPERATION_RESULT_COLUMNS
-from productivity_core.e3 import E3Model
+from .view import CheckMultipleConnectorView
+from .config import OPERATION_RESULT_COLUMNS
+from ...e3 import E3Model
 import pandas as pd
 from pathlib import Path
 
