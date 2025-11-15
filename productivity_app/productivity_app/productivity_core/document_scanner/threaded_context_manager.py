@@ -4,7 +4,7 @@ Threaded Context Manager for non-blocking context enrichment
 from PySide6.QtCore import QObject, QThread, Signal
 from typing import List, Dict
 from .context_provider import ContextProvider
-from ...document_scanner.search_result import SearchResult, Context
+from ..document_scanner.search_result import SearchResult, Context
 
 
 class ContextWorker(QObject):

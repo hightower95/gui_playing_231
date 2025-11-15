@@ -3,7 +3,7 @@ Document Scanner Model - Manages searchable documents
 """
 from PySide6.QtCore import QObject, Signal, QThread
 from typing import List, Dict, Any
-from ...document_scanner.searchable_document import SearchableDocument
+from ..document_scanner.searchable_document import SearchableDocument
 from ..core.config_manager import DocumentScannerConfig
 
 

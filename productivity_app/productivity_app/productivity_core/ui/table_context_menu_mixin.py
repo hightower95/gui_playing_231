@@ -13,8 +13,8 @@ class TableContextMenuMixin:
 
     Usage:
         class MyView(BaseTabView, TableContextMenuMixin):
-            def __init__(self):
                 super().__init__()
+            def __init__(self):
                 self.setup_table_context_menu(
                     self.table,
                     actions=[("Action 1", self._handler1), ("Action 2", self._handler2)],

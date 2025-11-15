@@ -4,7 +4,7 @@ Searchable Document - Pre-loaded document for fast searching
 import pandas as pd
 from pathlib import Path
 from typing import List, Dict, Any
-from ...document_scanner.search_result import SearchResult
+from ..document_scanner.search_result import SearchResult
 
 
 class SearchableDocument:
