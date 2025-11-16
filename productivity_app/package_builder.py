@@ -282,7 +282,7 @@ def build_package():
 
         # Remove old builds from the build directory
         print("[CLEAN] Cleaning old builds...")
-        
+
         # Clean dist contents but preserve the directory
         try:
             print("[CLEAN] Cleaning dist contents...")
@@ -290,7 +290,7 @@ def build_package():
                 f"python -c \"import shutil, glob, os, pathlib; os.chdir('{build_dir}'); dist_path = pathlib.Path('dist'); [os.remove(f) if f.is_file() else shutil.rmtree(f, ignore_errors=True) for f in dist_path.glob('*') if dist_path.exists()]\"")
         except:
             print(f"[WARN] Warning: Could not clean dist contents")
-        
+
         # Clean build and egg-info directories completely
         for path in ["build", "*.egg-info"]:
             try:
@@ -319,23 +319,88 @@ def build_package():
                 print("[TIP] Try manually running: pip install build")
                 sys.exit(1)
 
+        # Validate pyproject.toml before building
+        print(f"[VALIDATE] Checking pyproject.toml content...")
+        try:
+            pyproject_path = build_dir / "pyproject.toml"
+            if pyproject_path.exists():
+                with open(pyproject_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                    print(f"[INFO] pyproject.toml exists ({len(content)} bytes)")
+                    
+                    # Basic check for key sections
+                    if '[build-system]' in content:
+                        print(f"[INFO] Found [build-system] section")
+                    if '[project]' in content:
+                        print(f"[INFO] Found [project] section")
+                    if '[tool.setuptools' in content:
+                        print(f"[INFO] Found [tool.setuptools] section")
+                    
+                    # Extract key values using simple text parsing
+                    lines = content.split('\n')
+                    for line in lines:
+                        line = line.strip()
+                        if line.startswith('name = '):
+                            print(f"[INFO] Project name: {line}")
+                        elif line.startswith('version = '):
+                            print(f"[INFO] Project version: {line}")
+                        elif 'build-backend' in line:
+                            print(f"[INFO] Build backend: {line}")
+            else:
+                print(f"[ERROR] pyproject.toml not found at {pyproject_path}")
+        except Exception as e:
+            print(f"[WARN] Could not validate pyproject.toml: {e}")
+
         # Build the package in the correct directory
         print(f"[BUILD] Running build in {build_dir}...")
+        print(f"[BUILD] Build directory absolute path: {build_dir.absolute()}")
 
         # Let's also check what's in the build directory
         print(f"[INFO] Contents of {build_dir}:")
         try:
             import os
             for item in os.listdir(build_dir):
-                print(f"  - {item}")
+                item_path = build_dir / item
+                item_type = "dir" if item_path.is_dir() else "file"
+                print(f"  - {item} ({item_type})")
         except Exception as e:
             print(f"[WARN] Could not list directory: {e}")
+        
+        # Check if there are Python packages to build
+        print(f"[PACKAGE-CHECK] Looking for Python packages...")
+        try:
+            python_dirs = []
+            for item in build_dir.iterdir():
+                if item.is_dir() and (item / "__init__.py").exists():
+                    python_dirs.append(str(item.name))
+            
+            if python_dirs:
+                print(f"[INFO] Found Python packages: {', '.join(python_dirs)}")
+            else:
+                print(f"[WARN] No Python packages found with __init__.py files")
+                
+            # Also check for setup.py
+            setup_py = build_dir / "setup.py"
+            if setup_py.exists():
+                print(f"[INFO] Found setup.py file")
+            else:
+                print(f"[INFO] No setup.py file found (using pyproject.toml build)")
+                
+        except Exception as e:
+            print(f"[WARN] Could not check for Python packages: {e}")
+
+        print(f"[DEBUG] About to start build process...")
 
         try:
             # Use full path to python and be very explicit
             import sys
             python_exe = sys.executable
             print(f"[INFO] Using Python: {python_exe}")
+
+            print(f"[DEBUG] About to run subprocess with:")
+            print(f"  Command: {python_exe} -m build --verbose")
+            print(f"  Working directory: {build_dir}")
+            print(f"  Environment PYTHONPATH cleared")
 
             result = subprocess.run(
                 [python_exe, "-m", "build", "--verbose"],
@@ -346,13 +411,46 @@ def build_package():
                 env=dict(os.environ, PYTHONPATH="")
             )
 
+            print(f"[DEBUG] Subprocess completed with return code: {result.returncode}")
+
             if result.returncode == 0:
-                print("[OK] Package built successfully!")
+                print("[OK] Package build command completed successfully!")
                 if version_with_hash:
                     print(f"[INFO] Built with version: {version_with_hash}")
+                
+                # Immediately check what was created
+                dist_check_dir = build_dir / "dist"
+                print(f"[BUILD-RESULT] Checking for build outputs in: {dist_check_dir.absolute()}")
+                if dist_check_dir.exists():
+                    build_files = list(dist_check_dir.glob("*"))
+                    print(f"[BUILD-RESULT] Found {len(build_files)} files immediately after build:")
+                    for bf in build_files:
+                        print(f"  - {bf.name} ({bf.stat().st_size} bytes)")
+                else:
+                    print(f"[BUILD-RESULT] No dist directory found immediately after build")
+                
+                # Show build output with analysis
                 if result.stdout:
                     print("[INFO] Build output:")
-                    print(result.stdout)
+                    stdout_lines = result.stdout.strip().split('\n')
+                    
+                    # Look for key indicators in the output
+                    wheel_created = any('Creating' in line and '.whl' in line for line in stdout_lines)
+                    sdist_created = any('Creating' in line and '.tar.gz' in line for line in stdout_lines)
+                    
+                    print(f"[ANALYSIS] Wheel creation detected: {wheel_created}")
+                    print(f"[ANALYSIS] Source dist creation detected: {sdist_created}")
+                    
+                    # Print full output
+                    for i, line in enumerate(stdout_lines[-50:]):  # Last 50 lines
+                        print(f"  {line}")
+                    
+                    if len(stdout_lines) > 50:
+                        print(f"  ... ({len(stdout_lines) - 50} earlier lines omitted)")
+                
+                if result.stderr:
+                    print("[WARN] Build stderr:")
+                    print(result.stderr)
             else:
                 print(
                     f"[ERROR] Build failed with exit code {result.returncode}")
@@ -365,12 +463,22 @@ def build_package():
                 raise Exception(
                     f"Build failed with exit code {result.returncode}")
 
-        except FileNotFoundError:
-            print("[ERROR] Python not found in PATH")
+        except FileNotFoundError as e:
+            print(f"[ERROR] Python executable not found: {e}")
+            print(f"[ERROR] Attempted to use: {python_exe}")
             print("[TIP] Make sure Python is properly installed and in your PATH")
             sys.exit(1)
+        except subprocess.SubprocessError as e:
+            print(f"[ERROR] Subprocess execution failed: {e}")
+            print(f"[ERROR] Command was: {python_exe} -m build --verbose")
+            print(f"[ERROR] Working directory: {build_dir}")
+            sys.exit(1)
         except Exception as e:
-            print(f"[ERROR] Build failed: {e}")
+            print(f"[ERROR] Build failed with unexpected error: {e}")
+            print(f"[ERROR] Error type: {type(e).__name__}")
+            import traceback
+            print(f"[ERROR] Traceback:")
+            traceback.print_exc()
             print("[TIP] Possible solutions:")
             print("  1. Make sure you're in a virtual environment")
             print("  2. Check your pyproject.toml file is valid")
@@ -386,34 +494,35 @@ def build_package():
 def main():
     """Main entry point for package builder"""
     print("[INIT] Starting package builder...")
-    
+
     # Check Python environment first
     import sys
     import os
     print(f"[INFO] Python executable: {sys.executable}")
     print(f"[INFO] Python version: {sys.version}")
-    
+
     # Check if we're in a virtual environment
     if hasattr(sys, 'real_prefix') or (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix):
         print("[INFO] Running in virtual environment")
     else:
         print("[INFO] Running in system Python")
-    
+
     # Check current working directory
     print(f"[INFO] Current working directory: {os.getcwd()}")
-    
+
     # Check if build module is available early
     try:
         import build
         print(f"[INFO] Build module version: {build.__version__}")
     except ImportError:
         print("[WARN] Build module not found - will install during build process")
-    
+
     # Find pyproject.toml early
     pyproject_file = find_pyproject_toml()
     if not pyproject_file:
         print("[ERROR] Could not find pyproject.toml!")
-        print("[INFO] Please run this script from the project root or productivity_app directory")
+        print(
+            "[INFO] Please run this script from the project root or productivity_app directory")
         sys.exit(1)
     else:
         print(f"[INFO] Found pyproject.toml at: {pyproject_file}")
@@ -513,7 +622,7 @@ Examples:
     dist_dir = build_dir / "dist"
 
     print(f"[INFO] Looking for dist directory at: {dist_dir.absolute()}")
-    
+
     if dist_dir.exists():
         dist_files = list(dist_dir.glob("*"))
         print(f"\n[OK] Built {len(dist_files)} files:")
@@ -523,17 +632,17 @@ Examples:
         # Try alternative locations
         alternative_locations = [
             Path("dist"),
-            Path("./dist"), 
+            Path("./dist"),
             Path("../dist"),
             build_dir / "dist"
         ]
-        
+
         found_dist = None
         for alt_dist in alternative_locations:
             if alt_dist.exists() and alt_dist.is_dir():
                 found_dist = alt_dist
                 break
-        
+
         if found_dist:
             dist_files = list(found_dist.glob("*"))
             print(f"\n[OK] Found dist directory at: {found_dist.absolute()}")
@@ -544,13 +653,16 @@ Examples:
             print(f"\n[WARN] No dist directory found!")
             print(f"[INFO] Searched locations:")
             for alt_dist in alternative_locations:
-                print(f"  - {alt_dist.absolute()} (exists: {alt_dist.exists()})")
-            
+                print(
+                    f"  - {alt_dist.absolute()} (exists: {alt_dist.exists()})")
+
             # List current directory contents for debugging
-            print(f"[DEBUG] Contents of build directory ({build_dir.absolute()}):")
+            print(
+                f"[DEBUG] Contents of build directory ({build_dir.absolute()}):")
             try:
                 for item in build_dir.iterdir():
-                    print(f"  - {item.name} ({'dir' if item.is_dir() else 'file'})")
+                    print(
+                        f"  - {item.name} ({'dir' if item.is_dir() else 'file'})")
             except Exception as e:
                 print(f"  Error listing directory: {e}")
 
