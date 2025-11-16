@@ -175,6 +175,94 @@ pip install -e .  # Reinstall in editable mode
 pip install -e .[dev]  # Ensure dev dependencies installed
 ```
 
+**Package builder produces 0 files:**
+
+1. **Check pyproject.toml exists and is valid:**
+```bash
+# Verify file exists
+ls pyproject.toml
+
+# Check content
+Get-Content pyproject.toml | Select-String "name|version|build-system"
+```
+
+2. **Verify Python packages are detected:**
+```bash
+# Check for __init__.py files
+ls productivity_app/__init__.py
+ls productivity_app/productivity_core/__init__.py
+
+# List all Python packages
+Get-ChildItem -Recurse -Name "__init__.py"
+```
+
+3. **Check build tools:**
+```bash
+# Verify build module
+python -c "import build; print('Build module found')"
+
+# Install if missing
+pip install build
+```
+
+4. **Manual build with verbose output:**
+```bash
+# Clean first
+Remove-Item -Recurse -Force build, dist, *.egg-info -ErrorAction SilentlyContinue
+
+# Build with verbose output
+python -m build --verbose
+
+# Check what was created
+ls dist/
+```
+
+5. **Check current directory:**
+```bash
+# Ensure you're in the right directory
+pwd
+ls pyproject.toml  # Should exist
+
+# Check directory structure
+ls -la
+```
+
+6. **Validate environment:**
+```bash
+# Check Python version
+python --version
+
+# Check pip version
+pip --version
+
+# List installed packages
+pip list | Select-String "build|setuptools|wheel"
+```
+
+**Manual diagnostic commands:**
+```bash
+# Full diagnostic check
+python -c "
+import sys, os
+from pathlib import Path
+
+print(f'Python: {sys.executable}')
+print(f'Working dir: {os.getcwd()}')
+print(f'pyproject.toml exists: {Path(\"pyproject.toml\").exists()}')
+
+try:
+    import build
+    print(f'Build module: OK')
+except ImportError:
+    print(f'Build module: MISSING')
+
+# Check for packages
+for pkg_dir in Path('.').iterdir():
+    if pkg_dir.is_dir() and (pkg_dir / '__init__.py').exists():
+        print(f'Python package found: {pkg_dir.name}')
+"
+```
+
 ## Development Dependencies
 
 Included in `[dev]` optional dependencies:
@@ -254,3 +342,73 @@ git status --porcelain
 # View current version
 grep version pyproject.toml
 ```
+
+## Troubleshooting Build Issues
+
+### Issue: "Built 0 files" or "No dist directory found"
+
+This typically indicates the build process completed but didn't create any distribution files.
+
+**Step-by-step diagnosis:**
+
+1. **Verify you're in the correct directory:**
+```bash
+# Should be in productivity_app directory
+pwd
+ls pyproject.toml  # Must exist
+```
+
+2. **Check package structure:**
+```bash
+# Ensure main package exists
+ls productivity_app/__init__.py
+
+# Check for nested packages
+ls productivity_app/productivity_core/__init__.py
+```
+
+3. **Validate pyproject.toml content:**
+```bash
+# Check for required sections
+Get-Content pyproject.toml | Select-String "\[build-system\]|\[project\]|name.*=|version.*="
+```
+
+4. **Test build command directly:**
+```bash
+# Remove any existing build artifacts
+Remove-Item -Recurse -Force build, dist, *.egg-info -ErrorAction SilentlyContinue
+
+# Run build with maximum verbosity
+python -m build --verbose --no-isolation
+
+# Check if dist directory was created
+ls dist/ -ErrorAction SilentlyContinue
+```
+
+5. **Environment verification:**
+```bash
+# Check Python and build tools
+python --version
+pip show build setuptools wheel
+```
+
+6. **Alternative build methods:**
+```bash
+# Try setuptools directly
+python -m pip install -e .
+
+# Or use setup.py if it exists
+python setup.py bdist_wheel
+```
+
+### Issue: Package builder script fails silently
+
+The enhanced package builder includes comprehensive diagnostics. Look for these key messages:
+
+- `[VALIDATE] Checking pyproject.toml content...` - Config file validation
+- `[PACKAGE-CHECK] Looking for Python packages...` - Package detection
+- `[DEBUG] About to start build process...` - Build attempt checkpoint
+- `[INFO] Using Python: ...` - Python executable confirmation
+- `[DEBUG] About to run subprocess with:` - Exact build command
+
+If any of these messages are missing, the script is failing at that specific step.

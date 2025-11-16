@@ -326,8 +326,9 @@ def build_package():
             if pyproject_path.exists():
                 with open(pyproject_path, 'r', encoding='utf-8') as f:
                     content = f.read()
-                    print(f"[INFO] pyproject.toml exists ({len(content)} bytes)")
-                    
+                    print(
+                        f"[INFO] pyproject.toml exists ({len(content)} bytes)")
+
                     # Basic check for key sections
                     if '[build-system]' in content:
                         print(f"[INFO] Found [build-system] section")
@@ -335,7 +336,7 @@ def build_package():
                         print(f"[INFO] Found [project] section")
                     if '[tool.setuptools' in content:
                         print(f"[INFO] Found [tool.setuptools] section")
-                    
+
                     # Extract key values using simple text parsing
                     lines = content.split('\n')
                     for line in lines:
@@ -365,7 +366,7 @@ def build_package():
                 print(f"  - {item} ({item_type})")
         except Exception as e:
             print(f"[WARN] Could not list directory: {e}")
-        
+
         # Check if there are Python packages to build
         print(f"[PACKAGE-CHECK] Looking for Python packages...")
         try:
@@ -373,19 +374,20 @@ def build_package():
             for item in build_dir.iterdir():
                 if item.is_dir() and (item / "__init__.py").exists():
                     python_dirs.append(str(item.name))
-            
+
             if python_dirs:
-                print(f"[INFO] Found Python packages: {', '.join(python_dirs)}")
+                print(
+                    f"[INFO] Found Python packages: {', '.join(python_dirs)}")
             else:
                 print(f"[WARN] No Python packages found with __init__.py files")
-                
+
             # Also check for setup.py
             setup_py = build_dir / "setup.py"
             if setup_py.exists():
                 print(f"[INFO] Found setup.py file")
             else:
                 print(f"[INFO] No setup.py file found (using pyproject.toml build)")
-                
+
         except Exception as e:
             print(f"[WARN] Could not check for Python packages: {e}")
 
@@ -411,43 +413,53 @@ def build_package():
                 env=dict(os.environ, PYTHONPATH="")
             )
 
-            print(f"[DEBUG] Subprocess completed with return code: {result.returncode}")
+            print(
+                f"[DEBUG] Subprocess completed with return code: {result.returncode}")
 
             if result.returncode == 0:
                 print("[OK] Package build command completed successfully!")
                 if version_with_hash:
                     print(f"[INFO] Built with version: {version_with_hash}")
-                
+
                 # Immediately check what was created
                 dist_check_dir = build_dir / "dist"
-                print(f"[BUILD-RESULT] Checking for build outputs in: {dist_check_dir.absolute()}")
+                print(
+                    f"[BUILD-RESULT] Checking for build outputs in: {dist_check_dir.absolute()}")
                 if dist_check_dir.exists():
                     build_files = list(dist_check_dir.glob("*"))
-                    print(f"[BUILD-RESULT] Found {len(build_files)} files immediately after build:")
+                    print(
+                        f"[BUILD-RESULT] Found {len(build_files)} files immediately after build:")
                     for bf in build_files:
                         print(f"  - {bf.name} ({bf.stat().st_size} bytes)")
                 else:
-                    print(f"[BUILD-RESULT] No dist directory found immediately after build")
-                
+                    print(
+                        f"[BUILD-RESULT] No dist directory found immediately after build")
+
                 # Show build output with analysis
                 if result.stdout:
                     print("[INFO] Build output:")
                     stdout_lines = result.stdout.strip().split('\n')
-                    
+
                     # Look for key indicators in the output
-                    wheel_created = any('Creating' in line and '.whl' in line for line in stdout_lines)
-                    sdist_created = any('Creating' in line and '.tar.gz' in line for line in stdout_lines)
-                    
-                    print(f"[ANALYSIS] Wheel creation detected: {wheel_created}")
-                    print(f"[ANALYSIS] Source dist creation detected: {sdist_created}")
-                    
+                    wheel_created = any(
+                        'Creating' in line and '.whl' in line for line in stdout_lines)
+                    sdist_created = any(
+                        'Creating' in line and '.tar.gz' in line for line in stdout_lines)
+
+                    print(
+                        f"[ANALYSIS] Wheel creation detected: {wheel_created}")
+                    print(
+                        f"[ANALYSIS] Source dist creation detected: {sdist_created}")
+
                     # Print full output
-                    for i, line in enumerate(stdout_lines[-50:]):  # Last 50 lines
+                    # Last 50 lines
+                    for i, line in enumerate(stdout_lines[-50:]):
                         print(f"  {line}")
-                    
+
                     if len(stdout_lines) > 50:
-                        print(f"  ... ({len(stdout_lines) - 50} earlier lines omitted)")
-                
+                        print(
+                            f"  ... ({len(stdout_lines) - 50} earlier lines omitted)")
+
                 if result.stderr:
                     print("[WARN] Build stderr:")
                     print(result.stderr)
