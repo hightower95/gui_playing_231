@@ -255,14 +255,17 @@ def update_version_in_toml(version_type="patch"):
 
 def build_package():
     """Build the package with git hash injection"""
+    print("[BUILD-ENTRY] Entered build_package() function")
     print("[BUILD] Building package...")
 
     # Find the directory containing pyproject.toml
+    print("[BUILD-DEBUG] Looking for pyproject.toml...")
     pyproject_file = find_pyproject_toml()
     if not pyproject_file:
         print("[ERROR] Could not find pyproject.toml!")
         sys.exit(1)
 
+    print(f"[BUILD-DEBUG] Found pyproject.toml at: {pyproject_file}")
     build_dir = pyproject_file.parent
     print(f"[DIR] Building in directory: {build_dir}")
 
@@ -283,13 +286,30 @@ def build_package():
         # Remove old builds from the build directory
         print("[CLEAN] Cleaning old builds...")
 
-        # Clean dist contents but preserve the directory
+        # Ensure dist directory exists and clean old files
         try:
-            print("[CLEAN] Cleaning dist contents...")
-            run_command(
-                f"python -c \"import shutil, glob, os, pathlib; os.chdir('{build_dir}'); dist_path = pathlib.Path('dist'); [os.remove(f) if f.is_file() else shutil.rmtree(f, ignore_errors=True) for f in dist_path.glob('*') if dist_path.exists()]\"")
-        except:
-            print(f"[WARN] Warning: Could not clean dist contents")
+            dist_path = build_dir / "dist"
+            print(f"[CLEAN] Ensuring dist directory exists at: {dist_path}")
+
+            # Create dist directory if it doesn't exist
+            if not dist_path.exists():
+                dist_path.mkdir(parents=True, exist_ok=True)
+                print(f"[CLEAN] Created dist directory")
+            else:
+                # Clean old build files if directory exists
+                print(f"[CLEAN] Cleaning existing dist contents...")
+                for item in dist_path.iterdir():
+                    if item.is_file():
+                        item.unlink()
+                        print(f"[CLEAN] Removed file: {item.name}")
+                    elif item.is_dir():
+                        import shutil
+                        shutil.rmtree(item)
+                        print(f"[CLEAN] Removed directory: {item.name}")
+
+            print(f"[CLEAN] Dist directory ready: {dist_path}")
+        except Exception as e:
+            print(f"[WARN] Warning: Could not prepare dist directory: {e}")
 
         # Clean build and egg-info directories completely
         for path in ["build", "*.egg-info"]:
@@ -391,18 +411,24 @@ def build_package():
         except Exception as e:
             print(f"[WARN] Could not check for Python packages: {e}")
 
-        print(f"[DEBUG] About to start build process...")
+        print(f"[DEBUG-1] About to start build process...")
 
         try:
+            print(f"[DEBUG-2] Entering try block for subprocess...")
+
             # Use full path to python and be very explicit
             import sys
             python_exe = sys.executable
+            print(f"[DEBUG-3] Got Python executable: {python_exe}")
+
             print(f"[INFO] Using Python: {python_exe}")
 
-            print(f"[DEBUG] About to run subprocess with:")
+            print(f"[DEBUG-4] About to run subprocess with:")
             print(f"  Command: {python_exe} -m build --verbose")
             print(f"  Working directory: {build_dir}")
             print(f"  Environment PYTHONPATH cleared")
+
+            print(f"[DEBUG-5] Creating subprocess...")
 
             result = subprocess.run(
                 [python_exe, "-m", "build", "--verbose"],
@@ -414,7 +440,11 @@ def build_package():
             )
 
             print(
-                f"[DEBUG] Subprocess completed with return code: {result.returncode}")
+                f"[DEBUG-6] Subprocess completed with return code: {result.returncode}")
+            print(
+                f"[DEBUG-7] stdout length: {len(result.stdout) if result.stdout else 0}")
+            print(
+                f"[DEBUG-8] stderr length: {len(result.stderr) if result.stderr else 0}")
 
             if result.returncode == 0:
                 print("[OK] Package build command completed successfully!")
@@ -501,6 +531,7 @@ def build_package():
         # Always restore original version, even if build fails
         print("[RESTORE] Restoring original version in pyproject.toml...")
         restore_original_version(original_content)
+        print("[BUILD-EXIT] Exiting build_package() function")
 
 
 def main():
@@ -626,7 +657,17 @@ Examples:
         new_version = update_version_in_toml(version_type)
 
     # Build package
-    build_package()
+    print(f"[MAIN-DEBUG] About to call build_package()...")
+    try:
+        build_package()
+        print(f"[MAIN-DEBUG] build_package() completed successfully")
+    except Exception as e:
+        print(f"[MAIN-ERROR] build_package() failed: {e}")
+        import traceback
+        traceback.print_exc()
+        raise
+
+    print(f"[MAIN-DEBUG] Continuing to check build results...")
 
     # Show what was built
     pyproject_file = find_pyproject_toml()
