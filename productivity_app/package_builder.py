@@ -282,7 +282,17 @@ def build_package():
 
         # Remove old builds from the build directory
         print("[CLEAN] Cleaning old builds...")
-        for path in ["dist", "build", "*.egg-info"]:
+        
+        # Clean dist contents but preserve the directory
+        try:
+            print("[CLEAN] Cleaning dist contents...")
+            run_command(
+                f"python -c \"import shutil, glob, os, pathlib; os.chdir('{build_dir}'); dist_path = pathlib.Path('dist'); [os.remove(f) if f.is_file() else shutil.rmtree(f, ignore_errors=True) for f in dist_path.glob('*') if dist_path.exists()]\"")
+        except:
+            print(f"[WARN] Warning: Could not clean dist contents")
+        
+        # Clean build and egg-info directories completely
+        for path in ["build", "*.egg-info"]:
             try:
                 run_command(
                     f"python -c \"import shutil, glob, os; os.chdir('{build_dir}'); [shutil.rmtree(p, ignore_errors=True) for p in glob.glob('{path}')]\"")
@@ -374,6 +384,40 @@ def build_package():
 
 
 def main():
+    """Main entry point for package builder"""
+    print("[INIT] Starting package builder...")
+    
+    # Check Python environment first
+    import sys
+    import os
+    print(f"[INFO] Python executable: {sys.executable}")
+    print(f"[INFO] Python version: {sys.version}")
+    
+    # Check if we're in a virtual environment
+    if hasattr(sys, 'real_prefix') or (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix):
+        print("[INFO] Running in virtual environment")
+    else:
+        print("[INFO] Running in system Python")
+    
+    # Check current working directory
+    print(f"[INFO] Current working directory: {os.getcwd()}")
+    
+    # Check if build module is available early
+    try:
+        import build
+        print(f"[INFO] Build module version: {build.__version__}")
+    except ImportError:
+        print("[WARN] Build module not found - will install during build process")
+    
+    # Find pyproject.toml early
+    pyproject_file = find_pyproject_toml()
+    if not pyproject_file:
+        print("[ERROR] Could not find pyproject.toml!")
+        print("[INFO] Please run this script from the project root or productivity_app directory")
+        sys.exit(1)
+    else:
+        print(f"[INFO] Found pyproject.toml at: {pyproject_file}")
+
     # Parse command line arguments
     parser = argparse.ArgumentParser(
         description="Smart build script with git integration and version management",
@@ -468,13 +512,47 @@ Examples:
     build_dir = pyproject_file.parent if pyproject_file else Path(".")
     dist_dir = build_dir / "dist"
 
+    print(f"[INFO] Looking for dist directory at: {dist_dir.absolute()}")
+    
     if dist_dir.exists():
         dist_files = list(dist_dir.glob("*"))
         print(f"\n[OK] Built {len(dist_files)} files:")
         for file in dist_files:
             print(f"   [PKG] {file.name}")
     else:
-        print(f"\n[WARN] No dist directory found at {dist_dir}")
+        # Try alternative locations
+        alternative_locations = [
+            Path("dist"),
+            Path("./dist"), 
+            Path("../dist"),
+            build_dir / "dist"
+        ]
+        
+        found_dist = None
+        for alt_dist in alternative_locations:
+            if alt_dist.exists() and alt_dist.is_dir():
+                found_dist = alt_dist
+                break
+        
+        if found_dist:
+            dist_files = list(found_dist.glob("*"))
+            print(f"\n[OK] Found dist directory at: {found_dist.absolute()}")
+            print(f"[OK] Built {len(dist_files)} files:")
+            for file in dist_files:
+                print(f"   [PKG] {file.name}")
+        else:
+            print(f"\n[WARN] No dist directory found!")
+            print(f"[INFO] Searched locations:")
+            for alt_dist in alternative_locations:
+                print(f"  - {alt_dist.absolute()} (exists: {alt_dist.exists()})")
+            
+            # List current directory contents for debugging
+            print(f"[DEBUG] Contents of build directory ({build_dir.absolute()}):")
+            try:
+                for item in build_dir.iterdir():
+                    print(f"  - {item.name} ({'dir' if item.is_dir() else 'file'})")
+            except Exception as e:
+                print(f"  Error listing directory: {e}")
 
     print(f"\n[DONE] Build complete! Version: {new_version}")
     print("\nNext steps:")
