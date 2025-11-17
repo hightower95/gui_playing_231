@@ -14,6 +14,8 @@ import configparser
 from pathlib import Path
 import tkinter as tk
 from tkinter import messagebox
+import threading
+import socket
 
 # Add utilities to path
 sys.path.insert(0, str(Path(__file__).parent))
@@ -68,8 +70,78 @@ def get_venv_python(config):
     return None
 
 
-def main():
+# Function to handle socket communication
+def socket_server(loading_root):
+    print("Starting splash screen server...")
+
+    def handle_client(client_socket):
+        try:
+            while True:
+                message = client_socket.recv(1024).decode("utf-8")
+                print(f"Received message: {message}")
+                if message == "close":
+                    loading_root.quit()
+                    break
+        except Exception as e:
+            print(f"Socket error: {e}")
+        finally:
+            client_socket.close()
+
+    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server.bind(("localhost", 65432))  # Bind to localhost and port 65432
+    server.listen(1)  # Allow only one connection
+
+    print("Splash screen server listening on localhost:65432")
+    client_socket, _ = server.accept()
+    handle_client(client_socket)
+    server.close()
+
+
+# Function to create a simple loading screen
+def show_loading_screen():
+    loading_root = tk.Tk()
+    loading_root.title("Loading")
+    loading_root.geometry("300x100")
+    loading_label = tk.Label(
+        loading_root, text="Loading, please wait...", font=("Arial", 12))
+    loading_label.pack(expand=True)
+
+    # Start the socket server in a separate thread
+    server_thread = threading.Thread(
+        target=socket_server, args=(loading_root,), daemon=True)
+    server_thread.start()
+
+    # Keep the window reference to close it later
+    # Disable close button
+    loading_root.protocol("WM_DELETE_WINDOW", lambda: None)
+    loading_root.mainloop()
+    return loading_root
+
+
+# Function to start the loading screen in a separate thread
+def start_loading_screen():
+    loading_thread = threading.Thread(target=show_loading_screen, daemon=True)
+    loading_thread.start()
+    return loading_thread
+
+
+# Function to stop the loading screen
+def stop_loading_screen(loading_root):
     try:
+        if loading_root:
+            loading_root.quit()
+    except AttributeError as e:
+        pass
+    except Exception as e:
+        print(f"Error stopping loading screen: {e}")
+
+
+def main():
+    loading_thread = None
+    try:
+        # Start the loading screen
+        loading_thread = start_loading_screen()
+
         app_dir = Path(__file__).parent.absolute()
         launch_config_file = app_dir / "launch_config.ini"
 
@@ -186,6 +258,11 @@ except Exception as e:
         root.withdraw()
         messagebox.showerror(
             "Startup Error", f"Failed to start application: {e}")
+
+    finally:
+        # Stop the loading screen
+        if loading_thread:
+            stop_loading_screen(loading_thread)
 
 
 if __name__ == "__main__":

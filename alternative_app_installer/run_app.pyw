@@ -7,13 +7,15 @@ from utilities.version_manager import (
     should_upgrade,
     upgrade_to_version
 )
+import os
 import subprocess
 import sys
-import os
 import configparser
 from pathlib import Path
 import tkinter as tk
 from tkinter import messagebox
+import threading
+import socket
 
 # Add utilities to path
 sys.path.insert(0, str(Path(__file__).parent))
@@ -29,7 +31,7 @@ def load_launch_config(config_file):
     # Return as dictionary with minimal defaults
     defaults = {
         'library_name': 'productivity_app',
-        'venv_path': r'c:\Users\peter\OneDrive\Documents\Coding\gui\.test_venv_2',
+        'venv_path': r'c:\Users\peter\OneDrive\Documents\Coding\gui\.venv_dev_install',
         'always_upgrade': 'true',
         'allow_upgrade_to_test_releases': 'false',
         'enable_log': 'false',
@@ -68,8 +70,78 @@ def get_venv_python(config):
     return None
 
 
-def main():
+# Function to handle socket communication
+def socket_server(loading_root):
+    print("Starting splash screen server...")
+
+    def handle_client(client_socket):
+        try:
+            while True:
+                message = client_socket.recv(1024).decode("utf-8")
+                print(f"Received message: {message}")
+                if message == "close":
+                    loading_root.quit()
+                    break
+        except Exception as e:
+            print(f"Socket error: {e}")
+        finally:
+            client_socket.close()
+
+    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server.bind(("localhost", 65432))  # Bind to localhost and port 65432
+    server.listen(1)  # Allow only one connection
+
+    print("Splash screen server listening on localhost:65432")
+    client_socket, _ = server.accept()
+    handle_client(client_socket)
+    server.close()
+
+
+# Function to create a simple loading screen
+def show_loading_screen():
+    loading_root = tk.Tk()
+    loading_root.title("Loading")
+    loading_root.geometry("300x100")
+    loading_label = tk.Label(
+        loading_root, text="Loading, please wait...", font=("Arial", 12))
+    loading_label.pack(expand=True)
+
+    # Start the socket server in a separate thread
+    server_thread = threading.Thread(
+        target=socket_server, args=(loading_root,), daemon=True)
+    server_thread.start()
+
+    # Keep the window reference to close it later
+    # Disable close button
+    loading_root.protocol("WM_DELETE_WINDOW", lambda: None)
+    loading_root.mainloop()
+    return loading_root
+
+
+# Function to start the loading screen in a separate thread
+def start_loading_screen():
+    loading_thread = threading.Thread(target=show_loading_screen, daemon=True)
+    loading_thread.start()
+    return loading_thread
+
+
+# Function to stop the loading screen
+def stop_loading_screen(loading_root):
     try:
+        if loading_root:
+            loading_root.quit()
+    except AttributeError as e:
+        pass
+    except Exception as e:
+        print(f"Error stopping loading screen: {e}")
+
+
+def main():
+    loading_thread = None
+    try:
+        # Start the loading screen
+        loading_thread = start_loading_screen()
+
         app_dir = Path(__file__).parent.absolute()
         launch_config_file = app_dir / "launch_config.ini"
 
@@ -98,6 +170,38 @@ def main():
     creation_flags = 0x08000000 if sys.platform == 'win32' else 0
 
     try:
+        # Step 1: Intelligent version management with auto-upgrade
+        current_version = get_installed_version(
+            venv_python, config['library_name'])
+
+        if current_version:
+            # Check if we should upgrade based on auto-upgrade settings
+            target_version = should_upgrade(
+                current_version, config, venv_python, config['library_name'])
+
+            if target_version:
+                # Perform the upgrade
+                upgrade_success = upgrade_to_version(
+                    venv_python, config['library_name'], target_version)
+
+                if not upgrade_success:
+                    # Log upgrade failure but continue with current version
+                    print(
+                        f"Warning: Upgrade from {current_version} to {target_version} failed")
+        else:
+            # Library not installed, try to install it
+            try:
+                subprocess.run(
+                    [str(venv_python), "-m", "pip",
+                     "install", config['library_name']],
+                    capture_output=True, text=True, timeout=300, check=True
+                )
+            except subprocess.CalledProcessError:
+                root = tk.Tk()
+                root.withdraw()
+                messagebox.showerror("Installation Failed",
+                                     f"Could not install {config['library_name']}")
+                return
 
         # Step 2: Create runner script that handles launch config
         runner_script = f'''
@@ -133,8 +237,6 @@ except Exception as e:
             cwd=str(app_dir),
             capture_output=True,
             text=True,
-            encoding='utf-8',
-            errors='replace',
             creationflags=creation_flags,
             env=env
         )
@@ -156,6 +258,11 @@ except Exception as e:
         root.withdraw()
         messagebox.showerror(
             "Startup Error", f"Failed to start application: {e}")
+
+    finally:
+        # Stop the loading screen
+        if loading_thread:
+            stop_loading_screen(loading_thread)
 
 
 if __name__ == "__main__":

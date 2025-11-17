@@ -2,6 +2,7 @@
 Swiss Army Tool - Main Application Entry Point
 """
 import io
+import socket
 from .productivity_core.tabs.main_window import MainWindow
 from .productivity_core.core.config import APP_SETTINGS
 from .productivity_core.core.theme_manager import ThemeManager
@@ -88,6 +89,20 @@ def setup_utf8_console():
 # Makes open() default to UTF-8 instead of system encoding
 # Equivalent to setting PYTHONUTF8=1 environment variable
 
+def send_message_to_splash(message):
+    """Send a message to the splash screen."""
+    try:
+        client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # Connect to the splash screen server
+        client.connect(("localhost", 65432))
+        client.sendall(message.encode("utf-8"))
+        client.close()
+    except ConnectionRefusedError:
+        print("Splash screen is not running.")
+    except Exception as e:
+        print(f"Error communicating with splash screen: {e}")
+
+
 def main(*args, **kwargs):
     """Main application entry point"""
     app = QApplication(sys.argv)
@@ -106,9 +121,14 @@ def main(*args, **kwargs):
     window = MainWindow(context)
     window.show()
 
+    send_message_to_splash("close")
+
     # Start event loop
     sys.exit(app.exec())
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        print(f"Application failed: {e}")
