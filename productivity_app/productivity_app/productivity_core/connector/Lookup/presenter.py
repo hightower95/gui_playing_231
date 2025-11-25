@@ -557,25 +557,162 @@ class LookupConnectorPresenter(QObject):
             print("Model does not support find_opposite")
 
     def _update_context_display(self, row_data: dict):
-        """Update context box with selected connector details"""
+        """Update context box with selected connector details
+        
+        Supports both text and inline images in the context display.
+        Images can be referenced via:
+        1. Image path in row_data['image_path'] - will display as separate label
+        2. HTML img tags in formatted text
+        """
         if not row_data:
             return
 
-        details = f"""
-Connector Details:
-==================
-Part Number: {row_data.get('Part Number', 'N/A')}
-Part Code: {row_data.get('Part Code', 'N/A')}
-Material: {row_data.get('Material', 'N/A')}
-Database Status: {row_data.get('Database Status', 'N/A')}
+        # Generate formatted HTML text with details
+        details_html = self._generate_context_html(row_data)
+        
+        # Set HTML content if available, otherwise use plain text
+        if hasattr(self.view.context_box, 'setHtml'):
+            self.view.context_box.setHtml(details_html)
+        else:
+            # Fallback for plain text widget
+            self.view.context_box.setText(details_html)
+        
+        # Handle pinout image if present and enabled
+        if self.view.pinout_image_label and 'image_path' in row_data:
+            image_path = row_data.get('image_path')
+            if image_path:
+                self._load_image_to_label(image_path, self.view.pinout_image_label)
 
-Family: {row_data.get('Family', 'N/A')}
-Shell Type: {row_data.get('Shell Type', 'N/A')}
-Insert Arrangement: {row_data.get('Insert Arrangement', 'N/A')}
-Socket Type: {row_data.get('Socket Type', 'N/A')}
-Keying: {row_data.get('Keying', 'N/A')}
-"""
-        self.view.context_box.setText(details.strip())
+    def _generate_context_html(self, row_data: dict) -> str:
+        """Generate HTML-formatted context details with support for inline images
+        
+        Args:
+            row_data: Dictionary containing connector data
+            
+        Returns:
+            HTML string that can be displayed in QTextBrowser or QTextEdit
+            
+        Example row_data with image:
+            {
+                'Part Number': 'D38999/12',
+                'Part Code': 'MSEK',
+                'Material': 'Aluminum',
+                'image_base64': 'data:image/png;base64,...' or 'image_url': 'http://...'
+            }
+        """
+        # Check if we have image data embedded in row_data
+        image_html = ""
+        if 'image_base64' in row_data and row_data['image_base64']:
+            # Base64 encoded image
+            image_html = f'<img src="{row_data["image_base64"]}" style="width:150px; height:150px; border-radius:5px;" />'
+        elif 'image_url' in row_data and row_data['image_url']:
+            # URL-based image
+            image_html = f'<img src="{row_data["image_url"]}" style="width:150px; height:150px; border-radius:5px;" />'
+        else:
+            # Placeholder image when none provided
+            image_html = self._get_placeholder_image()
+        
+        # Build the HTML with optional image
+        html = f"""
+        <html>
+        <body style="font-family: Arial, sans-serif; color: #e0e0e0; background-color: transparent; margin: 0; padding: 0;">
+            <div style="display: flex; gap: 15px; align-items: flex-start;">
+                <div style="flex: 1;">
+                    <h3 style="margin: 0 0 10px 0; color: #4a90e2;">Connector Details</h3>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                        <tr>
+                            <td style="padding: 4px; font-weight: bold; color: #888;">Part Number:</td>
+                            <td style="padding: 4px;">{row_data.get('Part Number', 'N/A')}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 4px; font-weight: bold; color: #888;">Part Code:</td>
+                            <td style="padding: 4px;">{row_data.get('Part Code', 'N/A')}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 4px; font-weight: bold; color: #888;">Material:</td>
+                            <td style="padding: 4px;">{row_data.get('Material', 'N/A')}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 4px; font-weight: bold; color: #888;">Database Status:</td>
+                            <td style="padding: 4px;">{row_data.get('Database Status', 'N/A')}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 4px; font-weight: bold; color: #888;">Family:</td>
+                            <td style="padding: 4px;">{row_data.get('Family', 'N/A')}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 4px; font-weight: bold; color: #888;">Shell Type:</td>
+                            <td style="padding: 4px;">{row_data.get('Shell Type', 'N/A')}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 4px; font-weight: bold; color: #888;">Insert Arrangement:</td>
+                            <td style="padding: 4px;">{row_data.get('Insert Arrangement', 'N/A')}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 4px; font-weight: bold; color: #888;">Socket Type:</td>
+                            <td style="padding: 4px;">{row_data.get('Socket Type', 'N/A')}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 4px; font-weight: bold; color: #888;">Keying:</td>
+                            <td style="padding: 4px;">{row_data.get('Keying', 'N/A')}</td>
+                        </tr>
+                    </table>
+                </div>
+                {'<div style=\"flex-shrink: 0;\">' + image_html + '</div>' if image_html else ''}
+            </div>
+        </body>
+        </html>
+        """
+        return html.strip()
+    
+    def _load_image_to_label(self, image_path: str, label):
+        """Load image from file path or URL to a QLabel
+        
+        Args:
+            image_path: Path to image file or URL
+            label: QLabel widget to display the image
+        """
+        from pathlib import Path
+        from PySide6.QtGui import QPixmap
+        
+        try:
+            if image_path.startswith(('http://', 'https://')):
+                # URL-based image - would need urllib or requests to load
+                print(f"Note: URL images not yet supported: {image_path}")
+                label.setText("Image URL\n(Not loaded)")
+            else:
+                # File path
+                path = Path(image_path)
+                if path.exists() and path.is_file():
+                    pixmap = QPixmap(str(path))
+                    if not pixmap.isNull():
+                        label.setPixmap(pixmap)
+                    else:
+                        label.setText("Invalid\nImage")
+                else:
+                    label.setText("Image not\nfound")
+        except Exception as e:
+            print(f"Error loading image: {e}")
+            label.setText("Error loading\nimage")
+
+    def _get_placeholder_image(self) -> str:
+        """Generate a placeholder image as base64 SVG
+        
+        Returns:
+            HTML img tag with base64-encoded placeholder SVG
+        """
+        # Simple SVG placeholder - gray rectangle with camera icon
+        svg_placeholder = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 150" width="150" height="150">
+            <rect width="150" height="150" fill="#333333" stroke="#555555" stroke-width="2" rx="5"/>
+            <circle cx="75" cy="60" r="20" fill="none" stroke="#888888" stroke-width="2"/>
+            <path d="M 45 85 L 45 130 L 105 130 L 105 85 Z" fill="none" stroke="#888888" stroke-width="2"/>
+            <line x1="50" y1="95" x2="100" y2="120" stroke="#888888" stroke-width="1" opacity="0.5"/>
+            <line x1="100" y1="95" x2="50" y2="120" stroke="#888888" stroke-width="1" opacity="0.5"/>
+        </svg>'''
+        
+        import base64
+        b64_svg = base64.b64encode(svg_placeholder.encode()).decode()
+        return f'<img src="data:image/svg+xml;base64,{b64_svg}" style="width:150px; height:150px; border-radius:5px;" />'
 
     # ============================================================================
     # REDUX DARK RELEASE - Parallel filter state tracking (no view impact)

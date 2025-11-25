@@ -3,7 +3,7 @@
 # )
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QSplitter,
-    QTextEdit, QFrame, QTableView, QSizePolicy, QDialog, QPushButton, QScrollArea
+    QTextEdit, QFrame, QTableView, QSizePolicy, QDialog, QPushButton, QScrollArea, QTextBrowser
 )
 from PySide6.QtCore import Signal, Qt
 from PySide6.QtGui import QCursor
@@ -122,11 +122,19 @@ class BaseTabView(QWidget):
         """)
         context_label.setFixedHeight(UI_STYLES['section_banner']['height'])
 
-        self.context_box = QTextEdit()
+        # Use QTextBrowser instead of QTextEdit for HTML support
+        self.context_box = QTextBrowser()
         self.context_box.setPlaceholderText("Context information...")
         self.context_box.setFrameShape(QFrame.StyledPanel)
         self.context_box.setStyleSheet(
-            f"""background: {UI_COLORS['section_label_background']};""")
+            f"""
+            QTextBrowser {{
+                background: {UI_COLORS['section_label_background']};
+                color: #e0e0e0;
+                border: none;
+            }}
+            """)
+        self.context_box.setReadOnly(True)
 
         context_layout.addWidget(context_label)
         context_layout.addWidget(self.context_box)

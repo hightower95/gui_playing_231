@@ -1,0 +1,245 @@
+"""
+Text and Image Context Display - Visual Architecture Diagram
+
+BEFORE (Text Only):
+═══════════════════════════════════════════════════════════════
+│ Context Box (QTextEdit)                                      │
+├──────────────────────────────────────────────────────────────┤
+│ Part Number: D38999/12                                       │
+│ Part Code: MSEK                                              │
+│ Material: Aluminum                                           │
+│ Family: D38999                                               │
+│ Shell Type: 26 - Plug                                        │
+│ Insert Arrangement: A - 1                                    │
+│ Socket Type: Type A                                          │
+│ Keying: A                                                    │
+└──────────────────────────────────────────────────────────────┘
+
+
+AFTER - Option 1: Inline Base64 (in HTML):
+═══════════════════════════════════════════════════════════════
+│ Context Box (QTextBrowser - HTML)         │ Pinout Image   │
+├──────────────────────────────────────────┼────────────────┤
+│ Part Number: D38999/12                   │ ┌────────────┐ │
+│ Part Code: MSEK         [IMAGE HERE]     │ │            │ │
+│ Material: Aluminum      (150x150px)      │ │  Image if  │ │
+│ Family: D38999                           │ │  image_path│ │
+│ Shell Type: 26 - Plug                    │ │            │ │
+│ Insert Arrangement: A - 1                │ └────────────┘ │
+│ Socket Type: Type A                      │                │
+│ Keying: A                                │                │
+└──────────────────────────────────────────┴────────────────┘
+
+
+DATA FLOW:
+═════════════════════════════════════════════════════════════════
+
+User selects row in table
+         │
+         ▼
+┌─────────────────────────┐
+│ _on_row_selected()      │
+│ (view signal handler)   │
+└─────────────────────────┘
+         │
+         ▼
+┌─────────────────────────────────────────┐
+│ _update_context_display(row_data)       │
+│ Presenter method                        │
+└─────────────────────────────────────────┘
+         │
+         ├──────────────────┬──────────────────┐
+         ▼                  ▼                  ▼
+    ┌─────────────┐  ┌──────────────┐  ┌──────────────┐
+    │ Generate    │  │ Load Image   │  │ Set HTML     │
+    │ HTML (with  │  │ to Label     │  │ in Context   │
+    │ image data) │  │ if path      │  │ Box          │
+    │             │  │              │  │              │
+    │ Returns:    │  │ Updates:     │  │ Renders:     │
+    │ <html>...</  │  │ pinout_image │  │ Formatted    │
+    │ img src...> │  │ _label       │  │ with images  │
+    └─────────────┘  └──────────────┘  └──────────────┘
+         │                  │                  │
+         └──────────────────┴──────────────────┘
+                    │
+                    ▼
+        ┌───────────────────────┐
+        │ User sees formatted   │
+        │ text + images in      │
+        │ context display!      │
+        └───────────────────────┘
+
+
+SUPPORTED IMAGE SOURCES:
+═════════════════════════════════════════════════════════════════
+
+1. BASE64-ENCODED (Inline in HTML)
+   ┌──────────────────────────────────────────────┐
+   │ row_data['image_base64']                     │
+   │ = 'data:image/png;base64,iVBORw0KG...'     │
+   │                                              │
+   │ → Displayed in HTML via <img src="...">     │
+   │ → Shows inline with text                    │
+   │ → No separate file needed                   │
+   └──────────────────────────────────────────────┘
+
+2. FILE PATH (Loaded to Side Label)
+   ┌──────────────────────────────────────────────┐
+   │ row_data['image_path']                       │
+   │ = 'C:/connectors/d38999_12.png'             │
+   │                                              │
+   │ → Loaded by _load_image_to_label()          │
+   │ → Displayed in pinout_image_label           │
+   │ → Shows on right side of context            │
+   │ → Separate from text                        │
+   └──────────────────────────────────────────────┘
+
+3. REMOTE URL (Future Enhancement)
+   ┌──────────────────────────────────────────────┐
+   │ row_data['image_url']                        │
+   │ = 'https://example.com/d38999.png'          │
+   │                                              │
+   │ → Not yet fully supported                    │
+   │ → Requires: requests/urllib library          │
+   │ → Planned for future release                 │
+   └──────────────────────────────────────────────┘
+
+
+IMPLEMENTATION STRUCTURE:
+═════════════════════════════════════════════════════════════════
+
+LookupConnectorPresenter
+    │
+    ├─ _update_context_display(row_data)
+    │  │
+    │  ├─→ _generate_context_html(row_data)
+    │  │   ├─ Checks for image_base64
+    │  │   ├─ Checks for image_url
+    │  │   └─ Wraps in styled HTML layout
+    │  │
+    │  ├─→ context_box.setHtml(html)
+    │  │   (context_box is QTextBrowser - HTML aware)
+    │  │
+    │  └─→ _load_image_to_label(image_path, label)
+    │      ├─ Opens file
+    │      ├─ Creates QPixmap
+    │      └─ Sets to pinout_image_label
+    │
+    └─ filter_redux (existing - no changes)
+
+
+COMPONENT CHANGES:
+═════════════════════════════════════════════════════════════════
+
+Before:
+    ui/base_sub_tab_view.py
+        context_box = QTextEdit()  ← Plain text only
+    
+After:
+    ui/base_sub_tab_view.py
+        context_box = QTextBrowser()  ← HTML + images
+
+    ui/components/rich_text_browser.py (new)
+        RichTextBrowser (optional custom component)
+        HtmlContextBrowser (optional custom component)
+
+
+HTML OUTPUT EXAMPLE:
+═════════════════════════════════════════════════════════════════
+
+<html>
+<body style="font-family: Arial; color: #e0e0e0;">
+    <div style="display: flex; gap: 15px;">
+        <div>
+            <h3>Connector Details</h3>
+            <table style="font-size: 12px;">
+                <tr>
+                    <td>Part Number:</td>
+                    <td>D38999/12</td>
+                </tr>
+                <tr>
+                    <td>Material:</td>
+                    <td>Aluminum</td>
+                </tr>
+                <!-- More rows... -->
+            </table>
+        </div>
+        <div>
+            <img src="data:image/png;base64,iVBORw0K..."
+                 style="width: 150px; height: 150px; border-radius: 5px;" />
+        </div>
+    </div>
+</body>
+</html>
+
+Result:
+    Left: Formatted table of properties
+    Right: 150x150px image with rounded corners
+
+
+ENCODING WORKFLOW:
+═════════════════════════════════════════════════════════════════
+
+Your Data Source (CSV/DB)
+         │
+         ▼
+    [prepare images]
+         │
+         ▼
+encode_image_to_base64(image_path)
+         │
+    ┌────┴─────────────────┐
+    │ Returns:             │
+    │ 'data:image/png;    │
+    │  base64,iVBOR...'   │
+    └─────────────────────┘
+         │
+         ▼
+Add to row_data['image_base64']
+         │
+         ▼
+Display in context (automatic!)
+
+
+UTILITIES PROVIDED:
+═════════════════════════════════════════════════════════════════
+
+examples/context_images_example.py:
+
+✓ encode_image_to_base64(image_path)
+  Convert single image file to base64 data URI
+
+✓ batch_encode_images_for_csv(data, image_dir)
+  Convert all images in dataset to base64
+
+✓ create_sample_base64_image()
+  Generate test image for demos
+
+✓ display_connector_with_image(presenter, row_data)
+  Display row with image in context
+
+✓ create_sample_connector_data_with_images()
+  Generate example data with different image types
+
+
+QUICK START:
+═════════════════════════════════════════════════════════════════
+
+Step 1: Import utility
+    from examples.context_images_example import encode_image_to_base64
+
+Step 2: Encode image
+    b64 = encode_image_to_base64('C:/connectors/connector.png')
+
+Step 3: Add to data
+    row_data['image_base64'] = b64
+
+Step 4: Display
+    presenter._update_context_display(row_data)
+    # Image appears automatically!
+
+That's it! 🎉
+"""
+
+# This is a documentation file explaining the architecture
+# Run: python -c "from this_file import *; print(__doc__)"
