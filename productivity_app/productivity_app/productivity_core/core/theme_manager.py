@@ -16,6 +16,20 @@ class ThemeManager:
         # Force light theme
         app.setStyle("Fusion")  # Use Fusion style for consistency
 
+        # Apply global stylesheet for input fields
+        app.setStyleSheet("""
+            QLineEdit {
+                background-color: rgb(255, 255, 255);  /* Match QPalette.Base */
+                color: rgb(0, 0, 0);                   /* Match QPalette.Text */
+                border: 1px solid rgb(240, 240, 240); /* Match QPalette.AlternateBase */
+                border-radius: 3px;
+                padding: 5px;
+            }
+            QLineEdit:focus {
+                border: 1px solid rgb(0, 120, 212);   /* Match QPalette.Highlight */
+            }
+        """)
+
         # Create light palette
         palette = QPalette()
 
@@ -63,6 +77,20 @@ class ThemeManager:
         """Apply a consistent dark theme to the application"""
         # Force dark theme
         app.setStyle("Fusion")  # Use Fusion style for consistency
+
+        # Apply global stylesheet for input fields
+        app.setStyleSheet("""
+            QLineEdit {
+                background-color: rgb(25, 25, 25);  /* Match QPalette.Base */
+                color: rgb(255, 255, 255);         /* Match QPalette.Text */
+                border: 1px solid rgb(66, 66, 66); /* Match QPalette.AlternateBase */
+                border-radius: 3px;
+                padding: 5px;
+            }
+            QLineEdit:focus {
+                border: 1px solid rgb(42, 130, 218); /* Match QPalette.Highlight */
+            }
+        """)
 
         # Create dark palette
         palette = QPalette()
