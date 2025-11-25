@@ -8,23 +8,29 @@ import json
 import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
-from .config import CONFIG_DIR, CONFIG_FILES
+from . import config
+from .config import CONFIG_FILES
 
 
 class ConfigManager:
     """Manages application configuration files in configurable directory"""
 
-    # Class-level config directory (resolved from template)
-    CONFIG_DIR = CONFIG_DIR
-
     # Configuration file names (from config.py)
     DOCUMENT_SCANNER_CONFIG = CONFIG_FILES["document_scanner"]
     APP_SETTINGS_CONFIG = CONFIG_FILES["app_settings"]
-    
+
     # In-memory cache to reduce file I/O
     # Format: {config_name: (timestamp, data)}
     _cache: Dict[str, Tuple[float, Any]] = {}
     _cache_ttl = 2.0  # Cache TTL in seconds (2 second cache)
+
+    @classmethod
+    def _get_config_dir(cls) -> Path:
+        """Get the current configuration directory (resolves dynamically).
+        
+        This allows the config directory to change when set_app_name() is called.
+        """
+        return config.CONFIG_DIR
 
     @classmethod
     def initialize(cls):
@@ -33,8 +39,9 @@ class ConfigManager:
         Creates configuration directory if it doesn't exist.
         Should be called on application startup.
         """
-        cls.CONFIG_DIR.mkdir(parents=True, exist_ok=True)
-        print(f"✓ Configuration directory: {cls.CONFIG_DIR.absolute()}")
+        config_dir = cls._get_config_dir()
+        config_dir.mkdir(parents=True, exist_ok=True)
+        print(f"✓ Configuration directory: {config_dir.absolute()}")
 
     @classmethod
     def get_config_path(cls, config_name: str) -> Path:
@@ -46,7 +53,7 @@ class ConfigManager:
         Returns:
             Path object for the configuration file
         """
-        return cls.CONFIG_DIR / config_name
+        return cls._get_config_dir() / config_name
 
     @classmethod
     def save_config(cls, config_name: str, data: Any) -> bool:
@@ -68,7 +75,7 @@ class ConfigManager:
 
             with open(config_path, 'w', encoding='utf-8') as f:
                 json.dump(data, f, indent=2)
-            
+
             # Invalidate cache after successful save
             cls._cache.pop(config_name, None)
             print(f"✓ Saved configuration: {config_path}")
@@ -92,14 +99,14 @@ class ConfigManager:
         """
         try:
             config_path = cls.get_config_path(config_name)
-            
+
             # Check cache first (avoids file I/O)
             if config_name in cls._cache:
                 timestamp, cached_data = cls._cache[config_name]
                 if time.time() - timestamp < cls._cache_ttl:
                     print(f"📖 Cache hit for: {config_name}")
                     return cached_data
-            
+
             print(f"📖 Looking for config at: {config_path.absolute()}")
             print(f"📖 File exists: {config_path.exists()}")
 
@@ -114,7 +121,7 @@ class ConfigManager:
 
             # Store in cache
             cls._cache[config_name] = (time.time(), data)
-            
+
             print(f"✓ Loaded configuration: {config_path}")
             if isinstance(data, dict) and 'documents' in data:
                 print(f"✓ Loaded {len(data['documents'])} document(s)")
@@ -160,7 +167,7 @@ class ConfigManager:
         except Exception as e:
             print(f"❌ ERROR deleting configuration '{config_name}': {e}")
             return False
-    
+
     @classmethod
     def clear_cache(cls, config_name: str = None) -> None:
         """Clear cache for one or all config files
@@ -176,7 +183,7 @@ class ConfigManager:
             cache_size = len(cls._cache)
             cls._cache.clear()
             print(f"✓ Cleared cache for all {cache_size} config file(s)")
-    
+
     @classmethod
     def get_cache_stats(cls) -> Dict[str, Any]:
         """Get cache statistics for debugging
@@ -190,7 +197,7 @@ class ConfigManager:
             'cache_ttl_seconds': cls._cache_ttl,
             'files': {}
         }
-        
+
         for config_name, (timestamp, data) in cls._cache.items():
             age = now - timestamp
             is_valid = age < cls._cache_ttl
@@ -200,7 +207,7 @@ class ConfigManager:
                 'data_type': type(data).__name__,
                 'size_bytes': len(json.dumps(data)) if data else 0
             }
-        
+
         return stats
 
 

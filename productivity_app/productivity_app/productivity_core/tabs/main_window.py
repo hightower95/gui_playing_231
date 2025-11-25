@@ -8,6 +8,7 @@ from ..document_scanner import DocumentScannerModuleView
 from ..connector.connector_context_provider import ConnectorContextProvider
 from ..remote_docs import RemoteDocsPresenter
 from ..devops import DevOpsPresenter
+from ..core.config import get_app_name
 from .settings_tab import SettingsTab
 
 
@@ -75,7 +76,13 @@ class MainWindow(QMainWindow):
     def __init__(self, context):
         super().__init__()
         self.context = context
-        self.setWindowTitle("Engineering Toolkit")
+        
+        # Set window title with app_name if not default
+        title = "Engineering Toolkit"
+        app_name = get_app_name()
+        if app_name != "productivity_app":
+            title = f"{title} ({app_name})"
+        self.setWindowTitle(title)
         self.resize(1200, 800)
 
         self.tabs = QTabWidget()
