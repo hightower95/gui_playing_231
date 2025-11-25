@@ -179,7 +179,7 @@ class LookupConnectorPresenter(QObject):
         self.loading_progress.connect(self.view.update_loading_progress)
         self.loading_completed.connect(lambda: self.view.show_loading(False))
         self.loading_failed.connect(self.view.show_error)
-        
+
         # Initialize Redux dark release monitoring (no view impact)
         self._initialize_redux_dark_release()
 
@@ -306,10 +306,10 @@ class LookupConnectorPresenter(QObject):
 
             # Update view with new filter options
             self.view.update_filter_options(filter_options)
-            
+
             # Dark release: Populate Redux with available options
             self._populate_redux_available_options(filter_options)
-            
+
             # Dark release: Sync standard selection to Redux
             self._sync_redux_from_view_filters(
                 {'standard': selected_standards},
@@ -330,7 +330,7 @@ class LookupConnectorPresenter(QObject):
 
         # Store current filters for history tracking
         self.current_filters = filters.copy()
-        
+
         # Dark release: Sync to Redux
         self._sync_redux_from_view_filters(filters, FilterCommand.SEARCH_BOX)
 
@@ -390,7 +390,7 @@ class LookupConnectorPresenter(QObject):
             if self.table_model:
                 self.table_model.update(self.filtered_df)
                 self._update_stats()
-        
+
         # Dark release: Sync to Redux
         self.filter_redux.clear_filters()
 
@@ -405,7 +405,7 @@ class LookupConnectorPresenter(QObject):
 
         # Clear context display
         self.view.context_box.clear()
-        
+
         # Dark release: Reset Redux
         self.filter_redux.reset_all_filters()
 
@@ -583,18 +583,20 @@ Keying: {row_data.get('Keying', 'N/A')}
     # These methods run in parallel with the existing view to validate Redux
     # implementation before fully integrating it. The Redux state mirrors all
     # filter operations but does not affect the view.
-    
+
     def _initialize_redux_dark_release(self):
         """Initialize Redux dark release monitoring"""
         # Connect Redux signals to dark release handlers (logging/validation only)
-        self.filter_redux.filters_changed.connect(self._on_redux_filters_changed)
-        self.filter_redux.filters_cleared.connect(self._on_redux_filters_cleared)
-    
+        self.filter_redux.filters_changed.connect(
+            self._on_redux_filters_changed)
+        self.filter_redux.filters_cleared.connect(
+            self._on_redux_filters_cleared)
+
     def _sync_redux_from_view_filters(self, filters: dict, command: FilterCommand) -> None:
         """
         Sync Redux state from view filter operations (dark release).
         This mirrors view filter changes into Redux without affecting the view.
-        
+
         Args:
             filters: Filter dict from view (same format as current_filters)
             command: FilterCommand enum indicating source of change
@@ -610,15 +612,15 @@ Keying: {row_data.get('Keying', 'N/A')}
             'socket_type': filters.get('socket_type', []),
             'keying': filters.get('keying', [])
         }
-        
+
         # Update Redux (no view impact)
         self.filter_redux.update_filters(update_dict, command)
-    
+
     def _populate_redux_available_options(self, filter_options: dict) -> None:
         """
         Populate Redux with available filter options (dark release).
         Called when filter options are updated based on standards selection.
-        
+
         Args:
             filter_options: Dict with keys like 'shell_types', 'materials', etc.
         """
@@ -631,22 +633,22 @@ Keying: {row_data.get('Keying', 'N/A')}
             'socket_types': 'socket_type',
             'keyings': 'keying'
         }
-        
+
         # Convert to Redux format and update
         redux_options = {}
         for view_key, redux_key in options_map.items():
             if view_key in filter_options:
                 redux_options[redux_key] = filter_options[view_key]
-        
+
         # Populate available options in Redux
         if redux_options:
             self.filter_redux.update_available_options(redux_options)
-    
+
     def _on_redux_filters_changed(self, state: FilterState, command: FilterCommand, metadata: dict) -> None:
         """
         Dark release handler: Redux filter state changed.
         This is for monitoring/validation only - no view updates.
-        
+
         Args:
             state: New FilterState from Redux
             command: FilterCommand that triggered the change
@@ -657,7 +659,7 @@ Keying: {row_data.get('Keying', 'N/A')}
         # print(f"  State: {state.to_dict()}")
         # Uncomment above lines to enable debug logging
         pass
-    
+
     def _on_redux_filters_cleared(self) -> None:
         """
         Dark release handler: Redux filters were cleared.
@@ -667,25 +669,25 @@ Keying: {row_data.get('Keying', 'N/A')}
         # print(f"[REDUX DARK RELEASE] Filters cleared")
         # Uncomment above line to enable debug logging
         pass
-    
+
     def get_redux_state(self) -> FilterState:
         """
         Get current Redux filter state (dark release).
         Useful for debugging and validation.
-        
+
         Returns:
             Current FilterState from Redux
         """
         return self.filter_redux.state
-    
+
     def get_redux_available_options(self, filter_key: str) -> list:
         """
         Get Redux available options for a filter (dark release).
         Useful for validation and debugging.
-        
+
         Args:
             filter_key: The filter key (e.g., 'material')
-            
+
         Returns:
             List of available options from Redux
         """
