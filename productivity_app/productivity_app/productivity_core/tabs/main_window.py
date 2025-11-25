@@ -76,7 +76,7 @@ class MainWindow(QMainWindow):
     def __init__(self, context):
         super().__init__()
         self.context = context
-        
+
         # Set window title with app_name if not default
         title = "Engineering Toolkit"
         app_name = get_app_name()

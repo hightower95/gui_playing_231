@@ -105,7 +105,7 @@ def send_message_to_splash(message):
 
 def main(*args, app_name=None, **kwargs):
     """Main application entry point
-    
+
     Args:
         app_name: Optional application name for config directory (e.g., 'productivity_app_dev').
                  If provided, this will override the default and create a separate config directory.
@@ -113,7 +113,7 @@ def main(*args, app_name=None, **kwargs):
     # Set custom app_name if provided (must be before ConfigManager.initialize)
     if app_name:
         set_app_name(app_name)
-    
+
     app = QApplication(sys.argv)
 
     # Initialize configuration manager (creates .tool_config directory)

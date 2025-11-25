@@ -139,7 +139,7 @@ CONFIG_DIR = resolve_config_dir()
 
 def get_app_name() -> str:
     """Get the current APP_NAME from configuration.
-    
+
     Returns:
         The current APP_NAME value (e.g., 'productivity_app', 'productivity_app_dev')
     """
@@ -148,23 +148,23 @@ def get_app_name() -> str:
 
 def set_app_name(app_name: str) -> None:
     """Runtime modification of APP_NAME to support dev/live environments.
-    
+
     This function must be called BEFORE ConfigManager.initialize().
-    
+
     Args:
         app_name: The application name to use in the config directory path.
                  Example: 'productivity_app_dev' or 'productivity_app_live'
-    
+
     Example:
         >>> from productivity_app.productivity_core.core.config import set_app_name
         >>> set_app_name('productivity_app_dev')  # Use before ConfigManager.initialize()
     """
     global CONFIG_PATH_VARIABLES, CONFIG_DIR
-    
+
     # Update the APP_NAME in variables
     CONFIG_PATH_VARIABLES['APP_NAME'] = app_name
-    
+
     # Recalculate CONFIG_DIR with the new APP_NAME
     CONFIG_DIR = resolve_config_dir()
-    
+
     print(f"✓ Application data directory set to: {CONFIG_DIR}")

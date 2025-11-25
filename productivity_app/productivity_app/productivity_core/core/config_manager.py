@@ -27,7 +27,7 @@ class ConfigManager:
     @classmethod
     def _get_config_dir(cls) -> Path:
         """Get the current configuration directory (resolves dynamically).
-        
+
         This allows the config directory to change when set_app_name() is called.
         """
         return config.CONFIG_DIR
