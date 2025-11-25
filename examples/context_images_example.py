@@ -12,7 +12,7 @@ from pathlib import Path
 
 def create_sample_connector_data_with_images():
     """Create sample connector data with image references"""
-    
+
     # Method 1: Local file path
     sample_data_local = {
         'Part Number': 'D38999/12',
@@ -26,7 +26,7 @@ def create_sample_connector_data_with_images():
         'Keying': 'A',
         'image_path': 'C:/connectors/d38999_12.png'  # File on disk
     }
-    
+
     # Method 2: Base64-encoded image (create sample)
     sample_base64 = create_sample_base64_image()
     sample_data_inline = {
@@ -41,7 +41,7 @@ def create_sample_connector_data_with_images():
         'Keying': 'B',
         'image_base64': sample_base64  # Inline data
     }
-    
+
     # Method 3: Remote URL
     sample_data_url = {
         'Part Number': 'VG95234',
@@ -55,7 +55,7 @@ def create_sample_connector_data_with_images():
         'Keying': 'C',
         'image_url': 'https://example.com/connectors/vg95234.png'
     }
-    
+
     return {
         'local_file': sample_data_local,
         'inline_base64': sample_data_inline,
@@ -65,7 +65,7 @@ def create_sample_connector_data_with_images():
 
 def create_sample_base64_image():
     """Create a minimal valid base64-encoded PNG for testing
-    
+
     This is a tiny 1x1 transparent PNG for demonstration.
     In real use, encode your actual connector pinout diagrams.
     """
@@ -76,22 +76,22 @@ def create_sample_base64_image():
 
 def encode_image_to_base64(image_path: str) -> str:
     """Convert an image file to base64-encoded data URI
-    
+
     Args:
         image_path: Path to image file (PNG, JPG, GIF, etc)
-        
+
     Returns:
         Base64 data URI ready for use in HTML img src
-        
+
     Example:
         data_uri = encode_image_to_base64('C:/connectors/d38999_12.png')
         row_data['image_base64'] = data_uri
     """
     path = Path(image_path)
-    
+
     if not path.exists():
         raise FileNotFoundError(f"Image file not found: {image_path}")
-    
+
     # Detect image type from extension
     suffix = path.suffix.lower()
     type_map = {
@@ -102,37 +102,37 @@ def encode_image_to_base64(image_path: str) -> str:
         '.bmp': 'image/bmp',
         '.svg': 'image/svg+xml'
     }
-    
+
     mime_type = type_map.get(suffix, 'image/png')
-    
+
     with open(path, 'rb') as f:
         image_data = base64.b64encode(f.read()).decode()
-    
+
     return f"data:{mime_type};base64,{image_data}"
 
 
 def batch_encode_images_for_csv(csv_data: list, image_dir: str, image_column: str = 'image_path') -> list:
     """Convert local image paths to base64 for all rows in a dataset
-    
+
     Useful for preparation before displaying in context.
-    
+
     Args:
         csv_data: List of dictionaries (one per row)
         image_dir: Directory containing images
         image_column: Column name to store base64 data ('image_base64')
-        
+
     Returns:
         Modified list with base64 images added
-        
+
     Example:
         df = pd.read_csv('connectors.csv')
         data = df.to_dict('records')
-        
+
         # Add image paths based on Part Number
         for row in data:
             part_num = row['Part Number'].replace('/', '_')
             row['image_path'] = f'connectors_images/{part_num}.png'
-        
+
         # Convert paths to base64
         data = batch_encode_images_for_csv(data, 'connectors_images')
     """
@@ -143,22 +143,22 @@ def batch_encode_images_for_csv(csv_data: list, image_dir: str, image_column: st
                 # Make path absolute if relative
                 if not Path(image_path).is_absolute():
                     image_path = str(Path(image_dir) / Path(image_path).name)
-                
+
                 row['image_base64'] = encode_image_to_base64(image_path)
             except FileNotFoundError as e:
                 print(f"Warning: {e}")
                 row['image_base64'] = None
-    
+
     return csv_data
 
 
 def display_connector_with_image(presenter, row_data: dict):
     """Display a connector with image in the context box
-    
+
     Args:
         presenter: LookupConnectorPresenter instance
         row_data: Dictionary with connector data and optional images
-        
+
     Usage:
         # In your code when a row is selected:
         samples = create_sample_connector_data_with_images()
@@ -169,39 +169,40 @@ def display_connector_with_image(presenter, row_data: dict):
 
 def example_usage():
     """Complete example of using images in context display"""
-    
+
     print("=" * 70)
     print("CONTEXT DISPLAY WITH IMAGES - EXAMPLES")
     print("=" * 70)
-    
+
     # Get sample data
     samples = create_sample_connector_data_with_images()
-    
+
     print("\n1. LOCAL FILE PATH METHOD")
     print("-" * 70)
     print("Use when images are stored on disk")
     print(f"  image_path: {samples['local_file'].get('image_path')}")
     print("  Loaded by: _load_image_to_label() to pinout_image_label")
-    
+
     print("\n2. INLINE BASE64 METHOD")
     print("-" * 70)
     print("Use for embedded images (portable, no file dependencies)")
-    print(f"  image_base64 length: {len(samples['inline_base64'].get('image_base64', ''))} chars")
+    print(
+        f"  image_base64 length: {len(samples['inline_base64'].get('image_base64', ''))} chars")
     print("  Displayed in: HTML via <img src=\"data:image/png;base64,...\"/>")
-    
+
     print("\n3. REMOTE URL METHOD")
     print("-" * 70)
     print("Use for images hosted on web servers")
     print(f"  image_url: {samples['remote_url'].get('image_url')}")
     print("  Note: Requires additional setup for external URL loading")
-    
+
     print("\n4. ENCODING LOCAL IMAGES")
     print("-" * 70)
     print("Convert local images to base64 for embedding:")
     print("  from examples.context_images_example import encode_image_to_base64")
     print("  b64 = encode_image_to_base64('C:/path/to/connector.png')")
     print("  row_data['image_base64'] = b64")
-    
+
     print("\n5. BATCH ENCODING FROM CSV")
     print("-" * 70)
     print("Prepare images for a full dataset:")
@@ -210,7 +211,7 @@ def example_usage():
     print("  data = df.to_dict('records')")
     print("  # Add image paths and convert to base64")
     print("  data = batch_encode_images_for_csv(data, 'connectors_images')")
-    
+
     print("\n" + "=" * 70)
     print("See CONTEXT_DISPLAY_WITH_IMAGES.md for complete documentation")
     print("=" * 70)

@@ -558,7 +558,7 @@ class LookupConnectorPresenter(QObject):
 
     def _update_context_display(self, row_data: dict):
         """Update context box with selected connector details
-        
+
         Supports both text and inline images in the context display.
         Images can be referenced via:
         1. Image path in row_data['image_path'] - will display as separate label
@@ -569,29 +569,30 @@ class LookupConnectorPresenter(QObject):
 
         # Generate formatted HTML text with details
         details_html = self._generate_context_html(row_data)
-        
+
         # Set HTML content if available, otherwise use plain text
         if hasattr(self.view.context_box, 'setHtml'):
             self.view.context_box.setHtml(details_html)
         else:
             # Fallback for plain text widget
             self.view.context_box.setText(details_html)
-        
+
         # Handle pinout image if present and enabled
         if self.view.pinout_image_label and 'image_path' in row_data:
             image_path = row_data.get('image_path')
             if image_path:
-                self._load_image_to_label(image_path, self.view.pinout_image_label)
+                self._load_image_to_label(
+                    image_path, self.view.pinout_image_label)
 
     def _generate_context_html(self, row_data: dict) -> str:
         """Generate HTML-formatted context details with support for inline images
-        
+
         Args:
             row_data: Dictionary containing connector data
-            
+
         Returns:
             HTML string that can be displayed in QTextBrowser or QTextEdit
-            
+
         Example row_data with image:
             {
                 'Part Number': 'D38999/12',
@@ -611,7 +612,7 @@ class LookupConnectorPresenter(QObject):
         else:
             # Placeholder image when none provided
             image_html = self._get_placeholder_image()
-        
+
         # Build the HTML with optional image
         html = f"""
         <html>
@@ -664,17 +665,17 @@ class LookupConnectorPresenter(QObject):
         </html>
         """
         return html.strip()
-    
+
     def _load_image_to_label(self, image_path: str, label):
         """Load image from file path or URL to a QLabel
-        
+
         Args:
             image_path: Path to image file or URL
             label: QLabel widget to display the image
         """
         from pathlib import Path
         from PySide6.QtGui import QPixmap
-        
+
         try:
             if image_path.startswith(('http://', 'https://')):
                 # URL-based image - would need urllib or requests to load
@@ -697,7 +698,7 @@ class LookupConnectorPresenter(QObject):
 
     def _get_placeholder_image(self) -> str:
         """Generate a placeholder image as base64 SVG
-        
+
         Returns:
             HTML img tag with base64-encoded placeholder SVG
         """
@@ -709,7 +710,7 @@ class LookupConnectorPresenter(QObject):
             <line x1="50" y1="95" x2="100" y2="120" stroke="#888888" stroke-width="1" opacity="0.5"/>
             <line x1="100" y1="95" x2="50" y2="120" stroke="#888888" stroke-width="1" opacity="0.5"/>
         </svg>'''
-        
+
         import base64
         b64_svg = base64.b64encode(svg_placeholder.encode()).decode()
         return f'<img src="data:image/svg+xml;base64,{b64_svg}" style="width:150px; height:150px; border-radius:5px;" />'
