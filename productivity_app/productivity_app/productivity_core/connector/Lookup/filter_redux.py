@@ -80,23 +80,25 @@ class FilterState:
 class ConnectorFilterRedux(QObject):
     """
     Redux-style state manager for connector lookup filters.
-    
+
     Provides centralized, predictable state management for filter operations.
     All filter updates flow through the reducer for consistency and debugging.
     """
 
     # Signals
-    filters_changed = Signal(FilterState, FilterCommand, dict)  # new_state, command, metadata
+    # new_state, command, metadata
+    filters_changed = Signal(FilterState, FilterCommand, dict)
     filters_cleared = Signal()
-    filter_history_changed = Signal(list)  # List of (timestamp, command, state) tuples
+    # List of (timestamp, command, state) tuples
+    filter_history_changed = Signal(list)
 
     def __init__(self):
         """Initialize the filter redux state manager"""
         super().__init__()
-        
+
         # Current filter state (immutable)
         self._current_state = FilterState()
-        
+
         # Available filter options for each filter type
         self._available_options: Dict[str, List[str]] = {
             'standard': [],
@@ -107,72 +109,72 @@ class ConnectorFilterRedux(QObject):
             'socket_type': [],
             'keying': []
         }
-        
+
         # History for undo/redo
         self._history_stack: List[tuple] = []  # (timestamp, command, state)
         self._redo_stack: List[tuple] = []     # For redo functionality
         self._max_history = 50  # Keep last 50 states
-        
+
     @property
     def state(self) -> FilterState:
         """Get current filter state (read-only)"""
         return self._current_state
-    
-    def update_filters(self, 
-                      filters_to_set: Dict[str, Any],
-                      command: FilterCommand = FilterCommand.EXTERNAL,
-                      metadata: Optional[Dict[str, Any]] = None) -> bool:
+
+    def update_filters(self,
+                       filters_to_set: Dict[str, Any],
+                       command: FilterCommand = FilterCommand.EXTERNAL,
+                       metadata: Optional[Dict[str, Any]] = None) -> bool:
         """
         Update filters through the reducer.
-        
+
         Args:
             filters_to_set: Dict of filter keys and values to update
             command: Which component initiated this change
             metadata: Optional metadata about the change (e.g., {"source": "user_click"})
-            
+
         Returns:
             True if state changed, False if no change occurred
         """
         if metadata is None:
             metadata = {}
-        
+
         # Create new state by merging update
         new_state = self._current_state.merge(filters_to_set)
-        
+
         # Check if state actually changed
         if new_state.to_dict() == self._current_state.to_dict():
             return False
-        
+
         # Store old state in history
         timestamp = datetime.now().isoformat()
         self._history_stack.append((timestamp, command, self._current_state))
-        
+
         # Limit history size
         if len(self._history_stack) > self._max_history:
             self._history_stack.pop(0)
-        
+
         # Clear redo stack when new change made
         self._redo_stack.clear()
-        
+
         # Update current state
         self._current_state = new_state
-        
+
         # Emit signal with new state
         self.filters_changed.emit(new_state, command, metadata)
         self.filter_history_changed.emit(self._get_history_summary())
-        
+
         return True
-    
-    def clear_filters(self, 
-                     include_keys: Optional[List[str]] = None,
-                     command: FilterCommand = FilterCommand.CLEAR_BUTTON) -> bool:
+
+    def clear_filters(self,
+                      include_keys: Optional[List[str]] = None,
+                      command: FilterCommand = FilterCommand.CLEAR_BUTTON) -> bool:
         """
         Clear specific filters (only those listed in include_keys).
-        
+
         Args:
             include_keys: List of filter keys to clear (defaults to all filter types)
             command: Which component initiated this change
-            
+
         Returns:
             True if state changed, False if already cleared
         """
@@ -182,162 +184,169 @@ class ConnectorFilterRedux(QObject):
                 'standard', 'shell_type', 'material', 'shell_size',
                 'insert_arrangement', 'socket_type', 'keying'
             ]
-        
+
         # Determine what to clear
         filters_to_clear = {}
         current_dict = self._current_state.to_dict()
-        
+
         for key in include_keys:
             if key in current_dict:
                 # Clear to empty list or empty string depending on type
-                filters_to_clear[key] = [] if isinstance(current_dict[key], list) else ""
-        
+                filters_to_clear[key] = [] if isinstance(
+                    current_dict[key], list) else ""
+
         # Update filters
         result = self.update_filters(filters_to_clear, command)
-        
+
         if result:
             self.filters_cleared.emit()
-        
+
         return result
-    
+
     def reset_all_filters(self) -> bool:
         """Reset all filters to empty state"""
         new_state = FilterState()
-        
+
         if new_state.to_dict() == self._current_state.to_dict():
             return False
-        
+
         # Store old state
         timestamp = datetime.now().isoformat()
-        self._history_stack.append((timestamp, FilterCommand.RESET_BUTTON, self._current_state))
+        self._history_stack.append(
+            (timestamp, FilterCommand.RESET_BUTTON, self._current_state))
         self._redo_stack.clear()
-        
+
         if len(self._history_stack) > self._max_history:
             self._history_stack.pop(0)
-        
+
         self._current_state = new_state
-        
+
         self.filters_changed.emit(new_state, FilterCommand.RESET_BUTTON, {})
         self.filters_cleared.emit()
         self.filter_history_changed.emit(self._get_history_summary())
-        
+
         return True
-    
+
     def undo(self) -> Optional[FilterState]:
         """Undo last filter change"""
         if not self._history_stack:
             return None
-        
+
         # Move current state to redo stack
         timestamp = datetime.now().isoformat()
-        self._redo_stack.append((timestamp, FilterCommand.EXTERNAL, self._current_state))
-        
+        self._redo_stack.append(
+            (timestamp, FilterCommand.EXTERNAL, self._current_state))
+
         # Restore previous state
         timestamp, command, previous_state = self._history_stack.pop()
         self._current_state = previous_state
-        
-        self.filters_changed.emit(self._current_state, FilterCommand.EXTERNAL, {"action": "undo"})
+
+        self.filters_changed.emit(
+            self._current_state, FilterCommand.EXTERNAL, {"action": "undo"})
         self.filter_history_changed.emit(self._get_history_summary())
-        
+
         return self._current_state
-    
+
     def redo(self) -> Optional[FilterState]:
         """Redo last undone filter change"""
         if not self._redo_stack:
             return None
-        
+
         # Move current state to history
         timestamp = datetime.now().isoformat()
-        self._history_stack.append((timestamp, FilterCommand.EXTERNAL, self._current_state))
-        
+        self._history_stack.append(
+            (timestamp, FilterCommand.EXTERNAL, self._current_state))
+
         # Restore redo state
         timestamp, command, redo_state = self._redo_stack.pop()
         self._current_state = redo_state
-        
-        self.filters_changed.emit(self._current_state, FilterCommand.EXTERNAL, {"action": "redo"})
+
+        self.filters_changed.emit(
+            self._current_state, FilterCommand.EXTERNAL, {"action": "redo"})
         self.filter_history_changed.emit(self._get_history_summary())
-        
+
         return self._current_state
-    
+
     def get_filter_value(self, key: str) -> Any:
         """Get a specific filter value"""
         return getattr(self._current_state, key, None)
-    
-    def set_filter_value(self, key: str, value: Any, 
-                        command: FilterCommand = FilterCommand.EXTERNAL) -> bool:
+
+    def set_filter_value(self, key: str, value: Any,
+                         command: FilterCommand = FilterCommand.EXTERNAL) -> bool:
         """Set a single filter value"""
         return self.update_filters({key: value}, command)
-    
+
     def export_state(self) -> str:
         """Export current filter state as JSON string"""
         return json.dumps(self._current_state.to_dict(), indent=2)
-    
-    def import_state(self, json_str: str, 
-                    command: FilterCommand = FilterCommand.EXTERNAL) -> bool:
+
+    def import_state(self, json_str: str,
+                     command: FilterCommand = FilterCommand.EXTERNAL) -> bool:
         """Import filter state from JSON string"""
         try:
             data = json.loads(json_str)
             return self.update_filters(data, command, {"action": "import"})
         except json.JSONDecodeError:
             return False
-    
+
     def can_undo(self) -> bool:
         """Check if undo is available"""
         return len(self._history_stack) > 0
-    
+
     def can_redo(self) -> bool:
         """Check if redo is available"""
         return len(self._redo_stack) > 0
-    
+
     def get_history(self) -> List[tuple]:
         """Get full history stack"""
         return [(ts, cmd.value, state.to_dict()) for ts, cmd, state in self._history_stack]
-    
+
     def update_available_options(self, options_update: Dict[str, List[str]]) -> None:
         """
         Update the available filter options for one or more filter types.
-        
+
         Args:
             options_update: Dict mapping filter keys to lists of available options
                            e.g., {'material': ['iron', 'copper', 'aluminum']}
         """
         for key, values in options_update.items():
             if key in self._available_options:
-                self._available_options[key] = list(values)  # Create copy of list
-    
+                self._available_options[key] = list(
+                    values)  # Create copy of list
+
     def get_available_options(self, filter_key: str) -> List[str]:
         """
         Get available options for a specific filter type.
-        
+
         Args:
             filter_key: The filter key (e.g., 'material', 'standard')
-            
+
         Returns:
             List of available options, or empty list if filter key not found
         """
         return self._available_options.get(filter_key, [])
-    
+
     def get_all_available_options(self) -> Dict[str, List[str]]:
         """Get all available options for all filter types"""
         return dict(self._available_options)
-    
+
     def get_filter_state(self, filter_key: str) -> Any:
         """
         Get the current state for a specific filter.
         Alias for get_filter_value() for clarity.
-        
+
         Args:
             filter_key: The filter key (e.g., 'material', 'standard')
-            
+
         Returns:
             The current value of the filter
         """
         return self.get_filter_value(filter_key)
-    
+
     def get_all_filter_states(self) -> Dict[str, Any]:
         """Get all current filter states"""
         return self._current_state.to_dict()
-    
+
     def _get_history_summary(self) -> List[tuple]:
         """Get history summary for signals"""
         return [(ts, cmd.value) for ts, cmd, _ in self._history_stack[-10:]]  # Last 10 items
