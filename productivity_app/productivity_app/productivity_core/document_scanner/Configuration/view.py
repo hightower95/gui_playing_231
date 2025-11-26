@@ -169,23 +169,18 @@ class AddDocumentDialog(QDialog):
         self.cached_fields_group = QGroupBox("Cached Document Metadata")
         cached_layout = QFormLayout()
 
-        self.document_version_edit = QLineEdit()
-        self.document_version_edit.setPlaceholderText(
-            "e.g., 1.0.0, 2024-10-24")
-        cached_layout.addRow("Document Version:", self.document_version_edit)
+        self.document_name_combo = QComboBox()
+        self.document_name_combo.setEditable(False)
+        self.document_name_combo.addItems([
+            "Select Document...", "D38999", "VG95234", "EN3645", "AS85049"
+        ])
+        cached_layout.addRow("Document Name:", self.document_name_combo)
 
-        self.timestamp_edit = QLineEdit()
-        self.timestamp_edit.setPlaceholderText("e.g., 2024-10-24T10:30:00Z")
-        cached_layout.addRow("Timestamp:", self.timestamp_edit)
-
-        self.file_id_edit = QLineEdit()
-        self.file_id_edit.setPlaceholderText(
-            "e.g., unique-file-identifier-123")
-        cached_layout.addRow("File ID:", self.file_id_edit)
-
-        self.schema_version_edit = QLineEdit()
-        self.schema_version_edit.setPlaceholderText("e.g., 1.0")
-        cached_layout.addRow("Schema Version:", self.schema_version_edit)
+        self.version_combo = QComboBox()
+        self.version_combo.setEditable(False)
+        self.version_combo.addItems(["latest", "v1.0", "v1.1", "v2.0"])
+        self.version_combo.setCurrentText("latest")
+        cached_layout.addRow("Version:", self.version_combo)
 
         self.cached_fields_group.setLayout(cached_layout)
         self.cached_fields_group.setVisible(False)  # Hidden by default
@@ -603,11 +598,15 @@ class AddDocumentDialog(QDialog):
 
         # Add cached document metadata if applicable
         if is_cached:
+            document_name = self.document_name_combo.currentText()
+            if document_name == "Select Document...":
+                QMessageBox.warning(
+                    self, "Error", "Please select a document name")
+                return
+            
             self.config['cached_metadata'] = {
-                'document_version': self.document_version_edit.text().strip(),
-                'timestamp': self.timestamp_edit.text().strip(),
-                'file_id': self.file_id_edit.text().strip(),
-                'schema_version': self.schema_version_edit.text().strip(),
+                'document_name': document_name,
+                'version': self.version_combo.currentText(),
             }
 
         self.accept()
@@ -621,6 +620,7 @@ class ConfigurationView(BaseTabView):
     remove_document_requested = Signal(int)  # row index
     edit_document_requested = Signal(int, dict)  # row index, config
     export_config_requested = Signal()  # request to export configuration
+    import_config_requested = Signal(str)  # request to import configuration (file path)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -654,6 +654,10 @@ class ConfigurationView(BaseTabView):
         self.remove_btn.clicked.connect(self._on_remove_document)
         self.remove_btn.setEnabled(False)
         title_row.addWidget(self.remove_btn)
+
+        self.import_btn = QPushButton("📥 Import Config")
+        self.import_btn.clicked.connect(self._on_import_config)
+        title_row.addWidget(self.import_btn)
 
         self.export_btn = QPushButton("📤 Export Config")
         self.export_btn.clicked.connect(self._on_export_config)
@@ -728,6 +732,18 @@ class ConfigurationView(BaseTabView):
 
         if reply == QMessageBox.Yes:
             self.remove_document_requested.emit(row)
+
+    def _on_import_config(self):
+        """Import configuration from JSON file"""
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Import Configuration",
+            "",
+            "JSON Files (*.json);;All Files (*.*)"
+        )
+
+        if file_path:
+            self.import_config_requested.emit(file_path)
 
     def _on_export_config(self):
         """Export configuration to JSON file"""

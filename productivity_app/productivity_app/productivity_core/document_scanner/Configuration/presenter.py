@@ -21,6 +21,7 @@ class ConfigurationPresenter(QObject):
         self.view.add_document_requested.connect(self.on_add_document)
         self.view.remove_document_requested.connect(self.on_remove_document)
         self.view.edit_document_requested.connect(self.on_edit_document)
+        self.view.import_config_requested.connect(self.on_import_config)
         self.view.export_config_requested.connect(self.on_export_config)
 
     def start_loading(self):
@@ -89,6 +90,107 @@ class ConfigurationPresenter(QObject):
         configs = self.model.get_document_configs()
         for config in configs:
             self.view.add_document_row(config)
+
+    def on_import_config(self, file_path: str):
+        """Import configuration from a JSON file
+
+        Args:
+            file_path: Path to the JSON configuration file to import
+        """
+        try:
+            # Read and parse the JSON file
+            with open(file_path, 'r', encoding='utf-8') as f:
+                import_data = json.load(f)
+
+            # Validate the import data structure
+            if not isinstance(import_data, dict):
+                raise ValueError("Configuration file must contain a JSON object")
+
+            # Check for expected fields
+            documents = import_data.get('documents', [])
+            if not isinstance(documents, list):
+                raise ValueError("'documents' field must be a list")
+
+            if not documents:
+                QMessageBox.information(
+                    self.view,
+                    "Import Configuration",
+                    "No documents found in the configuration file."
+                )
+                return
+
+            # Ask user to confirm import
+            reply = QMessageBox.question(
+                self.view,
+                "Import Configuration",
+                f"Import {len(documents)} document(s) from the configuration file?\n\n"
+                f"Note: This will add to your existing configuration.\n"
+                f"File: {Path(file_path).name}",
+                QMessageBox.Yes | QMessageBox.No
+            )
+
+            if reply != QMessageBox.Yes:
+                return
+
+            # Import each document
+            imported_count = 0
+            failed_count = 0
+            failed_docs = []
+
+            for doc in documents:
+                try:
+                    # Validate required fields
+                    required_fields = ['file_path', 'file_name', 'header_row', 
+                                       'search_columns', 'return_columns']
+                    for field in required_fields:
+                        if field not in doc:
+                            raise ValueError(f"Missing required field: {field}")
+
+                    # Add the document
+                    self.model.add_document(doc)
+                    imported_count += 1
+                    print(f"✓ Imported: {doc['file_name']}")
+
+                except Exception as e:
+                    failed_count += 1
+                    failed_docs.append(f"{doc.get('file_name', 'Unknown')}: {str(e)}")
+                    print(f"✗ Failed to import: {doc.get('file_name', 'Unknown')} - {e}")
+
+            # Show results
+            result_msg = f"Import completed!\n\n" \
+                         f"Successfully imported: {imported_count}\n" \
+                         f"Failed: {failed_count}"
+
+            if failed_docs:
+                result_msg += f"\n\nFailed documents:\n" + "\n".join(failed_docs[:5])
+                if len(failed_docs) > 5:
+                    result_msg += f"\n... and {len(failed_docs) - 5} more"
+
+            QMessageBox.information(
+                self.view,
+                "Import Successful",
+                result_msg
+            )
+
+            print(f"✓ Configuration imported: {imported_count} document(s) added")
+
+        except json.JSONDecodeError as e:
+            QMessageBox.critical(
+                self.view,
+                "Import Failed",
+                f"Invalid JSON file:\n{str(e)}"
+            )
+            print(f"✗ Import failed: Invalid JSON - {e}")
+
+        except Exception as e:
+            QMessageBox.critical(
+                self.view,
+                "Import Failed",
+                f"Failed to import configuration:\n{str(e)}"
+            )
+            print(f"✗ Import failed: {e}")
+            import traceback
+            traceback.print_exc()
 
     def on_export_config(self):
         """Export current configuration to a JSON file"""
