@@ -31,6 +31,7 @@ TAB_CONFIG = [
         'presenter_class': ConnectorsPresenter,
         'init_args': lambda ctx, deps: [ctx],
         'delay_ms': 50,
+        'visible': True,  # Default visibility on startup
     },
     {
         'id': 'epd',
@@ -38,6 +39,7 @@ TAB_CONFIG = [
         'presenter_class': EpdPresenter,
         'init_args': lambda ctx, deps: [ctx],
         'delay_ms': 100,
+        'visible': True,  # Default visibility on startup
     },
     {
         'id': 'document_scanner',
@@ -46,6 +48,7 @@ TAB_CONFIG = [
         'init_args': lambda ctx, deps: [ctx],
         'delay_ms': 200,
         'view_from_presenter': False,  # This class IS the view, not a presenter
+        'visible': True,  # Default visibility on startup
     },
     {
         'id': 'fault_finding',
@@ -54,6 +57,7 @@ TAB_CONFIG = [
         'init_args': lambda ctx, deps: [ctx, deps['epd'].model],
         'delay_ms': 300,
         'dependencies': ['epd'],  # Requires EPD to be loaded first
+        'visible': True,  # Default visibility on startup
     },
     {
         'id': 'remote_docs',
@@ -61,6 +65,7 @@ TAB_CONFIG = [
         'presenter_class': RemoteDocsPresenter,
         'init_args': lambda ctx, deps: [ctx],
         'delay_ms': 400,
+        'visible': True,  # Default visibility on startup
     },
     {
         'id': 'devops',
@@ -68,6 +73,7 @@ TAB_CONFIG = [
         'presenter_class': DevOpsPresenter,
         'init_args': lambda ctx, deps: [ctx],
         'delay_ms': 450,
+        'visible': True,  # Default visibility on startup
     },
 ]
 
@@ -187,7 +193,11 @@ class MainWindow(QMainWindow):
             setattr(self, tab_id, presenter)
 
             # Add tab if it should be visible
-            if self.settings_tab.is_tab_visible(tab_id):
+            # Check both: config default visibility AND user settings
+            config_visible = tab_config.get('visible', True)
+            user_visible = self.settings_tab.is_tab_visible(tab_id)
+
+            if config_visible and user_visible:
                 position = self._get_tab_position(tab_id)
                 self.tabs.insertTab(position, view, title)
 

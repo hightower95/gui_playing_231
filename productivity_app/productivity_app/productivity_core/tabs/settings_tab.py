@@ -20,21 +20,24 @@ from ..core.config_manager import AppSettingsConfig
 # ============================================================================
 # Define which tabs can be toggled on/off in Settings.
 # Add new tabs here to automatically create checkboxes.
+#
+# IMPORTANT: The 'default' value MUST match the 'visible' field in TAB_CONFIG
+# in main_window.py. This ensures consistent startup behavior.
 # ============================================================================
 
 TAB_VISIBILITY_CONFIG = [
     {'id': 'epd', 'label': 'EPD Tools',
-        'tooltip': 'Show/hide the EPD Tools tab', 'default': True},
+        'tooltip': 'Show/hide the EPD Tools tab', 'default': False},
     {'id': 'connectors', 'label': 'Connectors',
         'tooltip': 'Show/hide the Connectors tab', 'default': True},
     {'id': 'fault_finding', 'label': 'Fault Finding',
-        'tooltip': 'Show/hide the Fault Finding tab', 'default': True},
+        'tooltip': 'Show/hide the Fault Finding tab', 'default': False},
     {'id': 'document_scanner', 'label': 'Document Scanner',
         'tooltip': 'Show/hide the Document Scanner tab', 'default': True},
     {'id': 'remote_docs', 'label': 'Remote Docs',
-        'tooltip': 'Show/hide the Remote Docs tab', 'default': True},
+        'tooltip': 'Show/hide the Remote Docs tab', 'default': False},
     {'id': 'devops', 'label': 'DevOps',
-        'tooltip': 'Show/hide the DevOps tab', 'default': True},
+        'tooltip': 'Show/hide the DevOps tab', 'default': False},
 ]
 
 
