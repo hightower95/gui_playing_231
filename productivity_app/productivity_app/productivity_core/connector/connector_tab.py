@@ -3,23 +3,61 @@ Connector Module - Connector configuration and lookup interface with multiple su
 """
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QTabWidget
 from PySide6.QtCore import QTimer
-from .Lookup.presenter import LookupConnectorPresenter
-from .CheckMultiple.presenter import CheckMultipleConnectorPresenter
 
 
 class ConnectorModuleView(QWidget):
     """Main Connector module containing Lookup and Check Multiple tabs"""
+
+    # ========================================================================
+    # MODULE IDENTIFIER - Single source of truth for this module
+    # ========================================================================
+    # Used for tab registration and sub-tab visibility management
+    # ========================================================================
+    
+    MODULE_ID = 'connectors'
+
+    # ========================================================================
+    # SUB-TAB IDENTIFIERS - Single source of truth
+    # ========================================================================
+    # All code that references sub-tabs should use these constants
+    # When renaming: update here and everything else auto-updates
+    # ========================================================================
+    
+    SUB_TAB_LOOKUP = 'lookup'
+    SUB_TAB_CHECK_MULTIPLE = 'check_multiple'
+    
+    # Ordered list of all sub-tabs (used for iteration)
+    SUB_TAB_ORDER = [
+        SUB_TAB_LOOKUP,
+        SUB_TAB_CHECK_MULTIPLE,
+    ]
+    
+    # Display names (for UI labels)
+    SUB_TAB_LABELS = {
+        SUB_TAB_LOOKUP: 'Lookup',
+        SUB_TAB_CHECK_MULTIPLE: 'Check Multiple',
+    }
 
     def __init__(self, context, connector_model):
         super().__init__()
         self.context = context
         self.connector_model = connector_model
 
+        # Import here to avoid circular imports
+        from .Lookup.presenter import LookupConnectorPresenter
+        from .CheckMultiple.presenter import CheckMultipleConnectorPresenter
+
         # Create sub-presenters
         self.lookup_presenter = LookupConnectorPresenter(
             context, connector_model)
         self.check_multiple_presenter = CheckMultipleConnectorPresenter(
             context, connector_model)
+
+        # Store sub-tabs mapping using constants
+        self.sub_tabs = {
+            self.SUB_TAB_LOOKUP: (self.lookup_presenter.view, self.lookup_presenter),
+            self.SUB_TAB_CHECK_MULTIPLE: (self.check_multiple_presenter.view, self.check_multiple_presenter),
+        }
 
         # Connect signals for tab switching
         self.check_multiple_presenter.switch_to_lookup.connect(
@@ -35,11 +73,52 @@ class ConnectorModuleView(QWidget):
         # Create tab widget
         self.tabs = QTabWidget()
 
-        # Add sub-tabs
-        self.tabs.addTab(self.lookup_presenter.view, "Lookup")
-        self.tabs.addTab(self.check_multiple_presenter.view, "Check Multiple")
+        # Add all sub-tabs
+        self._add_sub_tabs()
 
         layout.addWidget(self.tabs)
+
+    def _add_sub_tabs(self):
+        """Add sub-tabs based on visibility settings"""
+        from ..tabs.settings_tab import SubTabVisibilityConfig
+        
+        for sub_tab_id in self.SUB_TAB_ORDER:
+            if sub_tab_id not in self.sub_tabs:
+                continue
+                
+            view, presenter = self.sub_tabs[sub_tab_id]
+            
+            # Check if visible
+            is_visible = SubTabVisibilityConfig.get_sub_tab_visibility(self.MODULE_ID, sub_tab_id)
+            
+            if is_visible:
+                label = self.SUB_TAB_LABELS[sub_tab_id]
+                self.tabs.addTab(view, label)
+
+    def sub_tab_visibility_updated(self, sub_tab_names: dict):
+        """Update sub-tab visibility
+        
+        Args:
+            sub_tab_names: Dictionary mapping sub-tab IDs to visibility (True/False)
+                          Example: {'lookup': True, 'check_multiple': False}
+        """
+        print(f"[Connector] Sub-tab visibility updated: {sub_tab_names}")
+        
+        # Clear existing tabs
+        self.tabs.clear()
+        
+        # Re-add tabs based on new visibility
+        for sub_tab_id in self.SUB_TAB_ORDER:
+            if sub_tab_id not in self.sub_tabs:
+                continue
+            
+            # Check new visibility
+            if sub_tab_names.get(sub_tab_id, True):
+                view, presenter = self.sub_tabs[sub_tab_id]
+                label = self.SUB_TAB_LABELS[sub_tab_id]
+                self.tabs.addTab(view, label)
+        
+        print(f"[Connector] Sub-tabs reloaded")
 
     def start_loading(self):
         """Start loading data for the currently active tab"""

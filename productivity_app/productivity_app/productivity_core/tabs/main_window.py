@@ -269,16 +269,23 @@ class MainWindow(QMainWindow):
             visible: New visibility state
         """
         from ..document_scanner.document_scanner_tab import DocumentScannerModuleView
+        from ..connector.connector_tab import ConnectorModuleView
+        from ..tabs.settings_tab import SubTabVisibilityConfig
 
         print(
             f"MainWindow: Sub-tab visibility changed - {parent_tab}.{sub_tab} -> {visible}")
 
         if parent_tab == DocumentScannerModuleView.MODULE_ID and hasattr(self, 'document_scanner'):
             # Get current visibility state for all sub-tabs
-            from ..tabs.settings_tab import SubTabVisibilityConfig
             visibility = SubTabVisibilityConfig.get_all_sub_tab_visibility(
                 DocumentScannerModuleView.MODULE_ID)
             self.document_scanner.sub_tab_visibility_updated(visibility)
+        
+        elif parent_tab == ConnectorModuleView.MODULE_ID and hasattr(self, 'connectors'):
+            # Get current visibility state for all sub-tabs
+            visibility = SubTabVisibilityConfig.get_all_sub_tab_visibility(
+                ConnectorModuleView.MODULE_ID)
+            self.connectors.sub_tab_visibility_updated(visibility)
 
     def _show_tab(self, tab_name: str):
         """

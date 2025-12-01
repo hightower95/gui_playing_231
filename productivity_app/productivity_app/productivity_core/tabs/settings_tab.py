@@ -2,6 +2,7 @@
 Settings Tab - Application configuration and tab visibility controls
 """
 from ..document_scanner.document_scanner_tab import DocumentScannerModuleView
+from ..connector.connector_tab import ConnectorModuleView
 from typing import Dict
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QFormLayout,
@@ -62,6 +63,12 @@ SUB_TAB_VISIBILITY_CONFIG = {
             'label': 'History', 'default': True},
         {'id': DocumentScannerModuleView.SUB_TAB_COMPARE_VERSIONS,
             'label': 'Compare Versions', 'default': False},
+    ],
+    ConnectorModuleView.MODULE_ID: [
+        {'id': ConnectorModuleView.SUB_TAB_LOOKUP,
+            'label': 'Lookup', 'default': True},
+        {'id': ConnectorModuleView.SUB_TAB_CHECK_MULTIPLE,
+            'label': 'Check Multiple', 'default': True},
     ],
     # Add more modules with sub-tabs as needed
 }
