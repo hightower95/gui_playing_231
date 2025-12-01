@@ -12,6 +12,42 @@ from ..document_scanner.document_scanner_model import DocumentScannerModel
 class DocumentScannerModuleView(QWidget):
     """Main Document Scanner module containing Search, Configuration, History, and Compare Versions tabs"""
 
+    # ========================================================================
+    # MODULE IDENTIFIER - Single source of truth for this module
+    # ========================================================================
+    # Used for tab registration and sub-tab visibility management
+    # ========================================================================
+
+    MODULE_ID = 'document_scanner'
+
+    # ========================================================================
+    # SUB-TAB IDENTIFIERS - Single source of truth
+    # ========================================================================
+    # All code that references sub-tabs should use these constants
+    # When renaming: update here and everything else auto-updates
+    # ========================================================================
+
+    SUB_TAB_SEARCH = 'search'
+    SUB_TAB_CONFIGURATION = 'configuration'
+    SUB_TAB_HISTORY = 'history'
+    SUB_TAB_COMPARE_VERSIONS = 'compare_versions'
+
+    # Ordered list of all sub-tabs (used for iteration)
+    SUB_TAB_ORDER = [
+        SUB_TAB_SEARCH,
+        SUB_TAB_CONFIGURATION,
+        SUB_TAB_HISTORY,
+        SUB_TAB_COMPARE_VERSIONS,
+    ]
+
+    # Display names (for UI labels)
+    SUB_TAB_LABELS = {
+        SUB_TAB_SEARCH: 'Search',
+        SUB_TAB_CONFIGURATION: 'Configuration',
+        SUB_TAB_HISTORY: 'History',
+        SUB_TAB_COMPARE_VERSIONS: 'Compare Versions',
+    }
+
     def __init__(self, context):
         super().__init__()
         self.context = context
@@ -26,6 +62,14 @@ class DocumentScannerModuleView(QWidget):
         self.history_presenter = HistoryPresenter(context, self.model)
         self.compare_versions_presenter = CompareVersionsPresenter(
             context, self.model)
+
+        # Store sub-tabs mapping using constants
+        self.sub_tabs = {
+            self.SUB_TAB_SEARCH: (self.search_presenter.view, self.search_presenter),
+            self.SUB_TAB_CONFIGURATION: (self.configuration_presenter.view, self.configuration_presenter),
+            self.SUB_TAB_HISTORY: (self.history_presenter.view, self.history_presenter),
+            self.SUB_TAB_COMPARE_VERSIONS: (self.compare_versions_presenter.view, self.compare_versions_presenter),
+        }
 
         # Connect model to presenters
         self.model.documents_changed.connect(
@@ -58,14 +102,28 @@ class DocumentScannerModuleView(QWidget):
         # Create tab widget
         self.tabs = QTabWidget()
 
-        # Add sub-tabs
-        self.tabs.addTab(self.search_presenter.view, "Search")
-        self.tabs.addTab(self.configuration_presenter.view, "Configuration")
-        self.tabs.addTab(self.history_presenter.view, "History")
-        self.tabs.addTab(self.compare_versions_presenter.view,
-                         "Compare Versions")
+        # Add all sub-tabs
+        self._add_sub_tabs()
 
         layout.addWidget(self.tabs)
+
+    def _add_sub_tabs(self):
+        """Add sub-tabs based on visibility settings"""
+        from ..tabs.settings_tab import SubTabVisibilityConfig
+
+        for sub_tab_id in self.SUB_TAB_ORDER:
+            if sub_tab_id not in self.sub_tabs:
+                continue
+
+            view, presenter = self.sub_tabs[sub_tab_id]
+
+            # Check if visible
+            is_visible = SubTabVisibilityConfig.get_sub_tab_visibility(
+                self.MODULE_ID, sub_tab_id)
+
+            if is_visible:
+                label = self.SUB_TAB_LABELS[sub_tab_id]
+                self.tabs.addTab(view, label)
 
     def start_loading(self):
         """Start loading data - model loads documents in background thread"""
@@ -92,6 +150,31 @@ class DocumentScannerModuleView(QWidget):
         # Populate search input and trigger search
         self.search_presenter.view.search_input.setText(search_term)
         self.search_presenter.on_search(search_term)
+
+    def sub_tab_visibility_updated(self, sub_tab_names: dict):
+        """Update sub-tab visibility
+
+        Args:
+            sub_tab_names: Dictionary mapping sub-tab IDs to visibility (True/False)
+                          Example: {'search': True, 'configuration': False, 'history': True, 'compare_versions': False}
+        """
+        print(f"[DocumentScanner] Sub-tab visibility updated: {sub_tab_names}")
+
+        # Clear existing tabs
+        self.tabs.clear()
+
+        # Re-add tabs based on new visibility
+        for sub_tab_id in self.SUB_TAB_ORDER:
+            if sub_tab_id not in self.sub_tabs:
+                continue
+
+            # Check new visibility
+            if sub_tab_names.get(sub_tab_id, True):
+                view, presenter = self.sub_tabs[sub_tab_id]
+                label = self.SUB_TAB_LABELS[sub_tab_id]
+                self.tabs.addTab(view, label)
+
+        print(f"[DocumentScanner] Sub-tabs reloaded")
 
     def get_current_presenter(self):
         """Get the presenter for the currently active tab"""

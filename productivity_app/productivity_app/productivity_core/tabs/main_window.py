@@ -223,6 +223,10 @@ class MainWindow(QMainWindow):
                 connector_context)
             print("[MainWindow] ✓ Context providers registered")
 
+        # Connect sub-tab visibility changes
+        self.settings_tab.sub_tab_visibility_changed.connect(
+            self._on_sub_tab_visibility_changed)
+
     def _on_tab_visibility_changed(self, tab_name: str, visible: bool):
         """
         Handle tab visibility change from Settings
@@ -255,6 +259,26 @@ class MainWindow(QMainWindow):
             else:
                 print(
                     f"[MainWindow] Remote docs not loaded yet, flag will apply when loaded")
+
+    def _on_sub_tab_visibility_changed(self, parent_tab: str, sub_tab: str, visible: bool):
+        """Handle sub-tab visibility changes from Settings
+
+        Args:
+            parent_tab: Parent tab ID (e.g., 'document_scanner')
+            sub_tab: Sub-tab ID (e.g., 'search')
+            visible: New visibility state
+        """
+        from ..document_scanner.document_scanner_tab import DocumentScannerModuleView
+
+        print(
+            f"MainWindow: Sub-tab visibility changed - {parent_tab}.{sub_tab} -> {visible}")
+
+        if parent_tab == DocumentScannerModuleView.MODULE_ID and hasattr(self, 'document_scanner'):
+            # Get current visibility state for all sub-tabs
+            from ..tabs.settings_tab import SubTabVisibilityConfig
+            visibility = SubTabVisibilityConfig.get_all_sub_tab_visibility(
+                DocumentScannerModuleView.MODULE_ID)
+            self.document_scanner.sub_tab_visibility_updated(visibility)
 
     def _show_tab(self, tab_name: str):
         """

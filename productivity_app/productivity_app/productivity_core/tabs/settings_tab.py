@@ -1,6 +1,7 @@
 """
 Settings Tab - Application configuration and tab visibility controls
 """
+from ..document_scanner.document_scanner_tab import DocumentScannerModuleView
 from typing import Dict
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QFormLayout,
@@ -39,6 +40,31 @@ TAB_VISIBILITY_CONFIG = [
     {'id': 'devops', 'label': 'DevOps',
         'tooltip': 'Show/hide the DevOps tab', 'default': False},
 ]
+
+
+# ============================================================================
+# SUB-TAB VISIBILITY CONFIGURATION
+# ============================================================================
+# Define sub-tabs for modules that have internal tabs
+# References constants from DocumentScannerModuleView to avoid magic strings
+# Structure: {parent_tab_id: [{'id': 'subtab_id', 'label': 'Display Name', 'default': True}, ...]}
+# ============================================================================
+
+# Import sub-tab constants from modules
+
+SUB_TAB_VISIBILITY_CONFIG = {
+    DocumentScannerModuleView.MODULE_ID: [
+        {'id': DocumentScannerModuleView.SUB_TAB_SEARCH,
+            'label': 'Search', 'default': True},
+        {'id': DocumentScannerModuleView.SUB_TAB_CONFIGURATION,
+            'label': 'Configuration', 'default': True},
+        {'id': DocumentScannerModuleView.SUB_TAB_HISTORY,
+            'label': 'History', 'default': True},
+        {'id': DocumentScannerModuleView.SUB_TAB_COMPARE_VERSIONS,
+            'label': 'Compare Versions', 'default': False},
+    ],
+    # Add more modules with sub-tabs as needed
+}
 
 
 class TabVisibilityConfig:
@@ -168,6 +194,94 @@ class FeatureFlagsConfig:
         return AppSettingsConfig.set_setting(cls.CONFIG_KEY, settings)
 
 
+class SubTabVisibilityConfig:
+    """Manages sub-tab visibility settings"""
+
+    CONFIG_KEY = "sub_tab_visibility"
+
+    @classmethod
+    def get_sub_tab_visibility(cls, parent_tab: str, sub_tab: str) -> bool:
+        """Get visibility for a specific sub-tab
+
+        Args:
+            parent_tab: Parent tab ID (e.g., 'document_scanner')
+            sub_tab: Sub-tab ID (e.g., 'search')
+
+        Returns:
+            True if sub-tab should be visible, False otherwise
+        """
+        settings = AppSettingsConfig.get_setting(cls.CONFIG_KEY, {})
+
+        # Get default from config
+        if parent_tab in SUB_TAB_VISIBILITY_CONFIG:
+            defaults = {cfg['id']: cfg['default']
+                        for cfg in SUB_TAB_VISIBILITY_CONFIG[parent_tab]}
+            default_visible = defaults.get(sub_tab, True)
+        else:
+            default_visible = True
+
+        # Return saved setting or default
+        parent_settings = settings.get(parent_tab, {})
+        return parent_settings.get(sub_tab, default_visible)
+
+    @classmethod
+    def get_all_sub_tab_visibility(cls, parent_tab: str) -> dict:
+        """Get all sub-tab visibilities for a parent tab
+
+        Args:
+            parent_tab: Parent tab ID
+
+        Returns:
+            Dictionary mapping sub-tab IDs to visibility state
+        """
+        settings = AppSettingsConfig.get_setting(cls.CONFIG_KEY, {})
+        parent_settings = settings.get(parent_tab, {})
+
+        # Merge with defaults
+        if parent_tab in SUB_TAB_VISIBILITY_CONFIG:
+            for sub_config in SUB_TAB_VISIBILITY_CONFIG[parent_tab]:
+                sub_id = sub_config['id']
+                if sub_id not in parent_settings:
+                    parent_settings[sub_id] = sub_config['default']
+
+        return parent_settings
+
+    @classmethod
+    def set_sub_tab_visibility(cls, parent_tab: str, sub_tab: str, visible: bool) -> bool:
+        """Set visibility for a specific sub-tab
+
+        Args:
+            parent_tab: Parent tab ID
+            sub_tab: Sub-tab ID
+            visible: True to show, False to hide
+
+        Returns:
+            True if successful
+        """
+        settings = AppSettingsConfig.get_setting(cls.CONFIG_KEY, {})
+
+        if parent_tab not in settings:
+            settings[parent_tab] = {}
+
+        settings[parent_tab][sub_tab] = visible
+        return AppSettingsConfig.set_setting(cls.CONFIG_KEY, settings)
+
+    @classmethod
+    def set_all_sub_tab_visibility(cls, parent_tab: str, visibility: dict) -> bool:
+        """Set all sub-tab visibilities for a parent tab
+
+        Args:
+            parent_tab: Parent tab ID
+            visibility: Dictionary mapping sub-tab IDs to visibility state
+
+        Returns:
+            True if successful
+        """
+        settings = AppSettingsConfig.get_setting(cls.CONFIG_KEY, {})
+        settings[parent_tab] = visibility
+        return AppSettingsConfig.set_setting(cls.CONFIG_KEY, settings)
+
+
 class SettingsTab(QWidget):
     """Settings tab for application configuration"""
 
@@ -182,11 +296,17 @@ class SettingsTab(QWidget):
     # Signal emitted when any settings change
     settings_changed = Signal(dict)
 
+    # Signal emitted when sub-tab visibility changes
+    # Emits tuple: (parent_tab: str, sub_tab: str, visible: bool)
+    sub_tab_visibility_changed = Signal(str, str, bool)
+
     def __init__(self, parent=None):
         super().__init__(parent)
 
         # Store checkboxes dynamically
         self.tab_checkboxes: Dict[str, QCheckBox] = {}
+        # parent_tab -> {sub_tab_id -> checkbox}
+        self.sub_tab_checkboxes: Dict[str, Dict[str, QCheckBox]] = {}
 
         self._setup_ui()
         self._load_settings()
@@ -236,6 +356,25 @@ class SettingsTab(QWidget):
             )
             self.tab_checkboxes[tab_id] = checkbox
             form_layout.addRow("", checkbox)
+
+            # Add sub-tabs if this tab has any
+            if tab_id in SUB_TAB_VISIBILITY_CONFIG:
+                self.sub_tab_checkboxes[tab_id] = {}
+
+                for sub_config in SUB_TAB_VISIBILITY_CONFIG[tab_id]:
+                    sub_tab_id = sub_config['id']
+                    # Prefix with module ID for clarity
+                    sub_label = f"{tab_id} → {sub_config['label']}"
+                    sub_checkbox = QCheckBox(sub_label)
+                    sub_checkbox.setToolTip(f"Show/hide {sub_config['label']}")
+                    sub_checkbox.clicked.connect(
+                        lambda checked, ptid=tab_id, stid=sub_tab_id: self._on_sub_tab_visibility_clicked(
+                            ptid, stid, checked)
+                    )
+                    self.sub_tab_checkboxes[tab_id][sub_tab_id] = sub_checkbox
+
+                    # Add with module ID prefix
+                    form_layout.addRow("", sub_checkbox)
 
         visibility_layout.addLayout(form_layout)
         visibility_group.setLayout(visibility_layout)
@@ -323,6 +462,15 @@ class SettingsTab(QWidget):
             checkbox.setChecked(settings.get(tab_id, True))
             checkbox.blockSignals(False)
 
+        # Load sub-tab visibility settings
+        for parent_tab, sub_tabs_dict in self.sub_tab_checkboxes.items():
+            visibility = SubTabVisibilityConfig.get_all_sub_tab_visibility(
+                parent_tab)
+            for sub_tab_id, checkbox in sub_tabs_dict.items():
+                checkbox.blockSignals(True)
+                checkbox.setChecked(visibility.get(sub_tab_id, True))
+                checkbox.blockSignals(False)
+
         # Load feature flags
         flags = FeatureFlagsConfig.get_all_flags()
         for flag_id, checkbox in self.feature_flag_checkboxes.items():
@@ -348,6 +496,26 @@ class SettingsTab(QWidget):
             TabVisibilityConfig.get_visibility_settings())
 
         print(f"[SettingsTab] Signals emitted for {tab_name}")
+
+    def _on_sub_tab_visibility_clicked(self, parent_tab: str, sub_tab: str, checked: bool):
+        """Handle sub-tab checkbox clicked
+
+        Args:
+            parent_tab: Parent tab ID
+            sub_tab: Sub-tab ID
+            checked: True if checkbox is now checked, False otherwise
+        """
+        print(
+            f"[SettingsTab] Sub-tab visibility clicked: {parent_tab}.{sub_tab} -> {checked}")
+
+        # Update cache (instant, thread-safe)
+        SubTabVisibilityConfig.set_sub_tab_visibility(
+            parent_tab, sub_tab, checked)
+
+        # Emit signal for UI update
+        self.sub_tab_visibility_changed.emit(parent_tab, sub_tab, checked)
+
+        print(f"[SettingsTab] Signals emitted for {parent_tab}.{sub_tab}")
 
     def _on_feature_flag_clicked(self, flag_id: str, checked: bool):
         """Handle feature flag checkbox clicked
