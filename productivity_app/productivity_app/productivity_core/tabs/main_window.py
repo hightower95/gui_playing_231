@@ -270,6 +270,8 @@ class MainWindow(QMainWindow):
         """
         from ..document_scanner.document_scanner_tab import DocumentScannerModuleView
         from ..connector.connector_tab import ConnectorModuleView
+        from ..epd.epd_tab import EpdModuleView
+        from ..devops.devops_tab import DevOpsModuleView
         from ..tabs.settings_tab import SubTabVisibilityConfig
 
         print(
@@ -280,12 +282,24 @@ class MainWindow(QMainWindow):
             visibility = SubTabVisibilityConfig.get_all_sub_tab_visibility(
                 DocumentScannerModuleView.MODULE_ID)
             self.document_scanner.sub_tab_visibility_updated(visibility)
-        
+
         elif parent_tab == ConnectorModuleView.MODULE_ID and hasattr(self, 'connectors'):
             # Get current visibility state for all sub-tabs
             visibility = SubTabVisibilityConfig.get_all_sub_tab_visibility(
                 ConnectorModuleView.MODULE_ID)
             self.connectors.sub_tab_visibility_updated(visibility)
+
+        elif parent_tab == EpdModuleView.MODULE_ID and hasattr(self, 'epd'):
+            # Get current visibility state for all sub-tabs
+            visibility = SubTabVisibilityConfig.get_all_sub_tab_visibility(
+                EpdModuleView.MODULE_ID)
+            self.epd.sub_tab_visibility_updated(visibility)
+
+        elif parent_tab == DevOpsModuleView.MODULE_ID and hasattr(self, 'devops'):
+            # Get current visibility state for all sub-tabs
+            visibility = SubTabVisibilityConfig.get_all_sub_tab_visibility(
+                DevOpsModuleView.MODULE_ID)
+            self.devops.sub_tab_visibility_updated(visibility)
 
     def _show_tab(self, tab_name: str):
         """

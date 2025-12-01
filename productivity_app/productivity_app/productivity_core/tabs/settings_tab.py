@@ -3,6 +3,8 @@ Settings Tab - Application configuration and tab visibility controls
 """
 from ..document_scanner.document_scanner_tab import DocumentScannerModuleView
 from ..connector.connector_tab import ConnectorModuleView
+from ..epd.epd_tab import EpdModuleView
+from ..devops.devops_tab import DevOpsModuleView
 from typing import Dict
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QFormLayout,
@@ -69,6 +71,16 @@ SUB_TAB_VISIBILITY_CONFIG = {
             'label': 'Lookup', 'default': True},
         {'id': ConnectorModuleView.SUB_TAB_CHECK_MULTIPLE,
             'label': 'Check Multiple', 'default': True},
+    ],
+    EpdModuleView.MODULE_ID: [
+        {'id': EpdModuleView.SUB_TAB_SEARCH,
+            'label': 'Search', 'default': True},
+        {'id': EpdModuleView.SUB_TAB_IDENTIFY_BEST,
+            'label': 'Identify Best', 'default': True},
+    ],
+    DevOpsModuleView.MODULE_ID: [
+        {'id': DevOpsModuleView.SUB_TAB_QUERY_VIEWER,
+            'label': 'Query Viewer', 'default': True},
     ],
     # Add more modules with sub-tabs as needed
 }

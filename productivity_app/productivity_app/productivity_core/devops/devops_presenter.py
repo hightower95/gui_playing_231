@@ -17,3 +17,11 @@ class DevOpsPresenter(QObject):
     def start_loading(self):
         """Initialize the presenter - called during lazy tab loading"""
         self.view.start_loading()
+
+    def sub_tab_visibility_updated(self, sub_tab_names: dict):
+        """Update sub-tab visibility
+        
+        Args:
+            sub_tab_names: Dictionary mapping sub-tab IDs to visibility state
+        """
+        self.view.sub_tab_visibility_updated(sub_tab_names)

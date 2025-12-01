@@ -29,7 +29,7 @@ class ConnectorsPresenter(BasePresenter):
 
     def sub_tab_visibility_updated(self, sub_tab_names: dict):
         """Update sub-tab visibility
-        
+
         Args:
             sub_tab_names: Dictionary mapping sub-tab IDs to visibility state
         """
