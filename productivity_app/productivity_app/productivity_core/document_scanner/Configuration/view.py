@@ -603,7 +603,7 @@ class AddDocumentDialog(QDialog):
                 QMessageBox.warning(
                     self, "Error", "Please select a document name")
                 return
-            
+
             self.config['cached_metadata'] = {
                 'document_name': document_name,
                 'version': self.version_combo.currentText(),
@@ -620,7 +620,8 @@ class ConfigurationView(BaseTabView):
     remove_document_requested = Signal(int)  # row index
     edit_document_requested = Signal(int, dict)  # row index, config
     export_config_requested = Signal()  # request to export configuration
-    import_config_requested = Signal(str)  # request to import configuration (file path)
+    # request to import configuration (file path)
+    import_config_requested = Signal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)

@@ -104,7 +104,8 @@ class ConfigurationPresenter(QObject):
 
             # Validate the import data structure
             if not isinstance(import_data, dict):
-                raise ValueError("Configuration file must contain a JSON object")
+                raise ValueError(
+                    "Configuration file must contain a JSON object")
 
             # Check for expected fields
             documents = import_data.get('documents', [])
@@ -140,11 +141,12 @@ class ConfigurationPresenter(QObject):
             for doc in documents:
                 try:
                     # Validate required fields
-                    required_fields = ['file_path', 'file_name', 'header_row', 
+                    required_fields = ['file_path', 'file_name', 'header_row',
                                        'search_columns', 'return_columns']
                     for field in required_fields:
                         if field not in doc:
-                            raise ValueError(f"Missing required field: {field}")
+                            raise ValueError(
+                                f"Missing required field: {field}")
 
                     # Add the document
                     self.model.add_document(doc)
@@ -153,16 +155,19 @@ class ConfigurationPresenter(QObject):
 
                 except Exception as e:
                     failed_count += 1
-                    failed_docs.append(f"{doc.get('file_name', 'Unknown')}: {str(e)}")
-                    print(f"✗ Failed to import: {doc.get('file_name', 'Unknown')} - {e}")
+                    failed_docs.append(
+                        f"{doc.get('file_name', 'Unknown')}: {str(e)}")
+                    print(
+                        f"✗ Failed to import: {doc.get('file_name', 'Unknown')} - {e}")
 
             # Show results
             result_msg = f"Import completed!\n\n" \
-                         f"Successfully imported: {imported_count}\n" \
-                         f"Failed: {failed_count}"
+                f"Successfully imported: {imported_count}\n" \
+                f"Failed: {failed_count}"
 
             if failed_docs:
-                result_msg += f"\n\nFailed documents:\n" + "\n".join(failed_docs[:5])
+                result_msg += f"\n\nFailed documents:\n" + \
+                    "\n".join(failed_docs[:5])
                 if len(failed_docs) > 5:
                     result_msg += f"\n... and {len(failed_docs) - 5} more"
 
@@ -172,7 +177,8 @@ class ConfigurationPresenter(QObject):
                 result_msg
             )
 
-            print(f"✓ Configuration imported: {imported_count} document(s) added")
+            print(
+                f"✓ Configuration imported: {imported_count} document(s) added")
 
         except json.JSONDecodeError as e:
             QMessageBox.critical(
