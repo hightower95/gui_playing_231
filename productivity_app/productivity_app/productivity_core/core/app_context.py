@@ -39,7 +39,11 @@ class AppContext:
         # Example:
         # from ..core.config_manager import ConfigManager
         # self.register('config', ConfigManager())
-        pass
+
+        # Register global managers
+        from .feature_flags_manager import FeatureFlagsManager
+
+        self.register('feature_flags', FeatureFlagsManager())
 
     def register(self, name: str, service: Any) -> 'AppContext':
         """Register a service with the context

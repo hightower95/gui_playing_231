@@ -15,7 +15,7 @@ class EpdModuleView(QWidget):
     MODULE_ID = 'epd'
     SUB_TAB_SEARCH = 'search'
     SUB_TAB_IDENTIFY_BEST = 'identify_best'
-    
+
     SUB_TAB_ORDER = [SUB_TAB_SEARCH, SUB_TAB_IDENTIFY_BEST]
     SUB_TAB_LABELS = {
         SUB_TAB_SEARCH: 'Search',
@@ -91,7 +91,7 @@ class EpdModuleView(QWidget):
 
     def sub_tab_visibility_updated(self, sub_tab_names: dict):
         """Update sub-tab visibility and reload tabs
-        
+
         Args:
             sub_tab_names: Dictionary mapping sub-tab IDs to visibility state
         """

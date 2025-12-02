@@ -13,7 +13,7 @@ class DevOpsModuleView(QWidget):
     # ========================================================================
     MODULE_ID = 'devops'
     SUB_TAB_QUERY_VIEWER = 'query_viewer'
-    
+
     SUB_TAB_ORDER = [SUB_TAB_QUERY_VIEWER]
     SUB_TAB_LABELS = {
         SUB_TAB_QUERY_VIEWER: 'Query Viewer',
@@ -84,7 +84,7 @@ class DevOpsModuleView(QWidget):
 
     def sub_tab_visibility_updated(self, sub_tab_names: dict):
         """Update sub-tab visibility and reload tabs
-        
+
         Args:
             sub_tab_names: Dictionary mapping sub-tab IDs to visibility state
         """

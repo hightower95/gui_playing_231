@@ -13,6 +13,10 @@ import sys
 import os
 from pathlib import Path
 
+# Global application context - accessible as app instance
+# Usage: from productivity_app import app; app.feature_flags.get(...)
+app = None
+
 # Setup module path for productivity_core
 
 
@@ -110,30 +114,32 @@ def main(*args, app_name=None, **kwargs):
         app_name: Optional application name for config directory (e.g., 'productivity_app_dev').
                  If provided, this will override the default and create a separate config directory.
     """
+    global app
+
     # Set custom app_name if provided (must be before ConfigManager.initialize)
     if app_name:
         set_app_name(app_name)
 
-    app = QApplication(sys.argv)
+    qt_app = QApplication(sys.argv)
 
     # Initialize configuration manager (creates .tool_config directory)
     ConfigManager.initialize()
 
     # Initialize consistent theming BEFORE any widgets are created
     theme_mode = APP_SETTINGS.get("theme_mode", "dark")
-    ThemeManager.initialize_theme(app, theme_mode=theme_mode)
+    ThemeManager.initialize_theme(qt_app, theme_mode=theme_mode)
 
     # Initialize application context
-    context = AppContext()
+    app = AppContext()
 
     # Create and show main window
-    window = MainWindow(context)
+    window = MainWindow(app)
     window.show()
 
     send_message_to_splash("close")
 
     # Start event loop
-    sys.exit(app.exec())
+    sys.exit(qt_app.exec())
 
 
 if __name__ == "__main__":
