@@ -319,13 +319,17 @@ class SettingsTab(QWidget):
     # Emits tuple: (parent_tab: str, sub_tab: str, visible: bool)
     sub_tab_visibility_changed = Signal(str, str, bool)
 
-    def __init__(self, parent=None):
+    def __init__(self, context=None, parent=None):
         super().__init__(parent)
+        self.context = context
+        self.feature_flags = context.get('feature_flags') if context else None
 
         # Store checkboxes dynamically
         self.tab_checkboxes: Dict[str, QCheckBox] = {}
         # parent_tab -> {sub_tab_id -> checkbox}
         self.sub_tab_checkboxes: Dict[str, Dict[str, QCheckBox]] = {}
+        # module_id -> {flag_id -> checkbox}
+        self.feature_flag_checkboxes: Dict[str, Dict[str, QCheckBox]] = {}
 
         self._setup_ui()
         self._load_settings()
@@ -432,26 +436,66 @@ class SettingsTab(QWidget):
         # Create scrollable area for feature flags
         scroll_area = QScrollArea()
         scroll_area.setWidgetResizable(True)
-        scroll_area.setMaximumHeight(200)  # Limit height to make it scrollable
+        scroll_area.setMaximumHeight(300)  # Limit height to make it scrollable
 
         scroll_widget = QWidget()
-        scroll_layout = QFormLayout(scroll_widget)
+        scroll_layout = QVBoxLayout(scroll_widget)
         scroll_layout.setSpacing(8)
+        scroll_layout.setContentsMargins(0, 0, 0, 0)
 
-        # Store checkboxes for feature flags
-        self.feature_flag_checkboxes = {}
+        # If we have feature flags manager, use it
+        if self.feature_flags:
+            # Group flags by module
+            all_flags = self.feature_flags.get_all_flags()
+            
+            for module_id, module_flags in sorted(all_flags.items()):
+                # Skip empty modules
+                if not module_flags:
+                    continue
+                
+                # Module header
+                module_label = StandardLabel(f"{module_id.replace('_', ' ').title()}", 
+                                           style=TextStyle.SECTION)
+                scroll_layout.addWidget(module_label)
+                
+                # Module flags
+                self.feature_flag_checkboxes[module_id] = {}
+                
+                for flag_id, is_enabled in module_flags.items():
+                    # Get metadata
+                    metadata = self.feature_flags.get_flag_metadata(module_id, flag_id)
+                    if metadata:
+                        name, description, default = metadata
+                        
+                        checkbox = QCheckBox(name)
+                        checkbox.setToolTip(description)
+                        checkbox.clicked.connect(
+                            lambda checked, mid=module_id, fid=flag_id: self._on_feature_flag_clicked(
+                                mid, fid, checked)
+                        )
+                        self.feature_flag_checkboxes[module_id][flag_id] = checkbox
+                        
+                        # Add with indent
+                        flag_layout = QHBoxLayout()
+                        flag_layout.addSpacing(20)
+                        flag_layout.addWidget(checkbox)
+                        flag_layout.addStretch()
+                        scroll_layout.addLayout(flag_layout)
+        else:
+            # Fallback to old config if no context
+            if 'legacy' not in self.feature_flag_checkboxes:
+                self.feature_flag_checkboxes['legacy'] = {}
+            for flag_id, (name, description, default) in FeatureFlagsConfig.FEATURE_FLAGS.items():
+                checkbox = QCheckBox(name)
+                checkbox.setToolTip(description)
+                checkbox.clicked.connect(
+                    lambda checked, fid=flag_id: self._on_feature_flag_clicked(
+                        'legacy', fid, checked)
+                )
+                self.feature_flag_checkboxes['legacy'][flag_id] = checkbox
+                scroll_layout.addWidget(checkbox)
 
-        # Create checkbox for each feature flag
-        for flag_id, (name, description, default) in FeatureFlagsConfig.FEATURE_FLAGS.items():
-            checkbox = QCheckBox(name)
-            checkbox.setToolTip(description)
-            checkbox.clicked.connect(
-                lambda checked, fid=flag_id: self._on_feature_flag_clicked(
-                    fid, checked)
-            )
-            self.feature_flag_checkboxes[flag_id] = checkbox
-            scroll_layout.addRow("", checkbox)
-
+        scroll_layout.addStretch()
         scroll_area.setWidget(scroll_widget)
         flags_layout.addWidget(scroll_area)
 
@@ -491,9 +535,20 @@ class SettingsTab(QWidget):
                 checkbox.blockSignals(False)
 
         # Load feature flags
-        flags = FeatureFlagsConfig.get_all_flags()
-        for flag_id, checkbox in self.feature_flag_checkboxes.items():
-            checkbox.blockSignals(True)
+        if self.feature_flags:
+            for module_id, module_flags in self.feature_flag_checkboxes.items():
+                if module_id == 'legacy':
+                    continue
+                for flag_id, checkbox in module_flags.items():
+                    checkbox.blockSignals(True)
+                    is_enabled = self.feature_flags.get(module_id, flag_id)
+                    checkbox.setChecked(is_enabled)
+                    checkbox.blockSignals(False)
+        else:
+            # Legacy fallback
+            flags = FeatureFlagsConfig.get_all_flags()
+            for flag_id, checkbox in self.feature_flag_checkboxes.get('legacy', {}).items():
+                checkbox.blockSignals(True)
             checkbox.setChecked(flags.get(flag_id, False))
             checkbox.blockSignals(False)
 
@@ -536,22 +591,26 @@ class SettingsTab(QWidget):
 
         print(f"[SettingsTab] Signals emitted for {parent_tab}.{sub_tab}")
 
-    def _on_feature_flag_clicked(self, flag_id: str, checked: bool):
+    def _on_feature_flag_clicked(self, module_id: str, flag_id: str, checked: bool):
         """Handle feature flag checkbox clicked
 
         Args:
+            module_id: Module ID of the feature flag
             flag_id: ID of the feature flag
             checked: True if checkbox is now checked, False otherwise
         """
-        print(f"[SettingsTab] Feature flag clicked: {flag_id} -> {checked}")
+        print(f"[SettingsTab] Feature flag clicked: {module_id}.{flag_id} -> {checked}")
 
-        # Update cache (instant, thread-safe)
-        FeatureFlagsConfig.set_flag(flag_id, checked)
-
-        # Emit signal for UI update
-        self.feature_flag_changed.emit(flag_id, checked)
-
-        print(f"[SettingsTab] Feature flag signal emitted for {flag_id}")
+        if self.feature_flags:
+            # Update via FeatureFlagsManager
+            self.feature_flags.set(module_id, flag_id, checked)
+            print(f"[SettingsTab] Feature flag updated via manager for {module_id}.{flag_id}")
+        else:
+            # Legacy fallback
+            FeatureFlagsConfig.set_flag(flag_id, checked)
+            # Emit signal for UI update
+            self.feature_flag_changed.emit(flag_id, checked)
+            print(f"[SettingsTab] Feature flag signal emitted for {flag_id}")
 
     def _on_show_all(self):
         """Show all tabs"""

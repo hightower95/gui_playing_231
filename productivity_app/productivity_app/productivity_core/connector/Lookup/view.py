@@ -32,8 +32,10 @@ class LookupConnectorView(BaseTabView, TableContextMenuMixin):
     find_alternative_requested = Signal(str)  # part_code
     find_opposite_requested = Signal(str)  # part_code
 
-    def __init__(self, parent=None):
+    def __init__(self, context=None, parent=None):
         super().__init__(parent)
+        self.context = context
+        self.feature_flags = context.get('feature_flags') if context else None
         self.is_filter_expanded = False  # Hidden by default
         self.HEADER_HEIGHT_COLLAPSED = 140  # Height when only search box is visible
 
@@ -488,6 +490,16 @@ class LookupConnectorView(BaseTabView, TableContextMenuMixin):
 
         header_layout.addLayout(advanced_search_row)
 
+        # Subscribe to feature flag changes if available
+        if self.feature_flags:
+            self.feature_flags.subscribe(
+                'connectors',
+                'advanced_search',
+                self._on_advanced_search_flag_changed
+            )
+            # Set initial state
+            self._update_advanced_search_availability()
+
         # === Collapsible Filter Section ===
         self.filter_container = QFrame()
         self.filter_container.setFrameShape(QFrame.StyledPanel)
@@ -833,6 +845,10 @@ class LookupConnectorView(BaseTabView, TableContextMenuMixin):
 
     def _toggle_filters(self):
         """Toggle filter section visibility"""
+        # Check if advanced search is enabled
+        if self.feature_flags and not self.feature_flags.get('connectors', 'advanced_search'):
+            return  # Don't toggle if feature is disabled
+
         self.is_filter_expanded = not self.is_filter_expanded
         self.filter_container.setVisible(self.is_filter_expanded)
 
@@ -845,6 +861,53 @@ class LookupConnectorView(BaseTabView, TableContextMenuMixin):
             self.advanced_search_label.setText("▶ Advanced Search")
             self.header_frame.setFixedHeight(
                 self.HEADER_HEIGHT_COLLAPSED)  # Height for search box only
+
+    def _update_advanced_search_availability(self):
+        """Update advanced search UI based on feature flag"""
+        if not self.feature_flags:
+            return
+
+        enabled = self.feature_flags.get('connectors', 'advanced_search')
+
+        if enabled:
+            # Feature is enabled
+            self.advanced_search_label.setText("▶ Advanced Search")
+            self.advanced_search_label.setToolTip("Click to show advanced search filters")
+            self.advanced_search_label.setStyleSheet(f"""
+                QLabel {{
+                    color: {UI_COLORS['section_highlight_primary']};
+                    font-weight: bold;
+                    font-size: 10pt;
+                }}
+                QLabel:hover {{
+                    color: {UI_COLORS['filter_pill_hover']};
+                    text-decoration: underline;
+                }}
+            """)
+            self.advanced_search_label.setCursor(Qt.PointingHandCursor)
+        else:
+            # Feature is disabled
+            self.advanced_search_label.setText("▶ Advanced Search (disabled)")
+            self.advanced_search_label.setToolTip("Advanced search is not available")
+            self.advanced_search_label.setStyleSheet(f"""
+                QLabel {{
+                    color: #888888;
+                    font-weight: bold;
+                    font-size: 10pt;
+                }}
+            """)
+            self.advanced_search_label.setCursor(Qt.ArrowCursor)
+            
+            # Collapse filter section if open
+            if self.is_filter_expanded:
+                self.is_filter_expanded = False
+                self.filter_container.setVisible(False)
+                self.advanced_search_label.setText("▶ Advanced Search (disabled)")
+                self.header_frame.setFixedHeight(self.HEADER_HEIGHT_COLLAPSED)
+
+    def _on_advanced_search_flag_changed(self, enabled: bool):
+        """Called when advanced search feature flag changes"""
+        self._update_advanced_search_availability()
 
     def _on_search_clicked(self):
         """Emit search signal with selected filters and close modification window"""

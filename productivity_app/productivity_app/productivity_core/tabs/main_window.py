@@ -104,7 +104,7 @@ class MainWindow(QMainWindow):
 
         # Initialize Settings tab first (lightweight, always visible)
         print("[MainWindow] Initializing Settings tab...")
-        self.settings_tab = SettingsTab()
+        self.settings_tab = SettingsTab(context=self.context)
         self.settings_tab.tab_visibility_changed.connect(
             self._on_tab_visibility_changed)
         self.settings_tab.feature_flag_changed.connect(

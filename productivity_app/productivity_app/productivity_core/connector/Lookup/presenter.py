@@ -136,7 +136,7 @@ class LookupConnectorPresenter(QObject):
         super().__init__()
         self.context = context
         self.model = connector_model
-        self.view = LookupConnectorView()
+        self.view = LookupConnectorView(context=context)
 
         # Data storage
         self.df = None
