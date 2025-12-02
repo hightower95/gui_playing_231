@@ -27,6 +27,7 @@ class AppContext:
     def __init__(self):
         self._services: Dict[str, Any] = {}
         self._state: Dict[str, Any] = {}
+        self._context_providers: Dict[str, Any] = {}
         self._initialize_services()
 
     def _initialize_services(self):
@@ -164,3 +165,45 @@ class AppContext:
             Dictionary of all state
         """
         return self._state.copy()
+
+    def register_context_provider(self, name: str, provider: Any) -> 'AppContext':
+        """Register or update a context provider
+
+        Supports two-phase initialization:
+        - Phase 1: Register default/stub provider immediately
+        - Phase 2: Update with actual provider when async data loads
+
+        Args:
+            name: Provider name/key
+            provider: Provider instance (can replace existing provider)
+
+        Returns:
+            Self for method chaining
+        """
+        self._context_providers[name] = provider
+        if provider:
+            print(f"[AppContext] ✓ Context provider registered: {name}")
+        return self
+
+    def get_context_provider(self, name: str, default: Any = None) -> Any:
+        """Get a registered context provider
+
+        Args:
+            name: Provider name/key
+            default: Default value if provider not found
+
+        Returns:
+            Provider instance or default if not found
+        """
+        return self._context_providers.get(name, default)
+
+    def has_context_provider(self, name: str) -> bool:
+        """Check if a context provider is registered
+
+        Args:
+            name: Provider name/key
+
+        Returns:
+            True if provider exists, False otherwise
+        """
+        return name in self._context_providers

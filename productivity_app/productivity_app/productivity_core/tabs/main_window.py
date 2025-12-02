@@ -216,12 +216,9 @@ class MainWindow(QMainWindow):
         print("[MainWindow] ✓ All tabs loaded successfully")
         self._loading_complete = True
 
-        # Register context providers now that all tabs are loaded
-        if hasattr(self, 'connectors') and hasattr(self, 'document_scanner'):
-            connector_context = ConnectorContextProvider(self.connectors.model)
-            self.document_scanner.search_presenter.register_context_provider(
-                connector_context)
-            print("[MainWindow] ✓ Context providers registered")
+        # Setup context providers (Phase 1: register defaults/stubs)
+        from ..core.setup_context_providers import setup_context_providers
+        setup_context_providers(self.context, self.tab_registry)
 
         # Connect sub-tab visibility changes
         self.settings_tab.sub_tab_visibility_changed.connect(
