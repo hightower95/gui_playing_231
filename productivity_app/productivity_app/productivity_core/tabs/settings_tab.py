@@ -5,7 +5,7 @@ from ..document_scanner.document_scanner_tab import DocumentScannerModuleView
 from ..connector.connector_tab import ConnectorModuleView
 from ..epd.epd_tab import EpdModuleView
 from ..devops.devops_tab import DevOpsModuleView
-from typing import Dict
+from typing import Dict, Optional
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QFormLayout,
     QMessageBox, QCheckBox, QScrollArea
@@ -17,6 +17,7 @@ from ..ui.components import (
     StandardGroupBox
 )
 from ..core.config_manager import AppSettingsConfig
+from ..core.app_context import AppContext
 
 
 # ============================================================================
@@ -319,7 +320,7 @@ class SettingsTab(QWidget):
     # Emits tuple: (parent_tab: str, sub_tab: str, visible: bool)
     sub_tab_visibility_changed = Signal(str, str, bool)
 
-    def __init__(self, context=None, parent=None):
+    def __init__(self, context: Optional[AppContext] = None, parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.context = context
         self.feature_flags = context.get('feature_flags') if context else None
@@ -447,26 +448,27 @@ class SettingsTab(QWidget):
         if self.feature_flags:
             # Group flags by module
             all_flags = self.feature_flags.get_all_flags()
-            
+
             for module_id, module_flags in sorted(all_flags.items()):
                 # Skip empty modules
                 if not module_flags:
                     continue
-                
+
                 # Module header
-                module_label = StandardLabel(f"{module_id.replace('_', ' ').title()}", 
-                                           style=TextStyle.SECTION)
+                module_label = StandardLabel(f"{module_id.replace('_', ' ').title()}",
+                                             style=TextStyle.SECTION)
                 scroll_layout.addWidget(module_label)
-                
+
                 # Module flags
                 self.feature_flag_checkboxes[module_id] = {}
-                
+
                 for flag_id, is_enabled in module_flags.items():
                     # Get metadata
-                    metadata = self.feature_flags.get_flag_metadata(module_id, flag_id)
+                    metadata = self.feature_flags.get_flag_metadata(
+                        module_id, flag_id)
                     if metadata:
                         name, description, default = metadata
-                        
+
                         checkbox = QCheckBox(name)
                         checkbox.setToolTip(description)
                         checkbox.clicked.connect(
@@ -474,7 +476,7 @@ class SettingsTab(QWidget):
                                 mid, fid, checked)
                         )
                         self.feature_flag_checkboxes[module_id][flag_id] = checkbox
-                        
+
                         # Add with indent
                         flag_layout = QHBoxLayout()
                         flag_layout.addSpacing(20)
@@ -599,12 +601,14 @@ class SettingsTab(QWidget):
             flag_id: ID of the feature flag
             checked: True if checkbox is now checked, False otherwise
         """
-        print(f"[SettingsTab] Feature flag clicked: {module_id}.{flag_id} -> {checked}")
+        print(
+            f"[SettingsTab] Feature flag clicked: {module_id}.{flag_id} -> {checked}")
 
         if self.feature_flags:
             # Update via FeatureFlagsManager
             self.feature_flags.set(module_id, flag_id, checked)
-            print(f"[SettingsTab] Feature flag updated via manager for {module_id}.{flag_id}")
+            print(
+                f"[SettingsTab] Feature flag updated via manager for {module_id}.{flag_id}")
         else:
             # Legacy fallback
             FeatureFlagsConfig.set_flag(flag_id, checked)

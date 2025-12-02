@@ -6,10 +6,12 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushB
                                QComboBox, QLineEdit, QMenu, QListWidgetItem)
 from PySide6.QtCore import Signal, Qt, QSize
 from PySide6.QtGui import QCursor, QPixmap
+from typing import Optional
 from ...ui.base_sub_tab_view import BaseTabView
 from ...ui.components.label import StandardLabel, TextStyle
 from ...ui.table_context_menu_mixin import TableContextMenuMixin
 from ...core.config import UI_COLORS, UI_STYLES
+from ...core.app_context import AppContext
 from .config import (
     FAMILIES, SHELL_TYPES, SHELL_SIZES, INSERT_ARRANGEMENTS,
     SOCKET_TYPES, KEYINGS, MATERIALS
@@ -32,7 +34,7 @@ class LookupConnectorView(BaseTabView, TableContextMenuMixin):
     find_alternative_requested = Signal(str)  # part_code
     find_opposite_requested = Signal(str)  # part_code
 
-    def __init__(self, context=None, parent=None):
+    def __init__(self, context: Optional[AppContext] = None, parent: Optional[QWidget] = None):
         super().__init__(parent)
         self.context = context
         self.feature_flags = context.get('feature_flags') if context else None
@@ -872,7 +874,8 @@ class LookupConnectorView(BaseTabView, TableContextMenuMixin):
         if enabled:
             # Feature is enabled
             self.advanced_search_label.setText("▶ Advanced Search")
-            self.advanced_search_label.setToolTip("Click to show advanced search filters")
+            self.advanced_search_label.setToolTip(
+                "Click to show advanced search filters")
             self.advanced_search_label.setStyleSheet(f"""
                 QLabel {{
                     color: {UI_COLORS['section_highlight_primary']};
@@ -888,7 +891,8 @@ class LookupConnectorView(BaseTabView, TableContextMenuMixin):
         else:
             # Feature is disabled
             self.advanced_search_label.setText("▶ Advanced Search (disabled)")
-            self.advanced_search_label.setToolTip("Advanced search is not available")
+            self.advanced_search_label.setToolTip(
+                "Advanced search is not available")
             self.advanced_search_label.setStyleSheet(f"""
                 QLabel {{
                     color: #888888;
@@ -897,12 +901,13 @@ class LookupConnectorView(BaseTabView, TableContextMenuMixin):
                 }}
             """)
             self.advanced_search_label.setCursor(Qt.ArrowCursor)
-            
+
             # Collapse filter section if open
             if self.is_filter_expanded:
                 self.is_filter_expanded = False
                 self.filter_container.setVisible(False)
-                self.advanced_search_label.setText("▶ Advanced Search (disabled)")
+                self.advanced_search_label.setText(
+                    "▶ Advanced Search (disabled)")
                 self.header_frame.setFixedHeight(self.HEADER_HEIGHT_COLLAPSED)
 
     def _on_advanced_search_flag_changed(self, enabled: bool):
