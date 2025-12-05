@@ -2,55 +2,39 @@
 Connector Model - Data management for connector lookups with threading support
 """
 from typing import Dict, List, Any, Optional
-from PySide6.QtCore import QObject, Signal, QThread, QMutex, QMutexLocker
+from PySide6.QtCore import Signal, QThread, QMutex, QMutexLocker
 from ..core.base_model import BaseModel
+from ..core.base_data_worker import BaseDataWorker
 import time
 
 
-class ConnectorDataWorker(QObject):
+class ConnectorDataWorker(BaseDataWorker):
     """Worker class for loading connector data in a separate thread"""
-
-    # Signals to communicate with main thread
-    progress = Signal(int, str)  # progress_percent, status_message
-    finished = Signal(object)  # loaded data
-    error = Signal(str)  # error_message
-
-    def __init__(self):
-        super().__init__()
-        self._is_cancelled = False
-
-    def cancel(self):
-        """Cancel the loading operation"""
-        self._is_cancelled = True
 
     def run(self):
         """Execute the data loading in background thread"""
         try:
             # Step 1: Initialize connection
-            if self._is_cancelled:
+            if not self.emit_progress(20, "Connecting to connector database..."):
                 return
-            self.progress.emit(20, "Connecting to connector database...")
             time.sleep(0.3)
 
             # Step 2: Query data
-            if self._is_cancelled:
+            if not self.emit_progress(50, "Loading connector configurations..."):
                 return
-            self.progress.emit(50, "Loading connector configurations...")
             time.sleep(0.4)
 
             # Step 3: Process data
-            if self._is_cancelled:
+            if not self.emit_progress(75, "Processing connector data..."):
                 return
-            self.progress.emit(75, "Processing connector data...")
 
             # Load the actual data
             data = self._load_connector_data()
             time.sleep(0.2)
 
             # Complete
-            if self._is_cancelled:
+            if not self.emit_progress(100, "Connector data loaded successfully"):
                 return
-            self.progress.emit(100, "Connector data loaded successfully")
             self.finished.emit(data)
 
         except Exception as e:

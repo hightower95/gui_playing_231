@@ -16,26 +16,16 @@ from .e3_config import (
     E3_PROGRESS_UPDATE_FREQUENCY
 )
 from .e3_service import get_e3_service
+from ..core.base_data_worker import BaseDataWorker
 
 
-class E3DataWorker(QObject):
+class E3DataWorker(BaseDataWorker):
     """Worker class for loading E3 data in a separate thread"""
-
-    # Signals
-    progress = Signal(int, str)  # progress_percent, status_message
-    # loaded data (dict with projects, connectors, etc.)
-    finished = Signal(object)
-    error = Signal(str)  # error_message
 
     def __init__(self, projects: List[str], operation: str = 'list_projects'):
         super().__init__()
-        self._is_cancelled = False
         self.projects = projects
         self.operation = operation
-
-    def cancel(self):
-        """Cancel the loading operation"""
-        self._is_cancelled = True
 
     def run(self):
         """Execute the data loading in background thread"""
@@ -52,16 +42,12 @@ class E3DataWorker(QObject):
 
     def _list_available_projects(self):
         """List available E3 projects"""
-        if self._is_cancelled:
+        if not self.emit_progress(20, "Connecting to E3.series..."):
             return
-
-        self.progress.emit(20, "Connecting to E3.series...")
         time.sleep(0.3)
 
-        if self._is_cancelled:
+        if not self.emit_progress(50, "Querying available projects..."):
             return
-
-        self.progress.emit(50, "Querying available projects...")
         time.sleep(0.4)
 
         # TODO: Implement actual E3 COM connection
@@ -74,32 +60,26 @@ class E3DataWorker(QObject):
             "Prototype_Assembly_v2"
         ]
 
-        if self._is_cancelled:
+        if not self.emit_progress(100, "Projects loaded"):
             return
-
-        self.progress.emit(100, "Projects loaded")
         self.finished.emit({'projects': projects})
 
     def _load_connector_data(self):
         """Load connector data from E3 projects"""
-        if self._is_cancelled:
+        if not self.emit_progress(10, "Connecting to E3.series..."):
             return
-
-        self.progress.emit(10, "Connecting to E3.series...")
         time.sleep(0.3)
-
-        if self._is_cancelled:
-            return
 
         total_projects = len(self.projects)
         connectors = []
 
         for idx, project in enumerate(self.projects):
-            if self._is_cancelled:
+            if self.is_cancelled:
                 return
 
             progress = 10 + (idx / total_projects) * 70
-            self.progress.emit(int(progress), f"Loading project: {project}...")
+            if not self.emit_progress(int(progress), f"Loading project: {project}..."):
+                return
             time.sleep(0.5)
 
             # TODO: Implement actual E3 connector extraction
@@ -107,17 +87,12 @@ class E3DataWorker(QObject):
             mock_connectors = self._get_mock_connectors(project)
             connectors.extend(mock_connectors)
 
-        if self._is_cancelled:
+        if not self.emit_progress(90, "Processing connector data..."):
             return
-
-        self.progress.emit(90, "Processing connector data...")
         time.sleep(0.2)
 
-        if self._is_cancelled:
+        if not self.emit_progress(100, f"Loaded {len(connectors)} connectors from {total_projects} project(s)"):
             return
-
-        self.progress.emit(
-            100, f"Loaded {len(connectors)} connectors from {total_projects} project(s)")
         self.finished.emit({
             'connectors': connectors,
             'projects': self.projects,

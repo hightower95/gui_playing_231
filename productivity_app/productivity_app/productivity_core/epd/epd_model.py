@@ -2,56 +2,40 @@
 EPD Model - Data management for EPD analysis with proper threading support
 """
 from typing import Dict, List, Any, Optional
-from PySide6.QtCore import QObject, Signal, QThread, QMutex, QMutexLocker
+from PySide6.QtCore import Signal, QThread, QMutex, QMutexLocker
 from ..core.base_model import BaseModel
+from ..core.base_data_worker import BaseDataWorker
 import pandas as pd
 import time
 
 
-class EpdDataWorker(QObject):
+class EpdDataWorker(BaseDataWorker):
     """Worker class for loading EPD data in a separate thread"""
-
-    # Signals to communicate with main thread
-    progress = Signal(int, str)  # progress_percent, status_message
-    finished = Signal(object)  # loaded dataframe
-    error = Signal(str)  # error_message
-
-    def __init__(self):
-        super().__init__()
-        self._is_cancelled = False
-
-    def cancel(self):
-        """Cancel the loading operation"""
-        self._is_cancelled = True
 
     def run(self):
         """Execute the data loading in background thread"""
         try:
             # Step 1: Initialize connection
-            if self._is_cancelled:
+            if not self.emit_progress(20, "Connecting to EPD database..."):
                 return
-            self.progress.emit(20, "Connecting to EPD database...")
             time.sleep(0.3)  # Simulate network delay
 
             # Step 2: Query data
-            if self._is_cancelled:
+            if not self.emit_progress(50, "Querying EPD records..."):
                 return
-            self.progress.emit(50, "Querying EPD records...")
             time.sleep(0.4)  # Simulate query time
 
             # Step 3: Process data
-            if self._is_cancelled:
+            if not self.emit_progress(75, "Processing EPD data..."):
                 return
-            self.progress.emit(75, "Processing EPD data...")
 
             # Load the actual data
             data = self._load_sample_data()
             time.sleep(0.2)  # Simulate processing time
 
             # Complete
-            if self._is_cancelled:
+            if not self.emit_progress(100, "EPD data loaded successfully"):
                 return
-            self.progress.emit(100, "EPD data loaded successfully")
             self.finished.emit(data)
 
         except Exception as e:
