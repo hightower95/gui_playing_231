@@ -37,6 +37,8 @@ def _get_tab_visibility_config() -> List[Dict[str, any]]:
     Returns:
         List of dicts with id, label, tooltip, and default visibility
     """
+    # Import here to avoid circular dependency
+    # (tab_config imports SettingsTab, which imports visibility_persistence)
     from .tab_config import TAB_CONFIG, get_tab_title
 
     visibility_config = []
@@ -55,8 +57,17 @@ def _get_tab_visibility_config() -> List[Dict[str, any]]:
     return visibility_config
 
 
-# Dynamically generate configuration from tab_config.py
-TAB_VISIBILITY_CONFIG = _get_tab_visibility_config()
+# Lazy initialization to avoid circular import
+# Will be populated on first access via _ensure_tab_visibility_config()
+TAB_VISIBILITY_CONFIG = None
+
+
+def _ensure_tab_visibility_config():
+    """Ensure TAB_VISIBILITY_CONFIG is initialized (lazy loading)"""
+    global TAB_VISIBILITY_CONFIG
+    if TAB_VISIBILITY_CONFIG is None:
+        TAB_VISIBILITY_CONFIG = _get_tab_visibility_config()
+    return TAB_VISIBILITY_CONFIG
 
 
 # ============================================================================
@@ -119,7 +130,7 @@ class TabVisibilityPersistence:
 
         # Default all tabs to visible if not configured
         defaults = {config['id']: config['default']
-                    for config in TAB_VISIBILITY_CONFIG}
+                    for config in _ensure_tab_visibility_config()}
 
         # Merge with saved settings
         for tab_id, default_visible in defaults.items():

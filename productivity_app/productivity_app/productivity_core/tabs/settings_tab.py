@@ -1,7 +1,7 @@
 """
 Settings Tab - Application configuration and tab visibility controls
 """
-from typing import Dict, Optional
+from typing import Dict, Optional, Any
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QFormLayout,
     QMessageBox, QCheckBox, QScrollArea
@@ -18,7 +18,7 @@ from .visibility_persistence import (
     TabVisibilityPersistence,
     SubTabVisibilityConfig,
     FeatureFlagsConfig,
-    TAB_VISIBILITY_CONFIG,
+    _ensure_tab_visibility_config,
     SUB_TAB_VISIBILITY_CONFIG
 )
 from ..document_scanner.document_scanner_tab import DocumentScannerModuleView
@@ -29,6 +29,9 @@ from ..devops.devops_tab import DevOpsModuleView
 
 class SettingsTab(QWidget):
     """Settings tab for application configuration"""
+
+    TAB_TITLE = "⚙️ Settings"
+    MODULE_ID = 'settings'
 
     # Signal emitted when tab visibility changes
     # Emits tuple: (tab_name: str, visible: bool)
@@ -50,6 +53,7 @@ class SettingsTab(QWidget):
         self.services = services
         self.feature_flags = services.get(
             'feature_flags') if services else None
+        self.tab_registry = None  # Will be set after tabs are loaded
 
         # Store checkboxes dynamically
         self.tab_checkboxes: Dict[str, QCheckBox] = {}
@@ -60,6 +64,14 @@ class SettingsTab(QWidget):
 
         self._setup_ui()
         self._load_settings()
+
+    def set_tab_registry(self, tab_registry: Dict[str, Dict[str, Any]]):
+        """Set the tab registry for accessing other tabs
+
+        Args:
+            tab_registry: Dict mapping tab_id -> {'presenter': ..., 'view': ...}
+        """
+        self.tab_registry = tab_registry
 
     def _setup_ui(self):
         """Setup the UI"""
@@ -96,7 +108,7 @@ class SettingsTab(QWidget):
         form_layout = QFormLayout()
         form_layout.setSpacing(8)
 
-        for tab_config in TAB_VISIBILITY_CONFIG:
+        for tab_config in _ensure_tab_visibility_config():
             tab_id = tab_config['id']
             checkbox = QCheckBox(tab_config['label'])
             checkbox.setToolTip(tab_config['tooltip'])
@@ -289,15 +301,25 @@ class SettingsTab(QWidget):
         """
         print(f"[SettingsTab] Checkbox clicked: {tab_name} -> {checked}")
 
-        # Update cache (instant, thread-safe, no file I/O in test mode)
-        TabVisibilityPersistence.set_tab_visibility(tab_name, checked)
+        # Use TabVisibilityService to update both UI and persistence
+        tab_visibility_service = self.services.get(
+            'tab_visibility') if self.services else None
+        if tab_visibility_service:
+            if checked:
+                tab_visibility_service.set_tab_as_visible(
+                    tab_name, persist=True)
+            else:
+                tab_visibility_service.set_tab_as_hidden(
+                    tab_name, persist=True)
+        else:
+            # Fallback: Update persistence directly if service not available
+            TabVisibilityPersistence.set_tab_visibility(tab_name, checked)
 
-        # Emit signals for UI update
-        self.tab_visibility_changed.emit(tab_name, checked)
+        # Emit settings_changed for any listeners
         self.settings_changed.emit(
             TabVisibilityPersistence.get_visibility_settings())
 
-        print(f"[SettingsTab] Signals emitted for {tab_name}")
+        print(f"[SettingsTab] Tab visibility updated for {tab_name}")
 
     def _on_sub_tab_visibility_clicked(self, parent_tab: str, sub_tab: str, checked: bool):
         """Handle sub-tab checkbox clicked
@@ -310,14 +332,38 @@ class SettingsTab(QWidget):
         print(
             f"[SettingsTab] Sub-tab visibility clicked: {parent_tab}.{sub_tab} -> {checked}")
 
-        # Update cache (instant, thread-safe)
+        # Update persistence
         SubTabVisibilityConfig.set_sub_tab_visibility(
             parent_tab, sub_tab, checked)
 
-        # Emit signal for UI update
-        self.sub_tab_visibility_changed.emit(parent_tab, sub_tab, checked)
+        # Notify the parent tab's presenter directly
+        if self.tab_registry and parent_tab in self.tab_registry:
+            from ..document_scanner.document_scanner_tab import DocumentScannerModuleView
+            from ..connector.connector_tab import ConnectorModuleView
+            from ..epd.epd_tab import EpdModuleView
+            from ..devops.devops_tab import DevOpsModuleView
 
-        print(f"[SettingsTab] Signals emitted for {parent_tab}.{sub_tab}")
+            # Get all visibility for the parent tab
+            visibility = SubTabVisibilityConfig.get_all_sub_tab_visibility(
+                parent_tab)
+
+            # Get the presenter from tab_registry
+            presenter = self.tab_registry[parent_tab].get('presenter')
+
+            # Notify the appropriate presenter
+            if presenter and hasattr(presenter, 'sub_tab_visibility_updated'):
+                presenter.sub_tab_visibility_updated(visibility)
+                print(
+                    f"[SettingsTab] Notified {parent_tab} presenter of sub-tab visibility change")
+            else:
+                print(
+                    f"[SettingsTab] Warning: Could not notify {parent_tab} presenter")
+        else:
+            print(
+                f"[SettingsTab] Warning: tab_registry not set or parent_tab '{parent_tab}' not found")
+
+        print(
+            f"[SettingsTab] Sub-tab visibility updated for {parent_tab}.{sub_tab}")
 
     def _on_feature_flag_clicked(self, module_id: str, flag_id: str, checked: bool):
         """Handle feature flag checkbox clicked
@@ -383,7 +429,7 @@ class SettingsTab(QWidget):
         if reply == QMessageBox.Yes:
             # Reset to defaults from config
             defaults = {config['id']: config['default']
-                        for config in TAB_VISIBILITY_CONFIG}
+                        for config in _ensure_tab_visibility_config()}
             TabVisibilityPersistence.set_visibility_settings(defaults)
             self._load_settings()
 

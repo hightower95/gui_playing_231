@@ -27,6 +27,7 @@ from ..presenters.fault_presenter import FaultFindingPresenter
 from ..document_scanner import DocumentScannerModuleView
 from ..remote_docs import RemoteDocsPresenter
 from ..devops import DevOpsPresenter
+from .settings_tab import SettingsTab
 from enum import Enum
 
 
@@ -45,6 +46,7 @@ from enum import Enum
 
 class TabId(Enum):
     """Enum for all tab identifiers."""
+    SETTINGS = 'settings'
     CONNECTORS = 'connectors'
     EPD = 'epd'
     DOCUMENT_SCANNER = 'document_scanner'
@@ -54,6 +56,15 @@ class TabId(Enum):
 
 
 TAB_CONFIG: List[Dict[str, Any]] = [
+    {
+        'id': TabId.SETTINGS.value,
+        'presenter_class': SettingsTab,
+        'init_args': lambda services, deps: [services],
+        'delay_ms': 0,  # Load immediately
+        'view_from_presenter': False,  # This class IS the view
+        'visible': True,
+        'default_focus': False,
+    },
     {
         'id': TabId.CONNECTORS.value,
         'presenter_class': ConnectorsPresenter,

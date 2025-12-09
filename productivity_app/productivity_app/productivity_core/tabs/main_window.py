@@ -3,7 +3,6 @@ from PySide6.QtCore import QTimer
 from typing import Dict, List, Optional, Any
 from ..core.app_context import AppContext
 from ..core.config import get_app_name
-from .settings_tab import SettingsTab
 from .tab_config import (
     get_default_focus_tab,
     get_tab_order
@@ -35,15 +34,6 @@ class MainWindow(QMainWindow):
 
         # Convenience property for accessing tab registry
         self.tab_registry = self.tab_loader.get_tab_registry()
-
-        # Initialize Settings tab first (lightweight, always visible)
-        print("[MainWindow] Initializing Settings tab...")
-        self.settings_tab = SettingsTab(services=self.services)
-        self.settings_tab.tab_visibility_changed.connect(
-            self._on_tab_visibility_changed)
-        self.settings_tab.feature_flag_changed.connect(
-            self._on_feature_flag_changed)
-        self.tabs.addTab(self.settings_tab, "⚙️ Settings")
 
         # Start lazy loading tabs in the background
         print("[MainWindow] Window ready, starting lazy tab loading...")
@@ -96,14 +86,13 @@ class MainWindow(QMainWindow):
         from ..core.setup_context_providers import setup_context_providers
         setup_context_providers(self.services, self.tab_registry)
 
-        # Connect sub-tab visibility changes
-        self.settings_tab.sub_tab_visibility_changed.connect(
-            self._on_sub_tab_visibility_changed)
+        # Give Settings tab access to tab_registry so it can notify other tabs
+        if 'settings' in self.tab_registry:
+            settings_view = self.tab_registry['settings'].get('view')
+            if settings_view and hasattr(settings_view, 'set_tab_registry'):
+                settings_view.set_tab_registry(self.tab_registry)
 
         # Set default focus tab
-        self._set_default_focus()
-
-    def _set_default_focus(self):
         """Set focus to the default tab specified in configuration"""
         default_tab_id = get_default_focus_tab()
         if not default_tab_id:
@@ -118,23 +107,6 @@ class MainWindow(QMainWindow):
         tab_visibility_service = self.services.get('tab_visibility')
         if tab_visibility_service:
             tab_visibility_service.set_focus(default_tab_id)
-
-    def _on_tab_visibility_changed(self, tab_name: str, visible: bool):
-        """
-        Handle tab visibility change from Settings
-
-        Args:
-            tab_name: Name of tab (e.g., 'epd')
-            visible: True to show, False to hide
-        """
-        print(f"[MainWindow] Tab visibility changed - {tab_name} -> {visible}")
-
-        tab_visibility_service = self.services.get('tab_visibility')
-        if tab_visibility_service:
-            if visible:
-                tab_visibility_service.set_tab_as_visible(tab_name, persist=True)
-            else:
-                tab_visibility_service.set_tab_as_hidden(tab_name, persist=True)
 
     def _on_feature_flag_changed(self, flag_id: str, enabled: bool):
         """
@@ -153,44 +125,3 @@ class MainWindow(QMainWindow):
             else:
                 print(
                     f"[MainWindow] Remote docs not loaded yet, flag will apply when loaded")
-
-    def _on_sub_tab_visibility_changed(self, parent_tab: str, sub_tab: str, visible: bool):
-        """Handle sub-tab visibility changes from Settings
-
-        Args:
-            parent_tab: Parent tab ID (e.g., 'document_scanner')
-            sub_tab: Sub-tab ID (e.g., 'search')
-            visible: New visibility state
-        """
-        from ..document_scanner.document_scanner_tab import DocumentScannerModuleView
-        from ..connector.connector_tab import ConnectorModuleView
-        from ..epd.epd_tab import EpdModuleView
-        from ..devops.devops_tab import DevOpsModuleView
-        from .visibility_persistence import SubTabVisibilityConfig
-
-        print(
-            f"MainWindow: Sub-tab visibility changed - {parent_tab}.{sub_tab} -> {visible}")
-
-        if parent_tab == DocumentScannerModuleView.MODULE_ID and hasattr(self, 'document_scanner'):
-            # Get current visibility state for all sub-tabs
-            visibility = SubTabVisibilityConfig.get_all_sub_tab_visibility(
-                DocumentScannerModuleView.MODULE_ID)
-            self.document_scanner.sub_tab_visibility_updated(visibility)
-
-        elif parent_tab == ConnectorModuleView.MODULE_ID and hasattr(self, 'connectors'):
-            # Get current visibility state for all sub-tabs
-            visibility = SubTabVisibilityConfig.get_all_sub_tab_visibility(
-                ConnectorModuleView.MODULE_ID)
-            self.connectors.sub_tab_visibility_updated(visibility)
-
-        elif parent_tab == EpdModuleView.MODULE_ID and hasattr(self, 'epd'):
-            # Get current visibility state for all sub-tabs
-            visibility = SubTabVisibilityConfig.get_all_sub_tab_visibility(
-                EpdModuleView.MODULE_ID)
-            self.epd.sub_tab_visibility_updated(visibility)
-
-        elif parent_tab == DevOpsModuleView.MODULE_ID and hasattr(self, 'devops'):
-            # Get current visibility state for all sub-tabs
-            visibility = SubTabVisibilityConfig.get_all_sub_tab_visibility(
-                DevOpsModuleView.MODULE_ID)
-            self.devops.sub_tab_visibility_updated(visibility)

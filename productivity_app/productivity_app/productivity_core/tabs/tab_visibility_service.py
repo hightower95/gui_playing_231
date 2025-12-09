@@ -11,7 +11,7 @@ from typing import Optional, Dict, Any
 from PySide6.QtWidgets import QTabWidget
 from PySide6.QtCore import QObject, Signal
 from .tab_visibility_manager import TabVisibilityManager
-from .visibility_persistence import TabVisibilityPersistence, TAB_VISIBILITY_CONFIG
+from .visibility_persistence import TabVisibilityPersistence, _ensure_tab_visibility_config
 
 
 class TabVisibilityService(QObject):
@@ -215,7 +215,7 @@ class TabVisibilityService(QObject):
             True if successful, False otherwise
         """
         defaults = {config['id']: config['default']
-                    for config in TAB_VISIBILITY_CONFIG}
+                    for config in _ensure_tab_visibility_config()}
         return self.set_all_visibility_settings(defaults)
 
     @property
