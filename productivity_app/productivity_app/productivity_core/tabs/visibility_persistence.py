@@ -268,6 +268,8 @@ class SubTabVisibilityConfig:
         settings[parent_tab] = visibility
         return AppSettingsConfig.set_setting(cls.CONFIG_KEY, settings)
 
+# TODO - feature falgs should not live here
+
 
 class FeatureFlagsConfig:
     """

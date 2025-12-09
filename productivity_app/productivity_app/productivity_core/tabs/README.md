@@ -1,6 +1,6 @@
 # Tab Management Guide
 
-This guide explains how to manage tabs in the productivity app using the refactored tab system.
+This guide explains how to manage tabs in the productivity app
 
 ## Overview
 
@@ -152,30 +152,30 @@ tab_id = 'epd'
 
 ### How do I persist tab visibility state?
 
-Tab visibility is automatically persisted when you use the `TabVisibilityService`.
+Tab visibility can be persisted when you use the `TabVisibilityService` with `persist=True`.
 
 **Show/Hide a tab with persistence:**
 ```python
 # Get the service
 tab_visibility_service = self.services.get('tab_visibility')
 
-# Hide a tab (persists to config automatically)
-tab_visibility_service.hide_tab(TabId.EPD)
+# Hide a tab and persist to config
+tab_visibility_service.set_tab_as_hidden(TabId.EPD, persist=True)
 
-# Show a tab (persists to config automatically)
-tab_visibility_service.show_tab(TabId.EPD)
+# Show a tab and persist to config
+tab_visibility_service.set_tab_as_visible(TabId.EPD, persist=True)
 
 # Check if a tab is visible
 is_visible = tab_visibility_service.is_tab_visible(TabId.EPD)
 ```
 
-**Control persistence explicitly:**
+**Default behavior (no persistence):**
 ```python
-# Show tab WITHOUT persisting to config (e.g., during initial load)
-tab_visibility_service.show_tab(TabId.EPD, persist=False)
+# Show tab WITHOUT persisting to config (default behavior)
+tab_visibility_service.set_tab_as_visible(TabId.EPD)
 
-# Hide tab WITHOUT persisting to config
-tab_visibility_service.hide_tab(TabId.EPD, persist=False)
+# Hide tab WITHOUT persisting to config (default behavior)
+tab_visibility_service.set_tab_as_hidden(TabId.EPD)
 ```
 
 **Where visibility is stored:**
@@ -307,8 +307,8 @@ Use `depends_on` to ensure tabs load in a specific order:
 - Check console for warnings about missing default tab
 
 **Visibility not persisting:**
-- Ensure you're using `tab_visibility_service.show_tab()/hide_tab()`
-- Check that `persist=True` (default)
+- Ensure you're using `tab_visibility_service.set_tab_as_visible()/set_tab_as_hidden()`
+- Check that `persist=True` is set (default is `False`)
 - Verify `.tool_config/app_settings.json` is writable
 
 ---
@@ -333,7 +333,7 @@ def open_document_scanner(self):
     tab_visibility_service = self.services.get('tab_visibility')
     if tab_visibility_service:
         # First ensure it's visible
-        tab_visibility_service.show_tab(TabId.DOCUMENT_SCANNER)
+        tab_visibility_service.set_tab_as_visible(TabId.DOCUMENT_SCANNER)
         # Then switch to it
         tab_visibility_service.set_focus(TabId.DOCUMENT_SCANNER)
 ```
@@ -347,9 +347,9 @@ def show_advanced_features(self, user_level: str):
         return
     
     if user_level == 'advanced':
-        tab_visibility_service.show_tab(TabId.DEVOPS)
-        tab_visibility_service.show_tab(TabId.REMOTE_DOCS)
+        tab_visibility_service.set_tab_as_visible(TabId.DEVOPS, persist=True)
+        tab_visibility_service.set_tab_as_visible(TabId.REMOTE_DOCS, persist=True)
     else:
-        tab_visibility_service.hide_tab(TabId.DEVOPS)
-        tab_visibility_service.hide_tab(TabId.REMOTE_DOCS)
+        tab_visibility_service.set_tab_as_hidden(TabId.DEVOPS, persist=True)
+        tab_visibility_service.set_tab_as_hidden(TabId.REMOTE_DOCS, persist=True)
 ```

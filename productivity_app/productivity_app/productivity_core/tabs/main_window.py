@@ -5,11 +5,10 @@ from ..core.app_context import AppContext
 from ..core.config import get_app_name
 from .settings_tab import SettingsTab
 from .tab_config import (
-    TAB_CONFIG,
-    get_tab_title,
     get_default_focus_tab,
     get_tab_order
 )
+from .tab_loader import TabLoader
 
 
 class MainWindow(QMainWindow):
@@ -28,13 +27,14 @@ class MainWindow(QMainWindow):
         self.tabs = QTabWidget()
         self.setCentralWidget(self.tabs)
 
-        # Tab registry for managing dynamic visibility
-        # Maps tab_id -> {'presenter': ..., 'view': ..., 'title': ...}
-        self.tab_registry: Dict[str, Dict[str, Any]] = {}
+        # Tab loader handles lazy loading and dependency resolution
+        self.tab_loader = TabLoader(self.services, self.tabs)
+        self.tab_loader.tab_loaded.connect(self._on_tab_loaded)
+        self.tab_loader.loading_complete.connect(self._on_loading_complete)
+        self.tab_loader.loading_error.connect(self._on_loading_error)
 
-        # Track loading state
-        self._loading_complete = False
-        self._pending_tabs: List[Dict] = []
+        # Convenience property for accessing tab registry
+        self.tab_registry = self.tab_loader.get_tab_registry()
 
         # Initialize Settings tab first (lightweight, always visible)
         print("[MainWindow] Initializing Settings tab...")
@@ -47,114 +47,45 @@ class MainWindow(QMainWindow):
 
         # Start lazy loading tabs in the background
         print("[MainWindow] Window ready, starting lazy tab loading...")
-        self._start_lazy_loading()
+        self.tab_loader.start_loading()
 
-    def _start_lazy_loading(self):
-        """Initialize lazy loading sequence for tabs"""
-        # Create loading queue from config
-        self._pending_tabs = [config.copy() for config in TAB_CONFIG]
-
-        # Schedule the first tab to load
-        self._schedule_next_tab()
-
-    def _schedule_next_tab(self):
-        """Schedule the next tab to load"""
-        if not self._pending_tabs:
-            # All tabs loaded
-            self._on_loading_complete()
-            return
-
-        tab_config = self._pending_tabs.pop(0)
-
-        # Schedule this tab to load after delay
-        QTimer.singleShot(
-            tab_config['delay_ms'],
-            lambda: self._load_tab(tab_config)
-        )
-
-    def _load_tab(self, tab_config: Dict):
+    def _on_tab_loaded(self, tab_id: str, presenter, view, title: str):
         """
-        Load a tab from configuration and schedule the next one
+        Handle tab loaded signal from TabLoader.
 
         Args:
-            tab_config: Tab configuration dict from TAB_CONFIG
+            tab_id: Tab identifier
+            presenter: Tab presenter instance
+            view: Tab view widget
+            title: Tab display title
         """
-        tab_id = tab_config['id']
-        print(f"[MainWindow] Loading {tab_id} tab...")
+        # Store presenter as instance attribute for direct access
+        setattr(self, tab_id, presenter)
 
-        try:
-            # Check dependencies are loaded
-            dependencies = tab_config.get('dependencies', [])
-            if dependencies:
-                for dep_id in dependencies:
-                    if dep_id not in self.tab_registry:
-                        print(
-                            f"[MainWindow] Warning: Dependency '{dep_id}' not loaded, loading now...")
-                        # Find and load dependency immediately
-                        dep_config = next(
-                            (cfg for cfg in TAB_CONFIG if cfg['id'] == dep_id), None)
-                        if dep_config:
-                            self._load_tab(dep_config)
+        # Initialize tab visibility service on first tab load
+        tab_visibility_service = self.services.get('tab_visibility')
+        if tab_visibility_service and not tab_visibility_service.is_initialized:
+            tab_visibility_service.initialize(self.tabs, self.tab_registry)
 
-            # Build dependency map for init_args
-            dep_map = {dep_id: self.tab_registry[dep_id]['presenter']
-                       for dep_id in dependencies if dep_id in self.tab_registry}
+        # Add tab if it should be visible
+        # Check user settings for visibility
+        user_visible = tab_visibility_service.is_tab_visible(
+            tab_id) if tab_visibility_service else True
 
-            # Get init arguments
-            init_args_func = tab_config['init_args']
-            init_args = init_args_func(self.services, dep_map)
+        if user_visible:
+            if tab_visibility_service:
+                # Don't persist on initial load
+                tab_visibility_service.set_tab_as_visible(tab_id)
 
-            # Instantiate presenter/view
-            presenter_class = tab_config['presenter_class']
-            presenter = presenter_class(*init_args)
+    def _on_loading_error(self, tab_id: str, error: Exception):
+        """
+        Handle tab loading error.
 
-            # Get view (some classes are the view, others have .view property)
-            if tab_config.get('view_from_presenter', True):
-                view = presenter.view
-                title = presenter.title
-            else:
-                view = presenter
-                title = get_tab_title(tab_config)
-
-            # Store in registry
-            self.tab_registry[tab_id] = {
-                'presenter': presenter,
-                'view': view,
-                'title': title
-            }
-
-            # Store presenter as instance attribute for direct access
-            setattr(self, tab_id, presenter)
-
-            # Initialize tab visibility service on first tab load
-            tab_visibility_service = self.services.get('tab_visibility')
-            if tab_visibility_service and not tab_visibility_service.is_initialized:
-                tab_visibility_service.initialize(self.tabs, self.tab_registry)
-
-            # Add tab if it should be visible
-            # Check both: config default visibility AND user settings
-            config_visible = tab_config.get('visible', True)
-            user_visible = tab_visibility_service.is_tab_visible(
-                tab_id) if tab_visibility_service else True
-
-            if config_visible and user_visible:
-                if tab_visibility_service:
-                    # Don't persist on initial load
-                    tab_visibility_service.show_tab(tab_id, persist=False)
-                else:
-                    # Fallback if service not available
-                    position = self._calculate_tab_position(tab_id)
-                    self.tabs.insertTab(position, view, title)
-
-            print(f"[MainWindow] ✓ {tab_id} tab loaded")
-
-        except Exception as e:
-            print(f"[MainWindow] ✗ Error loading {tab_id} tab: {e}")
-            import traceback
-            traceback.print_exc()
-
-        # Schedule next tab
-        self._schedule_next_tab()
+        Args:
+            tab_id: Tab that failed to load
+            error: Exception that occurred
+        """
+        print(f"[MainWindow] Tab '{tab_id}' failed to load: {error}")
 
     def _on_loading_complete(self):
         """Called when all tabs have been loaded"""
@@ -201,9 +132,9 @@ class MainWindow(QMainWindow):
         tab_visibility_service = self.services.get('tab_visibility')
         if tab_visibility_service:
             if visible:
-                tab_visibility_service.show_tab(tab_name)
+                tab_visibility_service.set_tab_as_visible(tab_name, persist=True)
             else:
-                tab_visibility_service.hide_tab(tab_name)
+                tab_visibility_service.set_tab_as_hidden(tab_name, persist=True)
 
     def _on_feature_flag_changed(self, flag_id: str, enabled: bool):
         """

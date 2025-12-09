@@ -29,8 +29,8 @@ class TabVisibilityService(QObject):
 
     Usage:
         tab_service = services.get('tab_visibility')
-        tab_service.show_tab('epd')
-        tab_service.hide_tab('connectors')
+        tab_service.set_tab_as_visible('epd')
+        tab_service.set_tab_as_hidden('connectors')
         is_visible = tab_service.is_tab_visible('document_scanner')
     """
 
@@ -60,13 +60,13 @@ class TabVisibilityService(QObject):
         self._initialized = True
         print("[TabVisibilityService] Initialized with UI manager")
 
-    def show_tab(self, tab_id: str, persist: bool = True) -> bool:
+    def set_tab_as_visible(self, tab_id: str, persist: bool = False) -> bool:
         """
         Show a tab and optionally persist the change.
 
         Args:
             tab_id: ID of tab to show
-            persist: Whether to save state to config (default: True)
+            persist: Whether to save state to config (default: False)
 
         Returns:
             True if successful, False otherwise
@@ -87,13 +87,13 @@ class TabVisibilityService(QObject):
 
         return success
 
-    def hide_tab(self, tab_id: str, persist: bool = True) -> bool:
+    def set_tab_as_hidden(self, tab_id: str, persist: bool = False) -> bool:
         """
         Hide a tab and optionally persist the change.
 
         Args:
             tab_id: ID of tab to hide
-            persist: Whether to save state to config (default: True)
+            persist: Whether to save state to config (default: False)
 
         Returns:
             True if successful, False otherwise
