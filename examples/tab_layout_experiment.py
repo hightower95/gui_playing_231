@@ -30,7 +30,8 @@ except ImportError:
     # Define a fallback
 
     class StandardLabel(QLabel):
-        pass
+        def __init__(self, text="", style=None, parent=None):
+            super().__init__(text, parent)
 
     class TextStyle:
         SECTION = "SECTION"
@@ -86,6 +87,7 @@ class LayoutExperimentWindow(QMainWindow):
             ("📥 File Drop Zone", self._test_file_drop_zone),
             ("📄 Document Manager", self._test_document_manager),
             ("📊 Dashboard", self._test_dashboard),
+            ("🔌 Plugin Manager", self._test_plugin_manager),
         ]
 
         for label, callback in experiments:
@@ -676,6 +678,346 @@ DASHBOARD PATTERN:
         layout.addWidget(info)
 
         self._set_sandbox_content(container)
+
+    def _test_plugin_manager(self):
+        """Test plugin manager layout with categorized list and details panel"""
+        container = QWidget()
+        main_layout = QVBoxLayout(container)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+
+        title = QLabel("Plugin Manager - Master/Detail Layout")
+        title.setFont(QFont("Arial", 13, QFont.Bold))
+        main_layout.addWidget(title)
+
+        # Main content splitter
+        splitter = QSplitter(Qt.Horizontal)
+
+        # === LEFT PANEL: Plugin List ===
+        left_panel = QWidget()
+        left_layout = QVBoxLayout(left_panel)
+        left_layout.setContentsMargins(0, 0, 0, 0)
+        left_layout.setSpacing(0)
+
+        # Plugin list with sections
+        plugin_list = QListWidget()
+        plugin_list.setStyleSheet("""
+            QListWidget {
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                background: #fafafa;
+            }
+            QListWidget::item {
+                padding: 8px 12px;
+                border-bottom: 1px solid #eee;
+            }
+            QListWidget::item:selected {
+                background: #2196F3;
+                color: white;
+            }
+            QListWidget::item:hover:!selected {
+                background: #e3f2fd;
+            }
+        """)
+
+        # Sample plugin data
+        plugins = {
+            "Starred": [
+                {"name": "Data Validator", "version": "2.1.0", "starred": True},
+                {"name": "Auto Formatter", "version": "1.5.2", "starred": True},
+            ],
+            "Local": [
+                {"name": "Custom Exporter", "version": "1.0.0", "starred": False},
+                {"name": "Debug Helper", "version": "0.9.1", "starred": False},
+                {"name": "Theme Manager", "version": "2.0.0", "starred": False},
+            ],
+            "Global": [
+                {"name": "PDF Generator", "version": "3.2.1", "starred": False},
+                {"name": "API Connector", "version": "1.8.0", "starred": False},
+                {"name": "Report Builder", "version": "2.4.0", "starred": False},
+                {"name": "Data Sync", "version": "1.1.0", "starred": False},
+            ],
+        }
+
+        # Store plugin details for lookup
+        self._plugin_details = {}
+
+        for section, items in plugins.items():
+            # Section header
+            header_item = QListWidgetItem(f"  {section}")
+            header_item.setFlags(Qt.NoItemFlags)  # Non-selectable
+            header_font = QFont()
+            header_font.setBold(True)
+            header_font.setPointSize(10)
+            header_item.setFont(header_font)
+            header_item.setBackground(QColor("#e0e0e0"))
+            plugin_list.addItem(header_item)
+
+            # Section items
+            for plugin in items:
+                if section == "Starred":
+                    display_text = f"    * {plugin['name']}"
+                elif section == "Local":
+                    display_text = f"    {plugin['name']}"
+                else:
+                    display_text = f"    {plugin['name']}"
+
+                item = QListWidgetItem(display_text)
+                item.setData(Qt.UserRole, plugin['name'])  # Store plugin name for lookup
+                plugin_list.addItem(item)
+
+                # Store details
+                self._plugin_details[plugin['name']] = {
+                    "name": plugin['name'],
+                    "version": plugin['version'],
+                    "section": section,
+                    "starred": plugin.get('starred', False),
+                    "requirements": self._get_mock_requirements(plugin['name']),
+                    "parameters": self._get_mock_parameters(plugin['name']),
+                }
+
+        left_layout.addWidget(plugin_list)
+        splitter.addWidget(left_panel)
+
+        # === RIGHT PANEL: Plugin Details ===
+        right_panel = QWidget()
+        right_layout = QVBoxLayout(right_panel)
+        right_layout.setContentsMargins(10, 0, 0, 0)
+
+        # Details header
+        self._plugin_title = QLabel("Select a plugin")
+        self._plugin_title.setFont(QFont("Arial", 14, QFont.Bold))
+        right_layout.addWidget(self._plugin_title)
+
+        self._plugin_version = QLabel("")
+        self._plugin_version.setStyleSheet("color: #666; font-style: italic;")
+        right_layout.addWidget(self._plugin_version)
+
+        # Star button for local plugins
+        self._star_btn = QPushButton("Add to Starred")
+        self._star_btn.setVisible(False)
+        self._star_btn.setStyleSheet("""
+            QPushButton {
+                background: #FFC107;
+                color: #333;
+                border: none;
+                border-radius: 4px;
+                padding: 6px 12px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background: #FFB300;
+            }
+        """)
+        self._star_btn.setMaximumWidth(150)
+        right_layout.addWidget(self._star_btn)
+
+        right_layout.addSpacing(15)
+
+        # Requirements section
+        req_label = QLabel("Requirements")
+        req_label.setFont(QFont("Arial", 11, QFont.Bold))
+        right_layout.addWidget(req_label)
+
+        self._requirements_list = QListWidget()
+        self._requirements_list.setMaximumHeight(120)
+        self._requirements_list.setStyleSheet("""
+            QListWidget {
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                background: white;
+            }
+            QListWidget::item {
+                padding: 4px 8px;
+            }
+        """)
+        right_layout.addWidget(self._requirements_list)
+
+        right_layout.addSpacing(10)
+
+        # Parameters section
+        param_label = QLabel("Parameters")
+        param_label.setFont(QFont("Arial", 11, QFont.Bold))
+        right_layout.addWidget(param_label)
+
+        self._parameters_widget = QWidget()
+        self._parameters_layout = QFormLayout(self._parameters_widget)
+        self._parameters_layout.setContentsMargins(0, 0, 0, 0)
+
+        params_scroll = QScrollArea()
+        params_scroll.setWidget(self._parameters_widget)
+        params_scroll.setWidgetResizable(True)
+        params_scroll.setStyleSheet("""
+            QScrollArea {
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                background: white;
+            }
+        """)
+        right_layout.addWidget(params_scroll, 1)
+
+        splitter.addWidget(right_panel)
+
+        # Set splitter proportions
+        splitter.setSizes([250, 450])
+
+        main_layout.addWidget(splitter, 1)
+
+        # Connect selection signal
+        plugin_list.currentItemChanged.connect(self._on_plugin_selected)
+
+        # Info
+        info = QTextEdit()
+        info.setReadOnly(True)
+        info.setMaximumHeight(60)
+        info.setText("""
+PLUGIN MANAGER PATTERN: Categorized list (Starred/Local/Global) with master-detail layout.
+Click a plugin to see its requirements and configurable parameters.
+        """)
+        main_layout.addWidget(info)
+
+        self._set_sandbox_content(container)
+
+    def _on_plugin_selected(self, current, previous):
+        """Handle plugin selection"""
+        if current is None:
+            return
+
+        plugin_name = current.data(Qt.UserRole)
+        if plugin_name is None:
+            return  # Section header clicked
+
+        details = self._plugin_details.get(plugin_name)
+        if not details:
+            return
+
+        # Update header
+        self._plugin_title.setText(details['name'])
+        self._plugin_version.setText(f"Version {details['version']} - {details['section']}")
+
+        # Show/hide star button for Local plugins
+        if details['section'] == 'Local' and not details['starred']:
+            self._star_btn.setVisible(True)
+        else:
+            self._star_btn.setVisible(False)
+
+        # Update requirements
+        self._requirements_list.clear()
+        for req in details['requirements']:
+            item = QListWidgetItem(f"  {req['name']} {req['version']}")
+            if req.get('installed'):
+                item.setForeground(QColor("#4CAF50"))
+            else:
+                item.setForeground(QColor("#F44336"))
+            self._requirements_list.addItem(item)
+
+        # Update parameters
+        # Clear existing
+        while self._parameters_layout.count():
+            child = self._parameters_layout.takeAt(0)
+            if child.widget():
+                child.widget().deleteLater()
+
+        for param in details['parameters']:
+            label = QLabel(param['name'])
+            if param['type'] == 'text':
+                widget = QLineEdit(param.get('default', ''))
+            elif param['type'] == 'number':
+                widget = QSpinBox()
+                widget.setValue(param.get('default', 0))
+            elif param['type'] == 'bool':
+                widget = QCheckBox()
+                widget.setChecked(param.get('default', False))
+            elif param['type'] == 'select':
+                widget = QComboBox()
+                widget.addItems(param.get('options', []))
+            else:
+                widget = QLineEdit()
+
+            self._parameters_layout.addRow(label, widget)
+
+    def _get_mock_requirements(self, plugin_name):
+        """Generate mock requirements for a plugin"""
+        requirements_map = {
+            "Data Validator": [
+                {"name": "pandas", "version": ">=2.0.0", "installed": True},
+                {"name": "jsonschema", "version": ">=4.0.0", "installed": True},
+            ],
+            "Auto Formatter": [
+                {"name": "black", "version": ">=23.0.0", "installed": True},
+                {"name": "isort", "version": ">=5.0.0", "installed": False},
+            ],
+            "Custom Exporter": [
+                {"name": "openpyxl", "version": ">=3.0.0", "installed": True},
+            ],
+            "Debug Helper": [
+                {"name": "rich", "version": ">=13.0.0", "installed": True},
+                {"name": "icecream", "version": ">=2.0.0", "installed": False},
+            ],
+            "Theme Manager": [
+                {"name": "qt-material", "version": ">=2.0.0", "installed": True},
+            ],
+            "PDF Generator": [
+                {"name": "reportlab", "version": ">=4.0.0", "installed": True},
+                {"name": "PyPDF2", "version": ">=3.0.0", "installed": True},
+            ],
+            "API Connector": [
+                {"name": "requests", "version": ">=2.28.0", "installed": True},
+                {"name": "httpx", "version": ">=0.24.0", "installed": False},
+            ],
+            "Report Builder": [
+                {"name": "jinja2", "version": ">=3.0.0", "installed": True},
+                {"name": "weasyprint", "version": ">=59.0", "installed": False},
+            ],
+            "Data Sync": [
+                {"name": "sqlalchemy", "version": ">=2.0.0", "installed": True},
+            ],
+        }
+        return requirements_map.get(plugin_name, [])
+
+    def _get_mock_parameters(self, plugin_name):
+        """Generate mock parameters for a plugin"""
+        parameters_map = {
+            "Data Validator": [
+                {"name": "Strict Mode", "type": "bool", "default": True},
+                {"name": "Max Errors", "type": "number", "default": 100},
+                {"name": "Output Format", "type": "select", "options": ["JSON", "CSV", "HTML"]},
+            ],
+            "Auto Formatter": [
+                {"name": "Line Length", "type": "number", "default": 88},
+                {"name": "Skip Magic Trailing Comma", "type": "bool", "default": False},
+            ],
+            "Custom Exporter": [
+                {"name": "Output Path", "type": "text", "default": "./exports"},
+                {"name": "Include Headers", "type": "bool", "default": True},
+            ],
+            "Debug Helper": [
+                {"name": "Log Level", "type": "select", "options": ["DEBUG", "INFO", "WARNING", "ERROR"]},
+                {"name": "Pretty Print", "type": "bool", "default": True},
+            ],
+            "Theme Manager": [
+                {"name": "Theme", "type": "select", "options": ["Light", "Dark", "System"]},
+                {"name": "Accent Color", "type": "text", "default": "#2196F3"},
+            ],
+            "PDF Generator": [
+                {"name": "Page Size", "type": "select", "options": ["A4", "Letter", "Legal"]},
+                {"name": "Orientation", "type": "select", "options": ["Portrait", "Landscape"]},
+                {"name": "Include TOC", "type": "bool", "default": False},
+            ],
+            "API Connector": [
+                {"name": "Base URL", "type": "text", "default": "https://api.example.com"},
+                {"name": "Timeout (s)", "type": "number", "default": 30},
+                {"name": "Retry Count", "type": "number", "default": 3},
+            ],
+            "Report Builder": [
+                {"name": "Template", "type": "select", "options": ["Standard", "Compact", "Detailed"]},
+                {"name": "Include Charts", "type": "bool", "default": True},
+            ],
+            "Data Sync": [
+                {"name": "Sync Interval (min)", "type": "number", "default": 15},
+                {"name": "Conflict Resolution", "type": "select", "options": ["Local Wins", "Remote Wins", "Manual"]},
+            ],
+        }
+        return parameters_map.get(plugin_name, [])
 
     def _test_draggable_cards(self):
         """Test draggable cards in a flowing layout"""
