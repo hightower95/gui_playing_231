@@ -43,8 +43,10 @@ class AppContext:
 
         # Register global managers
         from .feature_flags_manager import FeatureFlagsManager
+        from ..tabs.tab_visibility_service import TabVisibilityService
 
         self.register('feature_flags', FeatureFlagsManager())
+        self.register('tab_visibility', TabVisibilityService())
 
     def register(self, name: str, service: Any) -> 'AppContext':
         """Register a service with the context

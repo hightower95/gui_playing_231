@@ -109,7 +109,7 @@ class DocumentScannerModuleView(QWidget):
 
     def _add_sub_tabs(self):
         """Add sub-tabs based on visibility settings"""
-        from ..tabs.settings_tab import SubTabVisibilityConfig
+        from ..tabs.visibility_persistence import SubTabVisibilityConfig
 
         for sub_tab_id in self.SUB_TAB_ORDER:
             if sub_tab_id not in self.sub_tabs:

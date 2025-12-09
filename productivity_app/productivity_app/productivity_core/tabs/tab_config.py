@@ -11,7 +11,7 @@ Centralized configuration for all application tabs including:
 Configuration Structure:
     - id: Unique identifier for the tab
     - presenter_class: The presenter/view class to instantiate
-    - init_args: Lambda function returning arguments for __init__
+    - init_args: Lambda function returning arguments for __init__ (services, deps)
     - delay_ms: Milliseconds to wait before loading (for lazy loading)
     - dependencies: List of tab IDs that must be loaded first
     - visible: Default visibility on startup
@@ -20,12 +20,14 @@ Configuration Structure:
 """
 
 from typing import Dict, List, Callable, Optional, Any
+from ..core.app_context import AppContext
 from ..epd.epd_presenter import EpdPresenter
 from ..presenters.connectors_presenter import ConnectorsPresenter
 from ..presenters.fault_presenter import FaultFindingPresenter
 from ..document_scanner import DocumentScannerModuleView
 from ..remote_docs import RemoteDocsPresenter
 from ..devops import DevOpsPresenter
+from enum import Enum
 
 
 # ============================================================================
@@ -35,51 +37,67 @@ from ..devops import DevOpsPresenter
 # 1. Import the presenter class above
 # 2. Add an entry to TAB_CONFIG list below
 # 3. Set default_focus=True on ONE tab to make it focused on startup
+#
+# init_args signature: lambda services, deps: [args...]
+#   - services: AppContext (service provider/dependency injection)
+#   - deps: Dict of loaded tab presenters this tab depends on
 # ============================================================================
+
+class TabId(Enum):
+    """Enum for all tab identifiers."""
+    CONNECTORS = 'connectors'
+    EPD = 'epd'
+    DOCUMENT_SCANNER = 'document_scanner'
+    FAULT_FINDING = 'fault_finding'
+    REMOTE_DOCS = 'remote_docs'
+    DEVOPS = 'devops'
+
 
 TAB_CONFIG: List[Dict[str, Any]] = [
     {
-        'id': 'connectors',
+        'id': TabId.CONNECTORS.value,
         'presenter_class': ConnectorsPresenter,
-        'init_args': lambda ctx, deps: [ctx],
+        'init_args': lambda services, deps: [services],
         'delay_ms': 50,
         'visible': True,
-        'default_focus': True,  # This tab will be focused on startup
+        'default_focus': False,  # This tab will be focused on startup
     },
     {
-        'id': 'epd',
+        'id': TabId.EPD.value,
         'presenter_class': EpdPresenter,
-        'init_args': lambda ctx, deps: [ctx],
+        'init_args': lambda services, deps: [services],
         'delay_ms': 100,
         'visible': True,
+        'default_focus': False,
     },
     {
-        'id': 'document_scanner',
+        'id': TabId.DOCUMENT_SCANNER.value,
         'presenter_class': DocumentScannerModuleView,
-        'init_args': lambda ctx, deps: [ctx],
+        'init_args': lambda services, deps: [services],
         'delay_ms': 200,
         'view_from_presenter': False,  # This class IS the view
         'visible': True,
+        'default_focus': True,
     },
     {
-        'id': 'fault_finding',
+        'id': TabId.FAULT_FINDING.value,
         'presenter_class': FaultFindingPresenter,
-        'init_args': lambda ctx, deps: [ctx, deps['epd'].model],
+        'init_args': lambda services, deps: [services, deps[TabId.EPD.value].model],
         'delay_ms': 300,
-        'dependencies': ['epd'],  # Requires EPD to be loaded first
+        'dependencies': [TabId.EPD.value],  # Requires EPD to be loaded first
         'visible': True,
     },
     {
-        'id': 'remote_docs',
+        'id': TabId.REMOTE_DOCS.value,
         'presenter_class': RemoteDocsPresenter,
-        'init_args': lambda ctx, deps: [ctx],
+        'init_args': lambda services, deps: [services],
         'delay_ms': 400,
         'visible': True,
     },
     {
-        'id': 'devops',
+        'id': TabId.DEVOPS.value,
         'presenter_class': DevOpsPresenter,
-        'init_args': lambda ctx, deps: [ctx],
+        'init_args': lambda services, deps: [services],
         'delay_ms': 450,
         'visible': True,
     },

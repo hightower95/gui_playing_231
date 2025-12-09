@@ -1,6 +1,7 @@
 from PySide6.QtWidgets import QMainWindow, QTabWidget
 from PySide6.QtCore import QTimer
 from typing import Dict, List, Optional, Any
+from ..core.app_context import AppContext
 from ..core.config import get_app_name
 from .settings_tab import SettingsTab
 from .tab_config import (
@@ -12,9 +13,9 @@ from .tab_config import (
 
 
 class MainWindow(QMainWindow):
-    def __init__(self, context):
+    def __init__(self, services: AppContext):
         super().__init__()
-        self.context = context
+        self.services = services
 
         # Set window title with app_name if not default
         title = "Engineering Toolkit"
@@ -37,7 +38,7 @@ class MainWindow(QMainWindow):
 
         # Initialize Settings tab first (lightweight, always visible)
         print("[MainWindow] Initializing Settings tab...")
-        self.settings_tab = SettingsTab(context=self.context)
+        self.settings_tab = SettingsTab(services=self.services)
         self.settings_tab.tab_visibility_changed.connect(
             self._on_tab_visibility_changed)
         self.settings_tab.feature_flag_changed.connect(
@@ -101,7 +102,7 @@ class MainWindow(QMainWindow):
 
             # Get init arguments
             init_args_func = tab_config['init_args']
-            init_args = init_args_func(self.context, dep_map)
+            init_args = init_args_func(self.services, dep_map)
 
             # Instantiate presenter/view
             presenter_class = tab_config['presenter_class']
@@ -125,14 +126,25 @@ class MainWindow(QMainWindow):
             # Store presenter as instance attribute for direct access
             setattr(self, tab_id, presenter)
 
+            # Initialize tab visibility service on first tab load
+            tab_visibility_service = self.services.get('tab_visibility')
+            if tab_visibility_service and not tab_visibility_service.is_initialized:
+                tab_visibility_service.initialize(self.tabs, self.tab_registry)
+
             # Add tab if it should be visible
             # Check both: config default visibility AND user settings
             config_visible = tab_config.get('visible', True)
-            user_visible = self.settings_tab.is_tab_visible(tab_id)
+            user_visible = tab_visibility_service.is_tab_visible(
+                tab_id) if tab_visibility_service else True
 
             if config_visible and user_visible:
-                position = self._get_tab_position(tab_id)
-                self.tabs.insertTab(position, view, title)
+                if tab_visibility_service:
+                    # Don't persist on initial load
+                    tab_visibility_service.show_tab(tab_id, persist=False)
+                else:
+                    # Fallback if service not available
+                    position = self._calculate_tab_position(tab_id)
+                    self.tabs.insertTab(position, view, title)
 
             print(f"[MainWindow] ✓ {tab_id} tab loaded")
 
@@ -151,7 +163,7 @@ class MainWindow(QMainWindow):
 
         # Setup context providers (Phase 1: register defaults/stubs)
         from ..core.setup_context_providers import setup_context_providers
-        setup_context_providers(self.context, self.tab_registry)
+        setup_context_providers(self.services, self.tab_registry)
 
         # Connect sub-tab visibility changes
         self.settings_tab.sub_tab_visibility_changed.connect(
@@ -171,17 +183,10 @@ class MainWindow(QMainWindow):
                 f"[MainWindow] Warning: Default focus tab '{default_tab_id}' not loaded")
             return
 
-        tab_info = self.tab_registry[default_tab_id]
-
-        # Find the tab index and set it as current
-        for i in range(self.tabs.count()):
-            if self.tabs.widget(i) == tab_info['view']:
-                self.tabs.setCurrentIndex(i)
-                print(f"[MainWindow] Set focus to '{tab_info['title']}' tab")
-                return
-
-        print(
-            f"[MainWindow] Warning: Default focus tab '{default_tab_id}' not visible")
+        # Use tab visibility service to set focus
+        tab_visibility_service = self.services.get('tab_visibility')
+        if tab_visibility_service:
+            tab_visibility_service.set_focus(default_tab_id)
 
     def _on_tab_visibility_changed(self, tab_name: str, visible: bool):
         """
@@ -191,12 +196,14 @@ class MainWindow(QMainWindow):
             tab_name: Name of tab (e.g., 'epd')
             visible: True to show, False to hide
         """
-        print(f"MainWindow: Tab visibility changed - {tab_name} -> {visible}")
+        print(f"[MainWindow] Tab visibility changed - {tab_name} -> {visible}")
 
-        if visible:
-            self._show_tab(tab_name)
-        else:
-            self._hide_tab(tab_name)
+        tab_visibility_service = self.services.get('tab_visibility')
+        if tab_visibility_service:
+            if visible:
+                tab_visibility_service.show_tab(tab_name)
+            else:
+                tab_visibility_service.hide_tab(tab_name)
 
     def _on_feature_flag_changed(self, flag_id: str, enabled: bool):
         """
@@ -228,7 +235,7 @@ class MainWindow(QMainWindow):
         from ..connector.connector_tab import ConnectorModuleView
         from ..epd.epd_tab import EpdModuleView
         from ..devops.devops_tab import DevOpsModuleView
-        from ..tabs.settings_tab import SubTabVisibilityConfig
+        from .visibility_persistence import SubTabVisibilityConfig
 
         print(
             f"MainWindow: Sub-tab visibility changed - {parent_tab}.{sub_tab} -> {visible}")
@@ -256,100 +263,3 @@ class MainWindow(QMainWindow):
             visibility = SubTabVisibilityConfig.get_all_sub_tab_visibility(
                 DevOpsModuleView.MODULE_ID)
             self.devops.sub_tab_visibility_updated(visibility)
-
-    def _show_tab(self, tab_name: str):
-        """
-        Show a tab by inserting it at the correct position
-
-        Args:
-            tab_name: Name of tab to show (e.g., 'epd')
-        """
-        try:
-            if tab_name not in self.tab_registry:
-                print(f"Warning: Tab '{tab_name}' not found in registry")
-                return
-
-            tab_info = self.tab_registry[tab_name]
-
-            # Check if tab is already visible
-            for i in range(self.tabs.count()):
-                if self.tabs.widget(i) == tab_info['view']:
-                    print(f"Tab '{tab_info['title']}' already visible")
-                    return  # Already visible
-
-            # Find correct position to insert
-            position = self._get_tab_position(tab_name)
-
-            # Insert tab at correct position
-            self.tabs.insertTab(position, tab_info['view'], tab_info['title'])
-
-            print(f"Shown tab: {tab_info['title']} at position {position}")
-
-        except Exception as e:
-            print(f"ERROR in _show_tab for {tab_name}: {e}")
-            import traceback
-            traceback.print_exc()
-
-    def _hide_tab(self, tab_name: str):
-        """
-        Hide a tab by removing it from the tab widget
-
-        Args:
-            tab_name: Name of tab to hide (e.g., 'epd')
-        """
-        try:
-            if tab_name not in self.tab_registry:
-                print(f"Warning: Tab '{tab_name}' not found in registry")
-                return
-
-            tab_info = self.tab_registry[tab_name]
-
-            # Find the tab index
-            tab_index = -1
-            for i in range(self.tabs.count()):
-                if self.tabs.widget(i) == tab_info['view']:
-                    tab_index = i
-                    break
-
-            if tab_index >= 0:
-                self.tabs.removeTab(tab_index)
-                print(f"Hidden tab: {tab_info['title']}")
-            else:
-                print(f"Tab '{tab_info['title']}' was not visible")
-
-        except Exception as e:
-            print(f"ERROR in _hide_tab for {tab_name}: {e}")
-            import traceback
-            traceback.print_exc()
-
-    def _get_tab_position(self, tab_name: str) -> int:
-        """
-        Get the correct position to insert a tab based on TAB_CONFIG order
-
-        Args:
-            tab_name: Name of tab to position
-
-        Returns:
-            Index where tab should be inserted
-        """
-        # Get tab order from config (excluding settings which is always last)
-        tab_order = get_tab_order()
-
-        if tab_name not in tab_order:
-            return self.tabs.count() - 1  # Before Settings tab
-
-        target_index = tab_order.index(tab_name)
-
-        # Count how many tabs before this one are currently visible
-        position = 0
-        for i in range(target_index):
-            other_tab_id = tab_order[i]
-            if other_tab_id in self.tab_registry:
-                other_view = self.tab_registry[other_tab_id]['view']
-                # Check if visible
-                for j in range(self.tabs.count()):
-                    if self.tabs.widget(j) == other_view:
-                        position += 1
-                        break
-
-        return position

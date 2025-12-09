@@ -54,7 +54,7 @@ class EpdModuleView(QWidget):
 
     def _add_sub_tabs(self):
         """Add sub-tabs based on visibility configuration"""
-        from ..tabs.settings_tab import SubTabVisibilityConfig
+        from ..tabs.visibility_persistence import SubTabVisibilityConfig
 
         # Clear existing tabs
         self.tabs.clear()
