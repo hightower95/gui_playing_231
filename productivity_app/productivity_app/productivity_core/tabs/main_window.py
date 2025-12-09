@@ -62,6 +62,12 @@ class MainWindow(QMainWindow):
         user_visible = tab_visibility_service.is_tab_visible(
             tab_id) if tab_visibility_service else True
 
+        # Special handling for start page - check if it should be shown this session
+        if tab_id == 'start_page':
+            from .start_page_tab import StartPageTab
+            if not StartPageTab.should_show_on_startup():
+                user_visible = False
+
         if user_visible:
             if tab_visibility_service:
                 # Don't persist on initial load

@@ -125,6 +125,10 @@ def main(*args, app_name=None, **kwargs):
     # Initialize configuration manager (creates .tool_config directory)
     ConfigManager.initialize()
 
+    # Clear start page closed flag on app startup (so it shows again)
+    from .productivity_core.core.config_manager import AppSettingsConfig
+    AppSettingsConfig.set_setting('start_page_closed', False)
+
     # Initialize consistent theming BEFORE any widgets are created
     theme_mode = APP_SETTINGS.get("theme_mode", "dark")
     ThemeManager.initialize_theme(qt_app, theme_mode=theme_mode)

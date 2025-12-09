@@ -28,6 +28,7 @@ from ..document_scanner import DocumentScannerModuleView
 from ..remote_docs import RemoteDocsPresenter
 from ..devops import DevOpsPresenter
 from .settings_tab import SettingsTab
+from .start_page_tab import StartPageTab
 from enum import Enum
 
 
@@ -46,6 +47,7 @@ from enum import Enum
 
 class TabId(Enum):
     """Enum for all tab identifiers."""
+    START_PAGE = 'start_page'
     SETTINGS = 'settings'
     CONNECTORS = 'connectors'
     EPD = 'epd'
@@ -56,6 +58,15 @@ class TabId(Enum):
 
 
 TAB_CONFIG: List[Dict[str, Any]] = [
+    {
+        'id': TabId.START_PAGE.value,
+        'presenter_class': StartPageTab,
+        'init_args': lambda services, deps: [services],
+        'delay_ms': 0,  # Load immediately
+        'view_from_presenter': False,  # This class IS the view
+        'visible': True,  # Always visible in config
+        'default_focus': True,  # Focus on startup
+    },
     {
         'id': TabId.SETTINGS.value,
         'presenter_class': SettingsTab,
