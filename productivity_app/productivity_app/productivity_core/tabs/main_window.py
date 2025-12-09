@@ -1,81 +1,14 @@
 from PySide6.QtWidgets import QMainWindow, QTabWidget
 from PySide6.QtCore import QTimer
-from typing import Dict, List, Callable, Optional, Any
-from ..epd.epd_presenter import EpdPresenter
-from ..presenters.connectors_presenter import ConnectorsPresenter
-from ..presenters.fault_presenter import FaultFindingPresenter
-from ..document_scanner import DocumentScannerModuleView
-from ..connector.connector_context_provider import ConnectorContextProvider
-from ..remote_docs import RemoteDocsPresenter
-from ..devops import DevOpsPresenter
+from typing import Dict, List, Optional, Any
 from ..core.config import get_app_name
 from .settings_tab import SettingsTab
-
-
-# ============================================================================
-# TAB CONFIGURATION
-# ============================================================================
-# To add a new tab, just add an entry to this list with:
-# - id: unique identifier (used in settings)
-# - title: display title
-# - presenter_class: the presenter/view class to instantiate
-# - init_args: arguments to pass to __init__ (can be callable for dynamic values)
-# - delay_ms: milliseconds to wait before loading (for lazy loading)
-# - dependencies: list of tab IDs that must be loaded first (optional)
-# ============================================================================
-
-TAB_CONFIG = [
-    {
-        'id': 'connectors',
-        'title': 'Connectors',
-        'presenter_class': ConnectorsPresenter,
-        'init_args': lambda ctx, deps: [ctx],
-        'delay_ms': 50,
-        'visible': True,  # Default visibility on startup
-    },
-    {
-        'id': 'epd',
-        'title': 'EPD',
-        'presenter_class': EpdPresenter,
-        'init_args': lambda ctx, deps: [ctx],
-        'delay_ms': 100,
-        'visible': True,  # Default visibility on startup
-    },
-    {
-        'id': 'document_scanner',
-        'title': 'Document Scanner',
-        'presenter_class': DocumentScannerModuleView,
-        'init_args': lambda ctx, deps: [ctx],
-        'delay_ms': 200,
-        'view_from_presenter': False,  # This class IS the view, not a presenter
-        'visible': True,  # Default visibility on startup
-    },
-    {
-        'id': 'fault_finding',
-        'title': 'Fault Finding',
-        'presenter_class': FaultFindingPresenter,
-        'init_args': lambda ctx, deps: [ctx, deps['epd'].model],
-        'delay_ms': 300,
-        'dependencies': ['epd'],  # Requires EPD to be loaded first
-        'visible': True,  # Default visibility on startup
-    },
-    {
-        'id': 'remote_docs',
-        'title': 'Remote Docs',
-        'presenter_class': RemoteDocsPresenter,
-        'init_args': lambda ctx, deps: [ctx],
-        'delay_ms': 400,
-        'visible': True,  # Default visibility on startup
-    },
-    {
-        'id': 'devops',
-        'title': 'DevOps',
-        'presenter_class': DevOpsPresenter,
-        'init_args': lambda ctx, deps: [ctx],
-        'delay_ms': 450,
-        'visible': True,  # Default visibility on startup
-    },
-]
+from .tab_config import (
+    TAB_CONFIG,
+    get_tab_title,
+    get_default_focus_tab,
+    get_tab_order
+)
 
 
 class MainWindow(QMainWindow):
@@ -180,7 +113,7 @@ class MainWindow(QMainWindow):
                 title = presenter.title
             else:
                 view = presenter
-                title = tab_config['title']
+                title = get_tab_title(tab_config)
 
             # Store in registry
             self.tab_registry[tab_id] = {
@@ -223,6 +156,32 @@ class MainWindow(QMainWindow):
         # Connect sub-tab visibility changes
         self.settings_tab.sub_tab_visibility_changed.connect(
             self._on_sub_tab_visibility_changed)
+
+        # Set default focus tab
+        self._set_default_focus()
+
+    def _set_default_focus(self):
+        """Set focus to the default tab specified in configuration"""
+        default_tab_id = get_default_focus_tab()
+        if not default_tab_id:
+            return
+
+        if default_tab_id not in self.tab_registry:
+            print(
+                f"[MainWindow] Warning: Default focus tab '{default_tab_id}' not loaded")
+            return
+
+        tab_info = self.tab_registry[default_tab_id]
+
+        # Find the tab index and set it as current
+        for i in range(self.tabs.count()):
+            if self.tabs.widget(i) == tab_info['view']:
+                self.tabs.setCurrentIndex(i)
+                print(f"[MainWindow] Set focus to '{tab_info['title']}' tab")
+                return
+
+        print(
+            f"[MainWindow] Warning: Default focus tab '{default_tab_id}' not visible")
 
     def _on_tab_visibility_changed(self, tab_name: str, visible: bool):
         """
@@ -374,7 +333,7 @@ class MainWindow(QMainWindow):
             Index where tab should be inserted
         """
         # Get tab order from config (excluding settings which is always last)
-        tab_order = [config['id'] for config in TAB_CONFIG]
+        tab_order = get_tab_order()
 
         if tab_name not in tab_order:
             return self.tabs.count() - 1  # Before Settings tab
