@@ -90,11 +90,16 @@ def create_tile(parent_window, title: str, subtitle: str, bullets: List[str],
     Returns:
         Configured TileFrame widget
     """
+    from PySide6.QtWidgets import QSizePolicy
+
     tile = TileFrame(parent_window)
     tile.setStyleSheet(get_tile_stylesheet(hover=False))
     tile.setGraphicsEffect(create_shadow(hover=False))
     tile.setMinimumHeight(TILE_MIN_HEIGHT)
     tile.setMaximumHeight(TILE_MAX_HEIGHT)
+
+    # Set size policy to prevent extra vertical spacing
+    tile.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
 
     layout = QVBoxLayout(tile)
     layout.setSpacing(TILE_SPACING)
@@ -126,6 +131,9 @@ def create_tile(parent_window, title: str, subtitle: str, bullets: List[str],
         layout.addWidget(bullet_label)
 
     layout.addStretch()
+
+    # 15px spacing before buttons
+    layout.addSpacing(15)
 
     # Button container
     button_layout = QHBoxLayout()

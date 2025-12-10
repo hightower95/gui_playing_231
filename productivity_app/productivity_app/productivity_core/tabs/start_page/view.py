@@ -63,16 +63,25 @@ class StartPageView(QWidget):
         tiles_container.setStyleSheet("background-color: transparent;")
         scroll.setWidget(tiles_container)
 
-        # Grid layout for tiles (3 columns)
-        tiles_layout = QGridLayout(tiles_container)
-        tiles_layout.setSpacing(12)
-        tiles_layout.setContentsMargins(40, 10, 40, 0)
+        # Use VBox with manual row layouts for better spacing control
+        from PySide6.QtWidgets import QHBoxLayout
+        main_layout = QVBoxLayout(tiles_container)
+        main_layout.setSpacing(25)  # Space between rows
+        main_layout.setContentsMargins(40, 15, 40, 0)
 
-        # Create tiles with real tab data - simple loop as requested
+        # Create tiles - group into rows of 4
         tile_data = get_tile_data()
+        current_row_layout = None
+
         for idx, (title_text, subtitle, bullets, tab_id, is_visible, user_guide_url, enable_navigation) in enumerate(tile_data):
-            row = idx // 3
             col = idx % 3
+
+            # Start new row every 4 tiles
+            if col == 0:
+                current_row_layout = QHBoxLayout()
+                current_row_layout.setSpacing(12)
+                main_layout.addLayout(current_row_layout)
+
             tile = create_tile(
                 parent_window=self,
                 title=title_text,
@@ -85,7 +94,10 @@ class StartPageView(QWidget):
                 on_goto_clicked=self._navigate_to_tab,
                 on_guide_clicked=self._show_user_guide
             )
-            tiles_layout.addWidget(tile, row, col)
+            current_row_layout.addWidget(tile)
+
+        # Add stretch to push tiles to top
+        main_layout.addStretch()
 
         layout.addWidget(scroll)
 

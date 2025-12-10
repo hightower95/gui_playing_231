@@ -40,18 +40,18 @@ BUTTON_DISABLED_BORDER = "rgba(80, 80, 80, 0.2)"
 TILE_PADDING = 18
 TILE_SPACING = 10
 GRID_SPACING = 12
-TILE_MIN_HEIGHT = 176
-TILE_MAX_HEIGHT = 208
+TILE_MIN_HEIGHT = 200
+TILE_MAX_HEIGHT = 240
 BORDER_RADIUS = 16
 BUTTON_BORDER_RADIUS = 6
 
 # ============================================================================
 # SHADOW PARAMETERS
 # ============================================================================
-SHADOW_BLUR_NORMAL = 25
-SHADOW_BLUR_HOVER = 40
-SHADOW_OFFSET_NORMAL = 6
-SHADOW_OFFSET_HOVER = 10
+SHADOW_BLUR_NORMAL = 15
+SHADOW_BLUR_HOVER = 25
+SHADOW_OFFSET_NORMAL = 3
+SHADOW_OFFSET_HOVER = 6
 SHADOW_OPACITY_NORMAL = 100
 SHADOW_OPACITY_HOVER = 120
 
@@ -94,16 +94,16 @@ def get_scrollbar_stylesheet():
 
 def get_tile_stylesheet(hover=False):
     """Get stylesheet for tile styling
-    
+
     Args:
         hover: Whether this is hover state
-        
+
     Returns:
         QSS stylesheet string
     """
     bg_color = TILE_BG_HOVER if hover else TILE_BG
     border_color = TILE_BORDER_HOVER if hover else TILE_BORDER
-    
+
     return f"""
         background-color: {bg_color};
         border: 1px solid {border_color};
@@ -113,10 +113,10 @@ def get_tile_stylesheet(hover=False):
 
 def get_button_stylesheet(enabled=True):
     """Get stylesheet for button styling
-    
+
     Args:
         enabled: Whether button is enabled
-        
+
     Returns:
         QSS stylesheet string
     """
@@ -167,10 +167,10 @@ def get_button_stylesheet(enabled=True):
 
 def create_shadow(hover=False):
     """Create a subtle shadow effect for tiles
-    
+
     Args:
         hover: Whether this is hover state (stronger shadow)
-        
+
     Returns:
         QGraphicsDropShadowEffect instance
     """
