@@ -16,20 +16,6 @@ class ConnectorModuleView(QWidget):
 
     MODULE_ID = 'connectors'
 
-    # Tile configuration for start page
-    TILE_CONFIG = {
-        'module_id': MODULE_ID,  # Explicit module ID for clarity
-        'title': "🔌 Connector Search",
-        'subtitle': "Search for connectors",
-        'bullets': [
-            "Quick search by name or part number",
-            "Filter by connector type",
-            "View detailed pinout diagrams"
-        ],
-        'show_in_start_page': True,
-        'user_guide_url': 'https://example.com/connector-guide'  # User guide button will appear
-    }
-
     # ========================================================================
     # SUB-TAB IDENTIFIERS - Single source of truth
     # ========================================================================

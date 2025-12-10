@@ -9,9 +9,8 @@ from ..core.base_presenter import BasePresenter
 class ConnectorsPresenter(BasePresenter):
     """Presenter coordinating the connector module"""
 
-    # Pull MODULE_ID and TILE_CONFIG from the view for tab registration
+    # Pull MODULE_ID from the view for tab registration
     MODULE_ID = ConnectorModuleView.MODULE_ID
-    TILE_CONFIG = ConnectorModuleView.TILE_CONFIG
 
     def __init__(self, context):
         # Create model

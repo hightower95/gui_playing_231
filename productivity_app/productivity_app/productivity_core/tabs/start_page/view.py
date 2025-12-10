@@ -27,20 +27,6 @@ class StartPageView(QWidget):
     MODULE_ID = 'start_page'
     CONFIG_KEY = 'start_page_closed'
 
-    # Start page doesn't show itself as a tile
-    TILE_CONFIG = {
-        'module_id': 'start_page',
-        'title': "🏠 Start Page",
-        'subtitle': "Welcome and navigation",
-        'bullets': [
-            "Quick navigation to all tabs",
-            "Overview of available features",
-            "Interactive tile interface"
-        ],
-        'show_in_start_page': False,  # Don't show start page on start page!
-        'user_guide_url': None
-    }
-
     def __init__(self, services: Optional[AppContext] = None, parent: Optional[QWidget] = None):
         """Initialize start page view
 

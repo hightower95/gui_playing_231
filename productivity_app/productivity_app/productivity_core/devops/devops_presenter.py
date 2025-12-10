@@ -10,19 +10,6 @@ class DevOpsPresenter(QObject):
 
     MODULE_ID = 'devops'
 
-    TILE_CONFIG = {
-        'module_id': MODULE_ID,
-        'title': "🔧 DevOps",
-        'subtitle': "Development and operations tools",
-        'bullets': [
-            "Manage development workflows",
-            "Access build and deployment tools",
-            "Monitor system operations"
-        ],
-        'show_in_start_page': True,
-        'user_guide_url': None
-    }
-
     def __init__(self, context):
         super().__init__()
         self.context = context

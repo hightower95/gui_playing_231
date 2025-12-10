@@ -19,9 +19,8 @@ Configuration Structure:
     - view_from_presenter: Whether to get view from presenter.view property
     - default_focus: Whether this tab should be focused on startup
 
-Tile Configuration:
-    Each module can define TILE_CONFIG dictionary with:
-    - module_id: Unique identifier matching MODULE_ID
+Tile Configuration (What is displayed on Start Page):
+    Tile configs are defined directly in TAB_CONFIG below:
     - title: Display title (with emoji)
     - subtitle: Brief description
     - bullets: List of feature highlights
@@ -46,9 +45,8 @@ from .start_page import StartPageView
 # ============================================================================
 # To add a new tab:
 # 1. Import the presenter class above
-# 2. Define TILE_CONFIG in the module (for start page tile)
-# 3. Add an entry to TAB_CONFIG list below
-# 4. Set default_focus=True on ONE tab to make it focused on startup
+# 2. Add an entry to TAB_CONFIG list below with tile config
+# 3. Set default_focus=True on ONE tab to make it focused on startup
 #
 # init_args signature: lambda services, deps: [args...]
 #   - services: AppContext (service provider/dependency injection)
@@ -62,19 +60,41 @@ TAB_CONFIG: List[Dict[str, Any]] = [
         'id': StartPageView.MODULE_ID,
         'presenter_class': StartPageView,
         'init_args': lambda services, deps: [services],
-        'delay_ms': 0,  # Load immediately
-        'view_from_presenter': False,  # This class IS the view
-        'visible': True,  # Always visible in config
-        'default_focus': True,  # Focus on startup
+        'delay_ms': 0,
+        'view_from_presenter': False,
+        'visible': True,
+        'default_focus': True,
+        'tile': {
+            'title': "🏠 Start Page",
+            'subtitle': "Your productivity hub",
+            'bullets': [
+                "Quick access to all tools",
+                "Overview of available features",
+                "Navigation center"
+            ],
+            'show_in_start_page': False,  # Don't show start page tile on start page
+            'user_guide_url': None
+        },
     },
     {
         'id': SettingsTab.MODULE_ID,
         'presenter_class': SettingsTab,
         'init_args': lambda services, deps: [services],
-        'delay_ms': 0,  # Load immediately
-        'view_from_presenter': False,  # This class IS the view
+        'delay_ms': 0,
+        'view_from_presenter': False,
         'visible': True,
         'default_focus': False,
+        'tile': {
+            'title': "⚙️ Settings",
+            'subtitle': "Configure your workspace",
+            'bullets': [
+                "Manage tab visibility",
+                "Customize appearance",
+                "Configure preferences"
+            ],
+            'show_in_start_page': True,
+            'user_guide_url': None
+        },
     },
     {
         'id': ConnectorsPresenter.MODULE_ID,
@@ -83,6 +103,17 @@ TAB_CONFIG: List[Dict[str, Any]] = [
         'delay_ms': 50,
         'visible': True,
         'default_focus': False,
+        'tile': {
+            'title': "🔌 Connector Search",
+            'subtitle': "Search for connectors",
+            'bullets': [
+                "Quick search by name or part number",
+                "Filter by connector type",
+                "View detailed pinout diagrams"
+            ],
+            'show_in_start_page': True,
+            'user_guide_url': 'https://example.com/connector-guide'
+        },
     },
     {
         'id': EpdPresenter.MODULE_ID,
@@ -91,23 +122,56 @@ TAB_CONFIG: List[Dict[str, Any]] = [
         'delay_ms': 100,
         'visible': True,
         'default_focus': False,
+        'tile': {
+            'title': "📊 EPD Tools",
+            'subtitle': "Electronic Part Database tools",
+            'bullets': [
+                "Search for electronic parts",
+                "Identify best EPD matches",
+                "View detailed part information"
+            ],
+            'show_in_start_page': True,
+            'user_guide_url': None
+        },
     },
     {
         'id': DocumentScannerModuleView.MODULE_ID,
         'presenter_class': DocumentScannerModuleView,
         'init_args': lambda services, deps: [services],
         'delay_ms': 200,
-        'view_from_presenter': False,  # This class IS the view
+        'view_from_presenter': False,
         'visible': True,
         'default_focus': False,
+        'tile': {
+            'title': "📄 Document Scanner",
+            'subtitle': "Search and analyze documents",
+            'bullets': [
+                "Scan multiple document types",
+                "Advanced search capabilities",
+                "Export and filter results"
+            ],
+            'show_in_start_page': True,
+            'user_guide_url': None
+        },
     },
     {
         'id': FaultFindingPresenter.MODULE_ID,
         'presenter_class': FaultFindingPresenter,
         'init_args': lambda services, deps: [services, deps['epd'].model],
         'delay_ms': 300,
-        'dependencies': ['epd'],  # Requires EPD to be loaded first
+        'dependencies': ['epd'],
         'visible': True,
+        'tile': {
+            'title': "🔍 Fault Finding",
+            'subtitle': "Diagnose and troubleshoot issues",
+            'bullets': [
+                "Search for common faults",
+                "View diagnostic procedures",
+                "Access troubleshooting guides"
+            ],
+            'show_in_start_page': True,
+            'user_guide_url': None
+        },
     },
     {
         'id': RemoteDocsPresenter.MODULE_ID,
@@ -115,6 +179,17 @@ TAB_CONFIG: List[Dict[str, Any]] = [
         'init_args': lambda services, deps: [services],
         'delay_ms': 400,
         'visible': True,
+        'tile': {
+            'title': "📁 Remote Docs",
+            'subtitle': "Access remote documentation",
+            'bullets': [
+                "Browse remote documents",
+                "Download documentation",
+                "Upload and share files"
+            ],
+            'show_in_start_page': True,
+            'user_guide_url': None
+        },
     },
     {
         'id': DevOpsPresenter.MODULE_ID,
@@ -122,6 +197,17 @@ TAB_CONFIG: List[Dict[str, Any]] = [
         'init_args': lambda services, deps: [services],
         'delay_ms': 450,
         'visible': True,
+        'tile': {
+            'title': "🔧 DevOps",
+            'subtitle': "Development and operations tools",
+            'bullets': [
+                "Manage development workflows",
+                "Access build and deployment tools",
+                "Monitor system operations"
+            ],
+            'show_in_start_page': True,
+            'user_guide_url': None
+        },
     },
 ]
 

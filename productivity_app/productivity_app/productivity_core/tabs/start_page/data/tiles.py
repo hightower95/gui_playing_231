@@ -23,13 +23,11 @@ def get_tile_data() -> List[Tuple[str, str, List[str], str, bool, Optional[str]]
 
     # Load tiles from TAB_CONFIG
     for tab_config in TAB_CONFIG:
-        presenter_class = tab_config['presenter_class']
-
-        # Check if this module has TILE_CONFIG
-        if not hasattr(presenter_class, 'TILE_CONFIG'):
+        # Check if this tab has tile configuration
+        if 'tile' not in tab_config:
             continue
 
-        tile_config = presenter_class.TILE_CONFIG
+        tile_config = tab_config['tile']
 
         # Skip if module doesn't want to show in start page
         if not tile_config.get('show_in_start_page', True):
