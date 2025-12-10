@@ -1,8 +1,10 @@
 """
-Experiment with different HTML/CSS approaches for 3-column tile layout in QTextBrowser
+Experiment with tile-based layout using pure Qt widgets
 """
 import sys
-from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QTextBrowser, QPushButton, QHBoxLayout
+from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
+                               QPushButton, QLabel, QFrame)
+from PySide6.QtCore import Qt
 
 
 class TileExperiment(QMainWindow):
@@ -10,190 +12,166 @@ class TileExperiment(QMainWindow):
         super().__init__()
         self.setWindowTitle("Tile Layout Experiment")
         self.setGeometry(100, 100, 1000, 700)
-        
+
         central = QWidget()
         self.setCentralWidget(central)
+        central.setStyleSheet("background-color: #1e1e1e;")
         layout = QVBoxLayout(central)
+        layout.setContentsMargins(0, 20, 0, 20)
+
+        # Title
+        title = QLabel("Engineering Productivity Toolkit")
+        title.setStyleSheet(
+            "font-size: 14pt; font-weight: bold; color: #4fc3f7; padding: 10px;")
+        title.setFrameStyle(0)
+        layout.addWidget(title)
         
-        # Buttons to switch between approaches
+        # Version subtitle
+        version = QLabel("Version 1.2.3")
+        version.setStyleSheet(
+            "font-size: 9pt; color: #909090; padding: 0px 10px 10px 10px;")
+        version.setFrameStyle(0)
+        layout.addWidget(version)
+
+        # Horizontal layout for tiles
+        tiles_layout = QHBoxLayout()
+        tiles_layout.setSpacing(12)
+        tiles_layout.setContentsMargins(40, 0, 40, 0)
+
+        # Create 3 tiles with different visibility states
+        tile1 = self._create_tile(
+            "🔌 Connector Search",
+            "Search for connectors",
+            ["Quick search by name or part number",
+                "Filter by connector type", "View detailed pinout diagrams"],
+            is_visible=True
+        )
+        tiles_layout.addWidget(tile1)
+
+        tile2 = self._create_tile(
+            "⚡ EPD Browser",
+            "Browse engineering product data",
+            ["Search EPD database", "Compare product versions",
+                "Export technical specifications"],
+            is_visible=True
+        )
+        tiles_layout.addWidget(tile2)
+
+        tile3 = self._create_tile(
+            "📄 Document Scanner",
+            "Scan and search documents",
+            ["Register document sources",
+                "Quick text search across files", "View document history"],
+            is_visible=False  # Example of disabled tab
+        )
+        tiles_layout.addWidget(tile3)
+
+        layout.addLayout(tiles_layout)
+        layout.addStretch()
+
+    def _create_tile(self, title: str, subtitle: str, bullets: list, is_visible: bool = True) -> QFrame:
+        """Create a single tile widget"""
+        tile = QFrame()
+        tile.setStyleSheet("""
+            background-color: #2a2a2a;
+            border: 1px solid #3a3a3a;
+            border-radius: 12px;
+        """)
+        tile.setMinimumHeight(176)
+        tile.setMaximumHeight(208)
+
+        layout = QVBoxLayout(tile)
+        layout.setSpacing(8)
+        layout.setContentsMargins(15, 15, 15, 15)
+
+        # Title
+        title_label = QLabel(title)
+        title_label.setStyleSheet(
+            "font-size: 14pt; font-weight: bold; color: #FFFFFF; border: none;")
+        title_label.setFrameStyle(0)
+        print(f"Created title label: {title}")
+        layout.addWidget(title_label)
+
+        # Subtitle
+        subtitle_label = QLabel(subtitle)
+        subtitle_label.setStyleSheet("color: #FFFFFF; font-size: 10pt; border: none;")
+        subtitle_label.setWordWrap(True)
+        subtitle_label.setFrameStyle(0)
+        print(f"Created subtitle label: {subtitle}")
+        layout.addWidget(subtitle_label)
+
+        # Bullet points
+        for bullet in bullets:
+            bullet_label = QLabel(f"• {bullet}")
+            bullet_label.setStyleSheet("color: #FFFFFF; font-size: 10pt; border: none;")
+            bullet_label.setWordWrap(True)
+            bullet_label.setFrameStyle(0)
+            print(f"Created bullet: {bullet}")
+            layout.addWidget(bullet_label)
+
+        layout.addStretch()
+
+        # Button container
         button_layout = QHBoxLayout()
-        
-        btn1 = QPushButton("Approach 1: Table")
-        btn1.clicked.connect(lambda: self.show_approach(1))
-        button_layout.addWidget(btn1)
-        
-        btn2 = QPushButton("Approach 2: Inline-block")
-        btn2.clicked.connect(lambda: self.show_approach(2))
-        button_layout.addWidget(btn2)
-        
-        btn3 = QPushButton("Approach 3: Flex")
-        btn3.clicked.connect(lambda: self.show_approach(3))
-        button_layout.addWidget(btn3)
-        
-        btn4 = QPushButton("Approach 4: Float")
-        btn4.clicked.connect(lambda: self.show_approach(4))
-        button_layout.addWidget(btn4)
-        
+        button_layout.setSpacing(8)
+
+        button_layout.addStretch()
+
+        # Go To button
+        goto_btn = QPushButton("Go To")
+        goto_btn.setEnabled(is_visible)
+        goto_btn.setStyleSheet("""
+            QPushButton {
+                background-color: transparent;
+                color: #64b5f6;
+                border: none;
+                text-align: center;
+                padding: 4px;
+                font-size: 9pt;
+            }
+            QPushButton:hover:enabled {
+                color: #90caf9;
+                text-decoration: underline;
+            }
+            QPushButton:disabled {
+                color: #505050;
+            }
+        """)
+        goto_btn.setCursor(
+            Qt.CursorShape.PointingHandCursor if is_visible else Qt.CursorShape.ArrowCursor)
+        goto_btn.clicked.connect(lambda: print(f"Go to: {title}"))
+        button_layout.addWidget(goto_btn)
+
+        # Separator
+        sep1 = QLabel("|")
+        sep1.setStyleSheet(
+            "color: #3a3a3a; background-color: transparent; border: none;")
+        sep1.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+        button_layout.addWidget(sep1)
+
+        # User Guide button
+        guide_btn = QPushButton("User Guide")
+        guide_btn.setStyleSheet("""
+            QPushButton {
+                background-color: transparent;
+                color: #64b5f6 ;
+                border: none;
+                text-align: center;
+                padding: 4px;
+                font-size: 9pt;
+            }
+            QPushButton:hover {
+                color: #90caf9;
+                text-decoration: underline;
+            }
+        """)
+        guide_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        guide_btn.clicked.connect(lambda: print(f"User guide: {title}"))
+        button_layout.addWidget(guide_btn)
+
+        button_layout.addStretch()
         layout.addLayout(button_layout)
-        
-        # Text browser
-        self.browser = QTextBrowser()
-        layout.addWidget(self.browser)
-        
-        # Show first approach by default
-        self.show_approach(1)
-    
-    def show_approach(self, num: int):
-        """Show different layout approach"""
-        if num == 1:
-            self.browser.setHtml(self.approach_table())
-        elif num == 2:
-            self.browser.setHtml(self.approach_inline_block())
-        elif num == 3:
-            self.browser.setHtml(self.approach_flex())
-        elif num == 4:
-            self.browser.setHtml(self.approach_float())
-    
-    def approach_table(self) -> str:
-        """Approach 1: HTML Table (current approach)"""
-        return """
-        <html>
-        <head>
-            <style>
-                body { background-color: #1e1e1e; color: #e0e0e0; font-family: Arial; margin: 10px; }
-                h2 { color: #4fc3f7; }
-                table { width: 100%; border-collapse: separate; border-spacing: 0; }
-                td { width: 33.33%; padding: 12px; vertical-align: top; }
-                .tile {
-                    background-color: #2a2a2a;
-                    border-radius: 12px;
-                    padding: 15px;
-                    border: 1px solid #3a3a3a;
-                    height: 140px;
-                }
-                .tile:hover { background-color: #353535; }
-                .title { font-weight: bold; color: #4fc3f7; font-size: 14pt; }
-            </style>
-        </head>
-        <body>
-            <h2>Approach 1: Table Layout</h2>
-            <table>
-                <tr>
-                    <td><div class="tile"><div class="title">Tile 1</div>Content here</div></td>
-                    <td><div class="tile"><div class="title">Tile 2</div>Content here</div></td>
-                    <td><div class="tile"><div class="title">Tile 3</div>Content here</div></td>
-                </tr>
-            </table>
-        </body>
-        </html>
-        """
-    
-    def approach_inline_block(self) -> str:
-        """Approach 2: Inline-block with calc width"""
-        return """
-        <html>
-        <head>
-            <style>
-                body { background-color: #1e1e1e; color: #e0e0e0; font-family: Arial; margin: 10px; }
-                h2 { color: #4fc3f7; }
-                .container { width: 100%; }
-                .tile {
-                    display: inline-block;
-                    width: calc(33.33% - 16px);
-                    background-color: #2a2a2a;
-                    border-radius: 12px;
-                    padding: 15px;
-                    border: 1px solid #3a3a3a;
-                    height: 140px;
-                    margin: 8px;
-                    vertical-align: top;
-                    box-sizing: border-box;
-                }
-                .tile:hover { background-color: #353535; }
-                .title { font-weight: bold; color: #4fc3f7; font-size: 14pt; }
-            </style>
-        </head>
-        <body>
-            <h2>Approach 2: Inline-Block</h2>
-            <div class="container">
-                <div class="tile"><div class="title">Tile 1</div>Content here</div>
-                <div class="tile"><div class="title">Tile 2</div>Content here</div>
-                <div class="tile"><div class="title">Tile 3</div>Content here</div>
-            </div>
-        </body>
-        </html>
-        """
-    
-    def approach_flex(self) -> str:
-        """Approach 3: Flexbox"""
-        return """
-        <html>
-        <head>
-            <style>
-                body { background-color: #1e1e1e; color: #e0e0e0; font-family: Arial; margin: 10px; }
-                h2 { color: #4fc3f7; }
-                .container {
-                    display: flex;
-                    gap: 12px;
-                    width: 100%;
-                }
-                .tile {
-                    flex: 1;
-                    background-color: #2a2a2a;
-                    border-radius: 12px;
-                    padding: 15px;
-                    border: 1px solid #3a3a3a;
-                    height: 140px;
-                }
-                .tile:hover { background-color: #353535; }
-                .title { font-weight: bold; color: #4fc3f7; font-size: 14pt; }
-            </style>
-        </head>
-        <body>
-            <h2>Approach 3: Flexbox</h2>
-            <div class="container">
-                <div class="tile"><div class="title">Tile 1</div>Content here</div>
-                <div class="tile"><div class="title">Tile 2</div>Content here</div>
-                <div class="tile"><div class="title">Tile 3</div>Content here</div>
-            </div>
-        </body>
-        </html>
-        """
-    
-    def approach_float(self) -> str:
-        """Approach 4: Float (old school)"""
-        return """
-        <html>
-        <head>
-            <style>
-                body { background-color: #1e1e1e; color: #e0e0e0; font-family: Arial; margin: 10px; }
-                h2 { color: #4fc3f7; }
-                .container { width: 100%; overflow: auto; }
-                .tile {
-                    float: left;
-                    width: 30%;
-                    background-color: #2a2a2a;
-                    border-radius: 12px;
-                    padding: 15px;
-                    border: 1px solid #3a3a3a;
-                    height: 140px;
-                    margin: 0 1.5%;
-                    box-sizing: border-box;
-                }
-                .tile:hover { background-color: #353535; }
-                .title { font-weight: bold; color: #4fc3f7; font-size: 14pt; }
-            </style>
-        </head>
-        <body>
-            <h2>Approach 4: Float Layout</h2>
-            <div class="container">
-                <div class="tile"><div class="title">Tile 1</div>Content here</div>
-                <div class="tile"><div class="title">Tile 2</div>Content here</div>
-                <div class="tile"><div class="title">Tile 3</div>Content here</div>
-            </div>
-        </body>
-        </html>
-        """
+        return tile
 
 
 if __name__ == '__main__':
