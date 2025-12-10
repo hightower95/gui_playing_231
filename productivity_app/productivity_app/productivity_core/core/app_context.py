@@ -1,7 +1,11 @@
 """
 Application Context - Central dependency injection and state management
 """
-from typing import Dict, Any, Optional, TypeVar, Type
+from typing import Dict, Any, Optional, TypeVar, Type, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ..tabs.tab_visibility_service import TabVisibilityService
+    from .feature_flags_manager import FeatureFlagsManager
 
 T = TypeVar('T')
 
@@ -47,6 +51,18 @@ class AppContext:
 
         self.register('feature_flags', FeatureFlagsManager())
         self.register('tab_visibility', TabVisibilityService())
+
+    @property
+    def tab_visibility(self) -> 'TabVisibilityService':
+        """Get the tab visibility service with full type hints"""
+        from ..tabs.tab_visibility_service import TabVisibilityService
+        return self.get('tab_visibility', TabVisibilityService)
+    
+    @property
+    def feature_flags(self) -> 'FeatureFlagsManager':
+        """Get the feature flags manager with full type hints"""
+        from .feature_flags_manager import FeatureFlagsManager
+        return self.get('feature_flags', FeatureFlagsManager)
 
     def register(self, name: str, service: Any) -> 'AppContext':
         """Register a service with the context

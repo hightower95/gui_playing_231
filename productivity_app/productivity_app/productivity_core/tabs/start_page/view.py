@@ -118,13 +118,12 @@ class StartPageView(QWidget):
             print(f"[StartPageView] Cannot navigate - no services available")
             return
 
-        tab_visibility_service = self.services.get('tab_visibility')
-        if tab_visibility_service:
+        if self.services.tab_visibility:
             # Ensure tab is visible
-            if not tab_visibility_service.is_tab_visible(tab_id):
-                tab_visibility_service.set_tab_as_visible(tab_id)
+            if not self.services.tab_visibility.is_tab_visible(tab_id):
+                self.services.tab_visibility.set_tab_as_visible(tab_id)
             # Switch focus to it
-            tab_visibility_service.set_focus(tab_id)
+            self.services.tab_visibility.set_focus(tab_id)
             print(f"[StartPageView] Navigated to {tab_id} tab")
         else:
             print(f"[StartPageView] tab_visibility_service not available")
@@ -146,10 +145,9 @@ class StartPageView(QWidget):
 
         # Hide the tab using TabVisibilityService
         if self.services:
-            tab_visibility_service = self.services.get('tab_visibility')
-            if tab_visibility_service:
+            if self.services.tab_visibility:
                 # Don't persist - we want it visible again on next run
-                tab_visibility_service.set_tab_as_hidden(
+                self.services.tab_visibility.set_tab_as_hidden(
                     self.MODULE_ID, persist=False)
 
         print(f"[StartPageView] Closed for this session")

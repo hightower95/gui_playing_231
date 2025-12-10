@@ -53,14 +53,13 @@ class MainWindow(QMainWindow):
         setattr(self, tab_id, presenter)
 
         # Initialize tab visibility service on first tab load
-        tab_visibility_service = self.services.get('tab_visibility')
-        if tab_visibility_service and not tab_visibility_service.is_initialized:
-            tab_visibility_service.initialize(self.tabs, self.tab_registry)
+        if self.services.tab_visibility and not self.services.tab_visibility.is_initialized:
+            self.services.tab_visibility.initialize(self.tabs, self.tab_registry)
 
         # Add tab if it should be visible
         # Check user settings for visibility
-        user_visible = tab_visibility_service.is_tab_visible(
-            tab_id) if tab_visibility_service else True
+        user_visible = self.services.tab_visibility.is_tab_visible(
+            tab_id) if self.services.tab_visibility else True
 
         # Special handling for start page - check if it should be shown this session
         # if tab_id == 'start_page':
@@ -69,9 +68,9 @@ class MainWindow(QMainWindow):
         #     user_visible = False
 
         if user_visible:
-            if tab_visibility_service:
+            if self.services.tab_visibility:
                 # Don't persist on initial load
-                tab_visibility_service.set_tab_as_visible(tab_id)
+                self.services.tab_visibility.set_tab_as_visible(tab_id)
 
     def _on_loading_error(self, tab_id: str, error: Exception):
         """
@@ -110,9 +109,8 @@ class MainWindow(QMainWindow):
             return
 
         # Use tab visibility service to set focus
-        tab_visibility_service = self.services.get('tab_visibility')
-        if tab_visibility_service:
-            tab_visibility_service.set_focus(default_tab_id)
+        if self.services.tab_visibility:
+            self.services.tab_visibility.set_focus(default_tab_id)
 
     def _on_feature_flag_changed(self, flag_id: str, enabled: bool):
         """

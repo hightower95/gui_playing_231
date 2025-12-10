@@ -28,10 +28,9 @@ class TabVisibilityService(QObject):
         services.register('tab_visibility', TabVisibilityService())
 
     Usage:
-        tab_service = services.get('tab_visibility')
-        tab_service.set_tab_as_visible('epd')
-        tab_service.set_tab_as_hidden('connectors')
-        is_visible = tab_service.is_tab_visible('document_scanner')
+        services.tab_visibility.set_tab_as_visible('epd')
+        services.tab_visibility.set_tab_as_hidden('connectors')
+        is_visible = services.tab_visibility.is_tab_visible('document_scanner')
     """
 
     # Signals

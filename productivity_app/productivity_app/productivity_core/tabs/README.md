@@ -115,20 +115,18 @@ Use the `TabVisibilityService` to change tabs programmatically.
 
 **Method 1: Using the service directly**
 ```python
-# Get the service from AppContext
-tab_visibility_service = self.services.get('tab_visibility')
-
-# Switch to a specific tab
-tab_visibility_service.set_focus(TabId.EPD)
+# Access the service via property (provides full type hints)
+if self.services.tab_visibility:
+    # Switch to a specific tab
+    self.services.tab_visibility.set_focus(TabId.EPD)
 ```
 
 **Method 2: From MainWindow**
 ```python
 # In main_window.py or any class with access to services
 def switch_to_epd_tab(self):
-    tab_visibility_service = self.services.get('tab_visibility')
-    if tab_visibility_service:
-        tab_visibility_service.set_focus('epd')  # Use tab ID string
+    if self.services.tab_visibility:
+        self.services.tab_visibility.set_focus('epd')  # Use tab ID string
 ```
 
 **Method 3: Using tab index**
@@ -156,26 +154,26 @@ Tab visibility can be persisted when you use the `TabVisibilityService` with `pe
 
 **Show/Hide a tab with persistence:**
 ```python
-# Get the service
-tab_visibility_service = self.services.get('tab_visibility')
-
-# Hide a tab and persist to config
-tab_visibility_service.set_tab_as_hidden(TabId.EPD, persist=True)
-
-# Show a tab and persist to config
-tab_visibility_service.set_tab_as_visible(TabId.EPD, persist=True)
-
-# Check if a tab is visible
-is_visible = tab_visibility_service.is_tab_visible(TabId.EPD)
+# Access the service via property
+if self.services.tab_visibility:
+    # Hide a tab and persist to config
+    self.services.tab_visibility.set_tab_as_hidden(TabId.EPD, persist=True)
+    
+    # Show a tab and persist to config
+    self.services.tab_visibility.set_tab_as_visible(TabId.EPD, persist=True)
+    
+    # Check if a tab is visible
+    is_visible = self.services.tab_visibility.is_tab_visible(TabId.EPD)
 ```
 
 **Default behavior (no persistence):**
 ```python
 # Show tab WITHOUT persisting to config (default behavior)
-tab_visibility_service.set_tab_as_visible(TabId.EPD)
-
-# Hide tab WITHOUT persisting to config (default behavior)
-tab_visibility_service.set_tab_as_hidden(TabId.EPD)
+if self.services.tab_visibility:
+    self.services.tab_visibility.set_tab_as_visible(TabId.EPD)
+    
+    # Hide tab WITHOUT persisting to config (default behavior)
+    self.services.tab_visibility.set_tab_as_hidden(TabId.EPD)
 ```
 
 **Where visibility is stored:**
@@ -186,11 +184,12 @@ tab_visibility_service.set_tab_as_hidden(TabId.EPD)
 
 **Checking visibility from config vs UI:**
 ```python
-# Check config state (doesn't require tab to be loaded)
-is_visible = tab_visibility_service.is_tab_visible(TabId.EPD, check_ui=False)
-
-# Check actual UI state (requires tab to be loaded)
-is_visible = tab_visibility_service.is_tab_visible(TabId.EPD, check_ui=True)
+if self.services.tab_visibility:
+    # Check config state (doesn't require tab to be loaded)
+    is_visible = self.services.tab_visibility.is_tab_visible(TabId.EPD, check_ui=False)
+    
+    # Check actual UI state (requires tab to be loaded)
+    is_visible = self.services.tab_visibility.is_tab_visible(TabId.EPD, check_ui=True)
 ```
 
 ---
@@ -330,26 +329,24 @@ Use `depends_on` to ensure tabs load in a specific order:
 ```python
 # From any presenter or view with access to services
 def open_document_scanner(self):
-    tab_visibility_service = self.services.get('tab_visibility')
-    if tab_visibility_service:
+    if self.services.tab_visibility:
         # First ensure it's visible
-        tab_visibility_service.set_tab_as_visible(TabId.DOCUMENT_SCANNER)
+        self.services.tab_visibility.set_tab_as_visible(TabId.DOCUMENT_SCANNER)
         # Then switch to it
-        tab_visibility_service.set_focus(TabId.DOCUMENT_SCANNER)
+        self.services.tab_visibility.set_focus(TabId.DOCUMENT_SCANNER)
 ```
 
 ### Example: Conditionally showing tabs
 ```python
 # In MainWindow or a presenter
 def show_advanced_features(self, user_level: str):
-    tab_visibility_service = self.services.get('tab_visibility')
-    if not tab_visibility_service:
+    if not self.services.tab_visibility:
         return
     
     if user_level == 'advanced':
-        tab_visibility_service.set_tab_as_visible(TabId.DEVOPS, persist=True)
-        tab_visibility_service.set_tab_as_visible(TabId.REMOTE_DOCS, persist=True)
+        self.services.tab_visibility.set_tab_as_visible(TabId.DEVOPS, persist=True)
+        self.services.tab_visibility.set_tab_as_visible(TabId.REMOTE_DOCS, persist=True)
     else:
-        tab_visibility_service.set_tab_as_hidden(TabId.DEVOPS, persist=True)
-        tab_visibility_service.set_tab_as_hidden(TabId.REMOTE_DOCS, persist=True)
+        self.services.tab_visibility.set_tab_as_hidden(TabId.DEVOPS, persist=True)
+        self.services.tab_visibility.set_tab_as_hidden(TabId.REMOTE_DOCS, persist=True)
 ```
