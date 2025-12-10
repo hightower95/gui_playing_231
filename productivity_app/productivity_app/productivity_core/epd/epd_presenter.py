@@ -9,6 +9,21 @@ from .epd_tab import EpdModuleView
 class EpdPresenter(BasePresenter):
     """Main EPD presenter coordinating SearchEpd and IdentifyBestEpd sub-modules"""
 
+    MODULE_ID = 'epd'
+
+    TILE_CONFIG = {
+        'module_id': MODULE_ID,
+        'title': "📊 EPD Tools",
+        'subtitle': "Electronic Part Database tools",
+        'bullets': [
+            "Search for electronic parts",
+            "Identify best EPD matches",
+            "View detailed part information"
+        ],
+        'show_in_start_page': True,
+        'user_guide_url': None
+    }
+
     def __init__(self, context):
         self.model = EpdModel(context)
         self.view = EpdModuleView(context, self.model)

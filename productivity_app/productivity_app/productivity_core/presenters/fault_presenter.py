@@ -4,6 +4,22 @@ from ..core.base_presenter import BasePresenter
 
 
 class FaultFindingPresenter(BasePresenter):
+
+    MODULE_ID = 'fault_finding'
+
+    TILE_CONFIG = {
+        'module_id': MODULE_ID,
+        'title': "🔍 Fault Finding",
+        'subtitle': "Diagnose and troubleshoot issues",
+        'bullets': [
+            "Search for common faults",
+            "View diagnostic procedures",
+            "Access troubleshooting guides"
+        ],
+        'show_in_start_page': True,
+        'user_guide_url': None
+    }
+
     def __init__(self, context, epd_model, contextualizers=None, title="Fault Finding"):
         self.context = context
         self.model = FaultFindingModel(epd_model)

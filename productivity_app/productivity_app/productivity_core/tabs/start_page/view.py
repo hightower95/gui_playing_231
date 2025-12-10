@@ -27,6 +27,20 @@ class StartPageView(QWidget):
     MODULE_ID = 'start_page'
     CONFIG_KEY = 'start_page_closed'
 
+    # Start page doesn't show itself as a tile
+    TILE_CONFIG = {
+        'module_id': 'start_page',
+        'title': "🏠 Start Page",
+        'subtitle': "Welcome and navigation",
+        'bullets': [
+            "Quick navigation to all tabs",
+            "Overview of available features",
+            "Interactive tile interface"
+        ],
+        'show_in_start_page': False,  # Don't show start page on start page!
+        'user_guide_url': None
+    }
+
     def __init__(self, services: Optional[AppContext] = None, parent: Optional[QWidget] = None):
         """Initialize start page view
 
@@ -70,7 +84,7 @@ class StartPageView(QWidget):
 
         # Create tiles with real tab data - simple loop as requested
         tile_data = get_tile_data()
-        for idx, (title_text, subtitle, bullets, tab_id, is_visible) in enumerate(tile_data):
+        for idx, (title_text, subtitle, bullets, tab_id, is_visible, user_guide_url) in enumerate(tile_data):
             row = idx // 3
             col = idx % 3
             tile = create_tile(
@@ -80,6 +94,7 @@ class StartPageView(QWidget):
                 bullets=bullets,
                 tab_id=tab_id,
                 is_visible=is_visible,
+                user_guide_url=user_guide_url,
                 on_goto_clicked=self._navigate_to_tab,
                 on_guide_clicked=self._show_user_guide
             )

@@ -70,7 +70,8 @@ class TileFrame(QFrame):
 def create_tile(parent_window, title: str, subtitle: str, bullets: List[str],
                 tab_id: str, is_visible: bool,
                 on_goto_clicked: Callable[[str], None],
-                on_guide_clicked: Callable[[str], None]) -> QFrame:
+                on_guide_clicked: Callable[[str], None],
+                user_guide_url: str = None) -> QFrame:
     """Factory function to create a single tile widget
 
     Args:
@@ -82,6 +83,7 @@ def create_tile(parent_window, title: str, subtitle: str, bullets: List[str],
         is_visible: Whether the tab is currently visible
         on_goto_clicked: Callback when "Go To" button clicked, receives tab_id
         on_guide_clicked: Callback when "User Guide" button clicked, receives tab_id
+        user_guide_url: Optional URL for user guide (enables guide button if provided)
 
     Returns:
         Configured TileFrame widget
@@ -139,12 +141,13 @@ def create_tile(parent_window, title: str, subtitle: str, bullets: List[str],
 
     button_layout.addSpacing(8)
 
-    # User Guide button
-    guide_btn = QPushButton("User Guide")
-    guide_btn.setStyleSheet(get_button_stylesheet(enabled=False))
-    guide_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-    guide_btn.clicked.connect(lambda: on_guide_clicked(tab_id))
-    button_layout.addWidget(guide_btn)
+    # User Guide button (only show if URL is provided)
+    if user_guide_url:
+        guide_btn = QPushButton("User Guide")
+        guide_btn.setStyleSheet(get_button_stylesheet(enabled=False))
+        guide_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        guide_btn.clicked.connect(lambda: on_guide_clicked(tab_id))
+        button_layout.addWidget(guide_btn)
 
     button_layout.addStretch()
     layout.addLayout(button_layout)

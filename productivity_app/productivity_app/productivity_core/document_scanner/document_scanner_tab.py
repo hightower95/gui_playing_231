@@ -20,6 +20,20 @@ class DocumentScannerModuleView(QWidget):
 
     MODULE_ID = 'document_scanner'
 
+    # Tile configuration for start page
+    TILE_CONFIG = {
+        'module_id': MODULE_ID,
+        'title': "📄 Document Scanner",
+        'subtitle': "Scan and search documents",
+        'bullets': [
+            "Register document sources",
+            "Quick text search across files",
+            "View document history"
+        ],
+        'show_in_start_page': True,
+        'user_guide_url': None  # TODO: Add user guide URL when available
+    }
+
     # ========================================================================
     # SUB-TAB IDENTIFIERS - Single source of truth
     # ========================================================================

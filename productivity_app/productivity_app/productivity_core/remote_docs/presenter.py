@@ -11,6 +11,21 @@ from .model import RemoteDocsModel
 class RemoteDocsPresenter(QObject):
     """Presenter for Remote Docs tab"""
 
+    MODULE_ID = 'remote_docs'
+
+    TILE_CONFIG = {
+        'module_id': MODULE_ID,
+        'title': "📁 Remote Docs",
+        'subtitle': "Access remote documentation",
+        'bullets': [
+            "Browse remote documents",
+            "Download documentation",
+            "Upload and share files"
+        ],
+        'show_in_start_page': True,
+        'user_guide_url': None
+    }
+
     def __init__(self, context):
         super().__init__()
         self.context = context

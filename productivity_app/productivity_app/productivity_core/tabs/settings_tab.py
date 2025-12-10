@@ -33,6 +33,20 @@ class SettingsTab(QWidget):
     TAB_TITLE = "⚙️ Settings"
     MODULE_ID = 'settings'
 
+    # Tile configuration for start page
+    TILE_CONFIG = {
+        'module_id': MODULE_ID,
+        'title': "⚙️ Settings",
+        'subtitle': "Configure application behavior",
+        'bullets': [
+            "Toggle tab visibility",
+            "Configure sub-tab displays",
+            "Enable/disable feature flags"
+        ],
+        'show_in_start_page': True,
+        'user_guide_url': None  # TODO: Add user guide URL when available
+    }
+
     # Signal emitted when tab visibility changes
     # Emits tuple: (tab_name: str, visible: bool)
     tab_visibility_changed = Signal(str, bool)
