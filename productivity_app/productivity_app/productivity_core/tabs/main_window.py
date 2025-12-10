@@ -63,10 +63,10 @@ class MainWindow(QMainWindow):
             tab_id) if tab_visibility_service else True
 
         # Special handling for start page - check if it should be shown this session
-        if tab_id == 'start_page':
-            from .start_page_tab import StartPageTab
-            if not StartPageTab.should_show_on_startup():
-                user_visible = False
+        # if tab_id == 'start_page':
+        # from .start_page import StartPageView
+        # if not StartPageView.should_show_on_startup():
+        #     user_visible = False
 
         if user_visible:
             if tab_visibility_service:
@@ -128,6 +128,3 @@ class MainWindow(QMainWindow):
         if flag_id == 'remote_docs_upload':
             if hasattr(self, 'remote_docs'):
                 self.remote_docs.on_feature_flag_changed(flag_id, enabled)
-            else:
-                print(
-                    f"[MainWindow] Remote docs not loaded yet, flag will apply when loaded")

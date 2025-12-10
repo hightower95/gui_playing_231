@@ -28,7 +28,7 @@ from ..document_scanner import DocumentScannerModuleView
 from ..remote_docs import RemoteDocsPresenter
 from ..devops import DevOpsPresenter
 from .settings_tab import SettingsTab
-from .start_page_tab import StartPageTab
+from .start_page import StartPageView
 from enum import Enum
 
 
@@ -60,7 +60,7 @@ class TabId(Enum):
 TAB_CONFIG: List[Dict[str, Any]] = [
     {
         'id': TabId.START_PAGE.value,
-        'presenter_class': StartPageTab,
+        'presenter_class': StartPageView,
         'init_args': lambda services, deps: [services],
         'delay_ms': 0,  # Load immediately
         'view_from_presenter': False,  # This class IS the view
