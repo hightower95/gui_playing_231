@@ -3,8 +3,9 @@ Experiment with tile-based layout using pure Qt widgets
 """
 import sys
 from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-                               QPushButton, QLabel, QFrame, QScrollArea, QGridLayout)
+                               QPushButton, QLabel, QFrame, QScrollArea, QGridLayout, QGraphicsDropShadowEffect)
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QColor
 
 
 class TileExperiment(QMainWindow):
@@ -114,30 +115,86 @@ class TileExperiment(QMainWindow):
         version.setFrameStyle(0)
         layout.addWidget(version)
 
-    def _create_tile(self, title: str, subtitle: str, bullets: list, is_visible: bool = True) -> QFrame:
-        """Create a single tile widget"""
-        tile = QFrame()
-        tile.setStyleSheet("""
-            QFrame {
+    def _create_shadow(self, hover=False):
+        """Create a subtle shadow effect for tiles"""
+        shadow = QGraphicsDropShadowEffect()
+        if hover:
+            shadow.setBlurRadius(40)
+            shadow.setXOffset(0)
+            shadow.setYOffset(10)
+            shadow.setColor(QColor(0, 0, 0, 120))
+        else:
+            shadow.setBlurRadius(25)
+            shadow.setXOffset(0)
+            shadow.setYOffset(6)
+            shadow.setColor(QColor(0, 0, 0, 100))
+        return shadow
+
+    class TileFrame(QFrame):
+        """Custom frame with hover animations"""
+
+        def __init__(self, parent_window, parent=None):
+            super().__init__(parent)
+            self.parent_window = parent_window
+            self._base_margins = None
+
+        def enterEvent(self, event):
+            """Handle mouse enter - elevate tile"""
+            self.setStyleSheet("""
+                background-color: #353535;
+                border: 1px solid #3a3a3a;
+                border-radius: 16px;
+            """)
+            self.setGraphicsEffect(
+                self.parent_window._create_shadow(hover=True))
+            # Use negative top margin to create upward movement
+            if self._base_margins is None:
+                layout = self.layout()
+                if layout:
+                    self._base_margins = layout.contentsMargins()
+            if self._base_margins:
+                self.layout().setContentsMargins(
+                    self._base_margins.left(),
+                    self._base_margins.top() - 4,
+                    self._base_margins.right(),
+                    self._base_margins.bottom() + 4
+                )
+            super().enterEvent(event)
+
+        def leaveEvent(self, event):
+            """Handle mouse leave - return tile to normal"""
+            self.setStyleSheet("""
                 background-color: #2a2a2a;
                 border: 1px solid #3a3a3a;
-                border-radius: 12px;
-            }
-            QFrame:hover {
-                background-color: #353535;
-            }
+                border-radius: 16px;
+            """)
+            self.setGraphicsEffect(
+                self.parent_window._create_shadow(hover=False))
+            # Restore original margins
+            if self._base_margins:
+                self.layout().setContentsMargins(self._base_margins)
+            super().leaveEvent(event)
+
+    def _create_tile(self, title: str, subtitle: str, bullets: list, is_visible: bool = True) -> QFrame:
+        """Create a single tile widget"""
+        tile = self.TileFrame(self)
+        tile.setStyleSheet("""
+            background-color: #2a2a2a;
+            border: 1px solid #3a3a3a;
+            border-radius: 16px;
         """)
+        tile.setGraphicsEffect(self._create_shadow())
         tile.setMinimumHeight(176)
         tile.setMaximumHeight(208)
 
         layout = QVBoxLayout(tile)
-        layout.setSpacing(8)
-        layout.setContentsMargins(15, 15, 15, 15)
+        layout.setSpacing(10)
+        layout.setContentsMargins(18, 18, 18, 18)
 
         # Title
         title_label = QLabel(title)
         title_label.setStyleSheet(
-            "font-size: 14pt; font-weight: bold; color: #FFFFFF; border: none; background-color: transparent;")
+            "font-size: 15pt; font-weight: bold; color: #FFFFFF; border: none; background-color: transparent;")
         title_label.setFrameStyle(0)
         print(f"Created title label: {title}")
         layout.addWidget(title_label)
@@ -145,7 +202,7 @@ class TileExperiment(QMainWindow):
         # Subtitle
         subtitle_label = QLabel(subtitle)
         subtitle_label.setStyleSheet(
-            "color: #FFFFFF; font-size: 10pt; border: none; background-color: transparent;")
+            "color: #b0b0b0; font-size: 10pt; border: none; background-color: transparent; margin-top: 2px;")
         subtitle_label.setWordWrap(True)
         subtitle_label.setFrameStyle(0)
         print(f"Created subtitle label: {subtitle}")
@@ -155,7 +212,7 @@ class TileExperiment(QMainWindow):
         for bullet in bullets:
             bullet_label = QLabel(f"• {bullet}")
             bullet_label.setStyleSheet(
-                "color: #FFFFFF; font-size: 10pt; border: none; background-color: transparent;")
+                "color: #c0c0c0; font-size: 9pt; border: none; background-color: transparent; padding-left: 2px;")
             bullet_label.setWordWrap(True)
             bullet_label.setFrameStyle(0)
             print(f"Created bullet: {bullet}")
@@ -174,19 +231,23 @@ class TileExperiment(QMainWindow):
         goto_btn.setEnabled(is_visible)
         goto_btn.setStyleSheet("""
             QPushButton {
-                background-color: transparent;
+                background-color: rgba(100, 181, 246, 0.1);
                 color: #64b5f6;
-                border: none;
+                border: 1px solid rgba(100, 181, 246, 0.2);
+                border-radius: 6px;
                 text-align: center;
-                padding: 4px;
+                padding: 6px 12px;
                 font-size: 9pt;
             }
             QPushButton:hover:enabled {
+                background-color: rgba(100, 181, 246, 0.2);
                 color: #90caf9;
-                text-decoration: underline;
+                border-color: rgba(144, 202, 249, 0.3);
             }
             QPushButton:disabled {
+                background-color: rgba(80, 80, 80, 0.1);
                 color: #505050;
+                border-color: rgba(80, 80, 80, 0.2);
             }
         """)
         goto_btn.setCursor(
@@ -194,27 +255,24 @@ class TileExperiment(QMainWindow):
         goto_btn.clicked.connect(lambda: print(f"Go to: {title}"))
         button_layout.addWidget(goto_btn)
 
-        # Separator
-        sep1 = QLabel("|")
-        sep1.setStyleSheet(
-            "color: #3a3a3a; background-color: transparent; border: none;")
-        sep1.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
-        button_layout.addWidget(sep1)
+        button_layout.addSpacing(8)
 
         # User Guide button
         guide_btn = QPushButton("User Guide")
         guide_btn.setStyleSheet("""
             QPushButton {
-                background-color: transparent;
-                color: #64b5f6 ;
-                border: none;
+                background-color: rgba(100, 181, 246, 0.1);
+                color: #64b5f6;
+                border: 1px solid rgba(100, 181, 246, 0.2);
+                border-radius: 6px;
                 text-align: center;
-                padding: 4px;
+                padding: 6px 12px;
                 font-size: 9pt;
             }
             QPushButton:hover {
+                background-color: rgba(100, 181, 246, 0.2);
                 color: #90caf9;
-                text-decoration: underline;
+                border-color: rgba(144, 202, 249, 0.3);
             }
         """)
         guide_btn.setCursor(Qt.CursorShape.PointingHandCursor)
