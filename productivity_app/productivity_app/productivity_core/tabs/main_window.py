@@ -54,7 +54,8 @@ class MainWindow(QMainWindow):
 
         # Initialize tab visibility service on first tab load
         if self.services.tab_visibility and not self.services.tab_visibility.is_initialized:
-            self.services.tab_visibility.initialize(self.tabs, self.tab_registry)
+            self.services.tab_visibility.initialize(
+                self.tabs, self.tab_registry)
 
         # Add tab if it should be visible
         # Check user settings for visibility

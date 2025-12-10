@@ -57,7 +57,7 @@ class AppContext:
         """Get the tab visibility service with full type hints"""
         from ..tabs.tab_visibility_service import TabVisibilityService
         return self.get('tab_visibility', TabVisibilityService)
-    
+
     @property
     def feature_flags(self) -> 'FeatureFlagsManager':
         """Get the feature flags manager with full type hints"""
