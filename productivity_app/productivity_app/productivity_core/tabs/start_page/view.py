@@ -47,7 +47,7 @@ class StartPageView(QWidget):
         # Title
         title = QLabel("Engineering Productivity Toolkit")
         title.setStyleSheet(
-            f"font-size: 14pt; font-weight: bold; color: {ACCENT_BLUE}; padding: 10px;")
+            f"font-size: 14pt; font-weight: bold; color: {ACCENT_BLUE}; padding: 10px; background-color: transparent;")
         title.setFrameStyle(0)
         layout.addWidget(title)
 
@@ -70,7 +70,7 @@ class StartPageView(QWidget):
 
         # Create tiles with real tab data - simple loop as requested
         tile_data = get_tile_data()
-        for idx, (title_text, subtitle, bullets, tab_id, is_visible, user_guide_url) in enumerate(tile_data):
+        for idx, (title_text, subtitle, bullets, tab_id, is_visible, user_guide_url, enable_navigation) in enumerate(tile_data):
             row = idx // 3
             col = idx % 3
             tile = create_tile(
@@ -81,6 +81,7 @@ class StartPageView(QWidget):
                 tab_id=tab_id,
                 is_visible=is_visible,
                 user_guide_url=user_guide_url,
+                enable_navigation=enable_navigation,
                 on_goto_clicked=self._navigate_to_tab,
                 on_guide_clicked=self._show_user_guide
             )
@@ -91,7 +92,7 @@ class StartPageView(QWidget):
         # Version subtitle (at bottom)
         version = QLabel("Version 1.2.3")
         version.setStyleSheet(
-            f"font-size: 9pt; color: {TEXT_MUTED}; padding: 10px;")
+            f"font-size: 9pt; color: {TEXT_MUTED}; padding: 10px; background-color: transparent;")
         version.setFrameStyle(0)
         layout.addWidget(version)
 
@@ -116,13 +117,14 @@ class StartPageView(QWidget):
         else:
             print(f"[StartPageView] tab_visibility_service not available")
 
-    def _show_user_guide(self, tab_id: str):
+    def _show_user_guide(self, tab_id: str, url: Optional[str] = None):
         """Show user guide for a specific tab (placeholder)
 
         Args:
             tab_id: The ID of the tab
         """
-        print(f"[StartPageView] User guide requested for: {tab_id}")
+        print(
+            f"[StartPageView] User guide requested for: {tab_id}, with param url: {url}")
         # TODO: Implement user guide system
 
     def _on_close_clicked(self):

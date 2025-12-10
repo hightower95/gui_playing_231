@@ -71,7 +71,8 @@ def create_tile(parent_window, title: str, subtitle: str, bullets: List[str],
                 tab_id: str, is_visible: bool,
                 on_goto_clicked: Callable[[str], None],
                 on_guide_clicked: Callable[[str], None],
-                user_guide_url: str = None) -> QFrame:
+                user_guide_url: str = None,
+                enable_navigation: bool = True) -> QFrame:
     """Factory function to create a single tile widget
 
     Args:
@@ -84,6 +85,7 @@ def create_tile(parent_window, title: str, subtitle: str, bullets: List[str],
         on_goto_clicked: Callback when "Go To" button clicked, receives tab_id
         on_guide_clicked: Callback when "User Guide" button clicked, receives tab_id
         user_guide_url: Optional URL for user guide (enables guide button if provided)
+        enable_navigation: Whether to show Go To button (default True)
 
     Returns:
         Configured TileFrame widget
@@ -130,24 +132,38 @@ def create_tile(parent_window, title: str, subtitle: str, bullets: List[str],
     button_layout.setSpacing(8)
     button_layout.addStretch()
 
-    # Go To button
-    goto_btn = QPushButton("Go To")
-    goto_btn.setEnabled(is_visible)
-    goto_btn.setStyleSheet(get_button_stylesheet(enabled=True))
-    goto_btn.setCursor(
-        Qt.CursorShape.PointingHandCursor if is_visible else Qt.CursorShape.ArrowCursor)
-    goto_btn.clicked.connect(lambda: on_goto_clicked(tab_id))
-    button_layout.addWidget(goto_btn)
+    # For special tiles (user_manual, feedback), show only "Open" button
+    # For regular tabs, show "Go To" (if enabled) and optionally "User Guide"
+    is_special_tile = tab_id in ['user_manual', 'feedback']
 
-    button_layout.addSpacing(8)
+    if is_special_tile:
+        # Special tiles: single "Open" button
+        open_btn = QPushButton("Open")
+        open_btn.setStyleSheet(get_button_stylesheet(enabled=False))
+        open_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        open_btn.clicked.connect(
+            lambda: on_guide_clicked(tab_id, user_guide_url))
+        button_layout.addWidget(open_btn)
+    else:
+        # Regular tabs: "Go To" button (always shown, disabled if enable_navigation is False)
+        goto_btn = QPushButton("Go To")
+        # Enable button only if both is_visible AND enable_navigation are True
+        goto_btn.setEnabled(is_visible and enable_navigation)
+        goto_btn.setStyleSheet(get_button_stylesheet(enabled=True))
+        goto_btn.setCursor(
+            Qt.CursorShape.PointingHandCursor if (is_visible and enable_navigation) else Qt.CursorShape.ArrowCursor)
+        goto_btn.clicked.connect(lambda: on_goto_clicked(tab_id))
+        button_layout.addWidget(goto_btn)
 
-    # User Guide button (only show if URL is provided)
-    if user_guide_url:
-        guide_btn = QPushButton("User Guide")
-        guide_btn.setStyleSheet(get_button_stylesheet(enabled=False))
-        guide_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        guide_btn.clicked.connect(lambda: on_guide_clicked(tab_id))
-        button_layout.addWidget(guide_btn)
+        button_layout.addSpacing(8)
+
+        # User Guide button (only show if URL is provided)
+        if user_guide_url:
+            guide_btn = QPushButton("User Guide")
+            guide_btn.setStyleSheet(get_button_stylesheet(enabled=False))
+            guide_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+            guide_btn.clicked.connect(lambda: on_guide_clicked(tab_id))
+            button_layout.addWidget(guide_btn)
 
     button_layout.addStretch()
     layout.addLayout(button_layout)

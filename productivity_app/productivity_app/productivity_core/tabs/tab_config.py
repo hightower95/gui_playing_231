@@ -92,7 +92,7 @@ TAB_CONFIG: List[Dict[str, Any]] = [
                 "Customize appearance",
                 "Configure preferences"
             ],
-            'show_in_start_page': True,
+            'show_in_start_page': False,
             'user_guide_url': None
         },
     },
@@ -206,6 +206,7 @@ TAB_CONFIG: List[Dict[str, Any]] = [
                 "Monitor system operations"
             ],
             'show_in_start_page': True,
+            'enable_navigation': False,
             'user_guide_url': None
         },
     },

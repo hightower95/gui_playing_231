@@ -11,11 +11,11 @@ Tiles can be:
 from typing import List, Tuple, Optional
 
 
-def get_tile_data() -> List[Tuple[str, str, List[str], str, bool, Optional[str]]]:
+def get_tile_data() -> List[Tuple[str, str, List[str], str, bool, Optional[str], bool]]:
     """Get tile data for all tabs by reading from TAB_CONFIG
 
     Returns:
-        List of tuples: (title, subtitle, bullets_list, tab_id, is_visible, user_guide_url)
+        List of tuples: (title, subtitle, bullets_list, tab_id, is_visible, user_guide_url, enable_navigation)
     """
     from ...tab_config import TAB_CONFIG
 
@@ -36,6 +36,7 @@ def get_tile_data() -> List[Tuple[str, str, List[str], str, bool, Optional[str]]
         tab_id = tab_config['id']
         is_visible = tab_config.get('visible', True)
         user_guide_url = tile_config.get('user_guide_url', None)
+        enable_navigation = tile_config.get('enable_navigation', True)
 
         tiles.append((
             tile_config['title'],
@@ -43,7 +44,8 @@ def get_tile_data() -> List[Tuple[str, str, List[str], str, bool, Optional[str]]
             tile_config['bullets'],
             tab_id,
             is_visible,
-            user_guide_url
+            user_guide_url,
+            enable_navigation
         ))
 
     # Add special tiles (non-module tiles)
@@ -52,19 +54,18 @@ def get_tile_data() -> List[Tuple[str, str, List[str], str, bool, Optional[str]]
     return tiles
 
 
-def _get_special_tiles() -> List[Tuple[str, str, List[str], str, bool, Optional[str]]]:
+def _get_special_tiles() -> List[Tuple[str, str, List[str], str, bool, Optional[str], bool]]:
     """Get special tiles that don't correspond to modules
 
     Returns:
-        List of special tile tuples: (title, subtitle, bullets, tab_id, is_visible, user_guide_url)
+        List of special tile tuples: (title, subtitle, bullets, tab_id, is_visible, user_guide_url, enable_navigation)
     """
     return [
-        # Example special tiles - uncomment and customize as needed
-        # ("📚 User Guide", "Learn how to use the toolkit",
-        #  ["Getting started tutorials", "Feature documentation", "Video guides"],
-        #  "user_guide", True, "https://example.com/guide"),
-        #
-        # ("💬 Feedback", "Help us improve",
-        #  ["Report bugs", "Request features", "Share suggestions"],
-        #  "feedback", True, None),
+        ("📚 User Manual", "Learn how to use the toolkit",
+         ["Getting started guide", "Feature documentation", "Best practices and tips"],
+         "user_manual", False, "https://example.com/manual", False),
+
+        ("💬 Feedback", "Help us improve",
+         ["Report bugs and issues", "Request new features", "Share your suggestions"],
+         "feedback", False, "https://example.com/feedback", False),
     ]
