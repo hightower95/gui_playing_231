@@ -162,7 +162,8 @@ def create_tile(parent_window, title: str, subtitle: str, bullets: List[str],
             guide_btn = QPushButton("User Guide")
             guide_btn.setStyleSheet(get_button_stylesheet(enabled=False))
             guide_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-            guide_btn.clicked.connect(lambda: on_guide_clicked(tab_id))
+            guide_btn.clicked.connect(
+                lambda: on_guide_clicked(tab_id, user_guide_url))
             button_layout.addWidget(guide_btn)
 
     button_layout.addStretch()
