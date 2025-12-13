@@ -6,17 +6,17 @@ from PySide6.QtCore import Qt, Signal
 
 class AllReportsItem(QWidget):
     """Special widget for 'All Reports' - no arrow, starts where arrow would be"""
-    
+
     # Signals
     clicked = Signal(str)  # Emits "All Reports"
-    
+
     def __init__(
         self,
         count: int = 0,
         parent: Optional[QWidget] = None
     ):
         """Initialize all reports item
-        
+
         Args:
             count: Total number of reports
             parent: Parent widget
@@ -24,18 +24,18 @@ class AllReportsItem(QWidget):
         super().__init__(parent)
         self.count = count
         self._setup_ui()
-    
+
     def _setup_ui(self):
         """Setup the all reports item UI"""
         self.setFixedHeight(32)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
         self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
-        
+
         # Main layout
         layout = QHBoxLayout(self)
         layout.setContentsMargins(10, 2, 10, 2)
         layout.setSpacing(4)
-        
+
         # "All Reports" label - prominent typography
         self.name_label = QLabel("All Reports")
         self.name_label.setStyleSheet("""
@@ -47,7 +47,7 @@ class AllReportsItem(QWidget):
             }
         """)
         layout.addWidget(self.name_label, stretch=1)
-        
+
         # Count badge (fixed width for alignment)
         self.count_label = QLabel(str(self.count))
         self.count_label.setStyleSheet("""
@@ -59,15 +59,16 @@ class AllReportsItem(QWidget):
             }
         """)
         self.count_label.setFixedWidth(40)
-        self.count_label.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+        self.count_label.setAlignment(
+            Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         layout.addWidget(self.count_label)
-        
+
         # Initial styling
         self._update_style(False)
-    
+
     def _update_style(self, hovered: bool):
         """Update widget styling based on hover state
-        
+
         Args:
             hovered: Whether the widget is being hovered
         """
@@ -101,26 +102,26 @@ class AllReportsItem(QWidget):
                     border: none;
                 }
             """)
-    
+
     def enterEvent(self, event):
         """Handle mouse enter"""
         self._update_style(True)
         super().enterEvent(event)
-    
+
     def leaveEvent(self, event):
         """Handle mouse leave"""
         self._update_style(False)
         super().leaveEvent(event)
-    
+
     def mousePressEvent(self, event):
         """Handle mouse click"""
         if event.button() == Qt.MouseButton.LeftButton:
             self.clicked.emit("All Reports")
         super().mousePressEvent(event)
-    
+
     def update_count(self, new_count: int):
         """Update the count display
-        
+
         Args:
             new_count: New count value
         """
