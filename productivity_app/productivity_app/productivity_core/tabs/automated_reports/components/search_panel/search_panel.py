@@ -46,6 +46,7 @@ class SearchPanel(QFrame):
             font-size: 14pt;
             font-weight: bold;
             color: #4fc3f7;
+            border: none;
         """)
         header_layout.addWidget(title)
 
@@ -54,6 +55,7 @@ class SearchPanel(QFrame):
         self.results_count.setStyleSheet("""
             font-size: 10pt;
             color: #909090;
+            border: none;
         """)
         header_layout.addWidget(self.results_count)
         header_layout.addStretch()

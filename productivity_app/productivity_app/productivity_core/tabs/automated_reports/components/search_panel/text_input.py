@@ -52,6 +52,8 @@ class SearchInput(QWidget):
 
         self.search_icon = QSvgWidget()
         self.search_icon.load(search_icon_data)
+        self.search_icon.setStyleSheet(
+            "background: transparent; border: none;")
         self.search_icon.setFixedSize(20, 20)
         layout.addWidget(self.search_icon)
 

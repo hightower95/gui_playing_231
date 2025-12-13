@@ -29,22 +29,28 @@ class FilterButtons(QWidget):
         layout.setSpacing(10)
 
         # Create filter buttons
-        self.project_filter = FilterButton("Project", ["Alpha", "Beta", "Gamma"])
+        self.project_filter = FilterButton(
+            "Project", [f"Project {i}" for i in range(1, 21)])  # 20 items to test scrolling
         self.project_filter.selection_changed.connect(self._on_filter_changed)
         layout.addWidget(self.project_filter)
         self.filter_buttons['project'] = self.project_filter
 
-        self.focus_area_filter = FilterButton("Focus Area", ["Team Velocity", "Resource Allocation", "Budget Reports"])
-        self.focus_area_filter.selection_changed.connect(self._on_filter_changed)
+        self.focus_area_filter = FilterButton(
+            "Focus Area", ["Team Velocity", "Resource Allocation", "Budget Reports"])
+        self.focus_area_filter.selection_changed.connect(
+            self._on_filter_changed)
         layout.addWidget(self.focus_area_filter)
         self.filter_buttons['focus_area'] = self.focus_area_filter
 
-        self.report_type_filter = FilterButton("Report Type", ["Single Report", "Report Bundle"])
-        self.report_type_filter.selection_changed.connect(self._on_filter_changed)
+        self.report_type_filter = FilterButton(
+            "Report Type", ["Single Report", "Report Bundle"])
+        self.report_type_filter.selection_changed.connect(
+            self._on_filter_changed)
         layout.addWidget(self.report_type_filter)
         self.filter_buttons['report_type'] = self.report_type_filter
 
-        self.scope_filter = FilterButton("Scope", ["Team", "Department", "Organization"])
+        self.scope_filter = FilterButton(
+            "Scope", ["Team", "Department", "Organization"])
         self.scope_filter.selection_changed.connect(self._on_filter_changed)
         layout.addWidget(self.scope_filter)
         self.filter_buttons['scope'] = self.scope_filter
@@ -72,7 +78,7 @@ class FilterButtons(QWidget):
 
     def _on_filter_changed(self, filter_name: str, selected_items: Set[str]):
         """Handle filter change and emit signal
-        
+
         Args:
             filter_name: Name of the filter that changed
             selected_items: Set of selected items
