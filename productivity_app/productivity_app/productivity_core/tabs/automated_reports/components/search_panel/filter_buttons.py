@@ -1,15 +1,16 @@
 """
-Filter Buttons - Dropdown filters and clear button
+Filter Buttons - Modern filter buttons with checkbox dropdowns
 
-Provides filter comboboxes for Project, Focus Area, Report Type, and Scope.
+Provides filter buttons for Project, Focus Area, Report Type, and Scope.
 """
-from typing import Optional, List
-from PySide6.QtWidgets import QWidget, QHBoxLayout, QComboBox, QPushButton
+from typing import Optional, List, Dict, Set
+from PySide6.QtWidgets import QWidget, QHBoxLayout, QPushButton
 from PySide6.QtCore import Qt, Signal
+from .filter_button import FilterButton
 
 
 class FilterButtons(QWidget):
-    """Filter dropdown buttons and clear filters button"""
+    """Container for filter buttons and clear filters button"""
 
     # Signals
     filters_changed = Signal(dict)  # Emits dict with filter values
@@ -18,6 +19,7 @@ class FilterButtons(QWidget):
     def __init__(self, parent: Optional[QWidget] = None):
         """Initialize filter buttons"""
         super().__init__(parent)
+        self.filter_buttons: Dict[str, FilterButton] = {}
         self._setup_ui()
 
     def _setup_ui(self):
@@ -26,27 +28,26 @@ class FilterButtons(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(10)
 
-        # Project filter
-        self.project_combo = self._create_filter_combo("Project")
-        self.project_combo.currentIndexChanged.connect(self._on_filter_changed)
-        layout.addWidget(self.project_combo)
+        # Create filter buttons
+        self.project_filter = FilterButton("Project", ["Alpha", "Beta", "Gamma"])
+        self.project_filter.selection_changed.connect(self._on_filter_changed)
+        layout.addWidget(self.project_filter)
+        self.filter_buttons['project'] = self.project_filter
 
-        # Focus Area filter
-        self.focus_area_combo = self._create_filter_combo("Focus Area")
-        self.focus_area_combo.currentIndexChanged.connect(
-            self._on_filter_changed)
-        layout.addWidget(self.focus_area_combo)
+        self.focus_area_filter = FilterButton("Focus Area", ["Team Velocity", "Resource Allocation", "Budget Reports"])
+        self.focus_area_filter.selection_changed.connect(self._on_filter_changed)
+        layout.addWidget(self.focus_area_filter)
+        self.filter_buttons['focus_area'] = self.focus_area_filter
 
-        # Report Type filter
-        self.report_type_combo = self._create_filter_combo("Report Type")
-        self.report_type_combo.currentIndexChanged.connect(
-            self._on_filter_changed)
-        layout.addWidget(self.report_type_combo)
+        self.report_type_filter = FilterButton("Report Type", ["Single Report", "Report Bundle"])
+        self.report_type_filter.selection_changed.connect(self._on_filter_changed)
+        layout.addWidget(self.report_type_filter)
+        self.filter_buttons['report_type'] = self.report_type_filter
 
-        # Scope filter
-        self.scope_combo = self._create_filter_combo("Scope")
-        self.scope_combo.currentIndexChanged.connect(self._on_filter_changed)
-        layout.addWidget(self.scope_combo)
+        self.scope_filter = FilterButton("Scope", ["Team", "Department", "Organization"])
+        self.scope_filter.selection_changed.connect(self._on_filter_changed)
+        layout.addWidget(self.scope_filter)
+        self.filter_buttons['scope'] = self.scope_filter
 
         layout.addStretch()
 
@@ -69,67 +70,33 @@ class FilterButtons(QWidget):
         clear_btn.clicked.connect(self._on_clear_clicked)
         layout.addWidget(clear_btn)
 
-    def _create_filter_combo(self, label: str) -> QComboBox:
-        """Create a styled filter combobox
-
+    def _on_filter_changed(self, filter_name: str, selected_items: Set[str]):
+        """Handle filter change and emit signal
+        
         Args:
-            label: Label for the combobox
-
-        Returns:
-            Configured QComboBox
+            filter_name: Name of the filter that changed
+            selected_items: Set of selected items
         """
-        combo = QComboBox()
-        combo.addItem(label)
-        combo.setStyleSheet("""
-            QComboBox {
-                padding: 6px 12px;
-                border: 1px solid #3a3a3a;
-                border-radius: 4px;
-                background-color: #2a2a2a;
-                color: #b0b0b0;
-                font-size: 9pt;
-                min-width: 120px;
-            }
-            QComboBox:hover {
-                border: 1px solid #4a4a4a;
-            }
-            QComboBox::drop-down {
-                border: none;
-            }
-            QComboBox QAbstractItemView {
-                background-color: #2a2a2a;
-                border: 1px solid #3a3a3a;
-                selection-background-color: #353535;
-                color: #ffffff;
-            }
-        """)
-        combo.setCursor(Qt.CursorShape.PointingHandCursor)
-        return combo
-
-    def _on_filter_changed(self):
-        """Handle filter change and emit signal"""
         filters = self.get_current_filters()
         self.filters_changed.emit(filters)
 
     def _on_clear_clicked(self):
         """Clear all filters"""
-        self.project_combo.setCurrentIndex(0)
-        self.focus_area_combo.setCurrentIndex(0)
-        self.report_type_combo.setCurrentIndex(0)
-        self.scope_combo.setCurrentIndex(0)
+        for filter_btn in self.filter_buttons.values():
+            filter_btn.clear_selection()
         self.filters_cleared.emit()
 
-    def get_current_filters(self) -> dict:
+    def get_current_filters(self) -> Dict[str, Set[str]]:
         """Get current filter values
 
         Returns:
-            Dict with filter keys and values
+            Dict with filter keys and sets of selected values
         """
         return {
-            'project': self.project_combo.currentText() if self.project_combo.currentIndex() > 0 else None,
-            'focus_area': self.focus_area_combo.currentText() if self.focus_area_combo.currentIndex() > 0 else None,
-            'report_type': self.report_type_combo.currentText() if self.report_type_combo.currentIndex() > 0 else None,
-            'scope': self.scope_combo.currentText() if self.scope_combo.currentIndex() > 0 else None,
+            'project': self.project_filter.get_selected(),
+            'focus_area': self.focus_area_filter.get_selected(),
+            'report_type': self.report_type_filter.get_selected(),
+            'scope': self.scope_filter.get_selected(),
         }
 
     def populate_options(self, projects: List[str] = None, focus_areas: List[str] = None):
@@ -140,14 +107,11 @@ class FilterButtons(QWidget):
             focus_areas: List of focus area names
         """
         if projects:
-            current = self.project_combo.currentIndex()
-            self.project_combo.clear()
-            self.project_combo.addItem("Project")
-            self.project_combo.addItems(projects)
-            self.project_combo.setCurrentIndex(
-                0 if current == 0 else min(current, len(projects)))
+            self.project_filter.set_options(projects)
 
         if focus_areas:
+            self.focus_area_filter.set_options(focus_areas)
+
             current = self.focus_area_combo.currentIndex()
             self.focus_area_combo.clear()
             self.focus_area_combo.addItem("Focus Area")

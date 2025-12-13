@@ -39,14 +39,25 @@ class SearchPanel(QFrame):
         layout.setContentsMargins(25, 20, 25, 20)
         layout.setSpacing(15)
 
-        # Title
+        # Title and results count row
+        header_layout = QHBoxLayout()
         title = QLabel("Report Library")
         title.setStyleSheet("""
             font-size: 14pt;
             font-weight: bold;
             color: #4fc3f7;
         """)
-        layout.addWidget(title)
+        header_layout.addWidget(title)
+
+        # Results count
+        self.results_count = QLabel("Showing 0 of 0")
+        self.results_count.setStyleSheet("""
+            font-size: 10pt;
+            color: #909090;
+        """)
+        header_layout.addWidget(self.results_count)
+        header_layout.addStretch()
+        layout.addLayout(header_layout)
 
         # Search input
         search_layout = QHBoxLayout()
@@ -90,15 +101,20 @@ class SearchPanel(QFrame):
         Args:
             filter_key: Key of filter to remove
         """
-        # Update the corresponding combobox to default
-        if filter_key == 'project':
-            self.filter_buttons.project_combo.setCurrentIndex(0)
-        elif filter_key == 'focus_area':
-            self.filter_buttons.focus_area_combo.setCurrentIndex(0)
-        elif filter_key == 'report_type':
-            self.filter_buttons.report_type_combo.setCurrentIndex(0)
-        elif filter_key == 'scope':
+        # Clear the corresponding filter button
+        if filter_key in self.filter_buttons.filter_buttons:
+            self.filter_buttons.filter_buttons[filter_key].clear_selection()
             self.filter_buttons.scope_combo.setCurrentIndex(0)
+
+    def update_results_count(self, shown: int, total: int):
+        """Update the results count display
+
+        Args:
+            shown: Number of results currently shown
+            total: Total number of results
+        """
+        self.results_count.setText(f"Showing {shown} of {total}")
+        self.filter_buttons.scope_combo.setCurrentIndex(0)
 
         # The combobox change will trigger filters_changed signal
 
