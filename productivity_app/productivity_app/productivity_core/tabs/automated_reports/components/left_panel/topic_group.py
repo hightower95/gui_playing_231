@@ -3,7 +3,7 @@ from typing import Optional
 from pathlib import Path
 from PySide6.QtWidgets import QWidget, QHBoxLayout, QLabel
 from PySide6.QtSvgWidgets import QSvgWidget
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt, Signal, QByteArray
 
 
 class TopicGroup(QWidget):
@@ -43,29 +43,39 @@ class TopicGroup(QWidget):
         layout.setContentsMargins(10, 2, 10, 2)
         layout.setSpacing(8)
 
-        # Expand/collapse arrow (visual indicator only)
-        self.arrow_label = QLabel("▸")
-        self.arrow_label.setFixedSize(16, 16)
-        self.arrow_label.setStyleSheet("""
-            QLabel {
-                background: transparent;
-                border: none;
-                color: #b0b0b0;
-                font-size: 11pt;
-                padding: 0;
-            }
-        """)
-        layout.addWidget(self.arrow_label)
-
-        # Folder icon (SVG)
+        # Get icon directory
         icon_dir = Path(__file__).parent
+
+        # Cache SVG data for performance
+        self.arrow_collapsed_path = icon_dir / \
+            "arrow_forward_ios_22dp_E3E3E3_FILL0_wght100_GRAD200_opsz24.svg"
+        self.arrow_expanded_path = icon_dir / \
+            "keyboard_arrow_down_22dp_E3E3E3_FILL0_wght100_GRAD200_opsz24.svg"  # Same for now, will rotate
         self.closed_icon_path = icon_dir / \
             "folder_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
         self.open_icon_path = icon_dir / \
             "folder_open_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
 
-        self.folder_icon = QSvgWidget(str(self.closed_icon_path))
+        # Read and cache SVG data
+        with open(self.arrow_collapsed_path, 'rb') as f:
+            self.arrow_collapsed_data = QByteArray(f.read())
+        with open(self.arrow_expanded_path, 'rb') as f:
+            self.arrow_expanded_data = QByteArray(f.read())
+        with open(self.closed_icon_path, 'rb') as f:
+            self.folder_closed_data = QByteArray(f.read())
+        with open(self.open_icon_path, 'rb') as f:
+            self.folder_open_data = QByteArray(f.read())
+
+        # Expand/collapse arrow (SVG)
+        self.arrow_label = QSvgWidget()
+        self.arrow_label.setFixedSize(16, 16)
+        self.arrow_label.load(self.arrow_collapsed_data)
+        layout.addWidget(self.arrow_label)
+
+        # Folder icon (SVG)
+        self.folder_icon = QSvgWidget()
         self.folder_icon.setFixedSize(20, 20)
+        self.folder_icon.load(self.folder_closed_data)
         layout.addWidget(self.folder_icon)
 
         # Topic name - prominent typography
@@ -105,11 +115,17 @@ class TopicGroup(QWidget):
         self.expand_toggled.emit(self.topic_name, self.is_expanded)
 
     def _update_expand_button(self):
-        """Update expand arrow and folder icon"""
-        self.arrow_label.setText("▾" if self.is_expanded else "▸")
-        # Update folder icon
-        icon_path = self.open_icon_path if self.is_expanded else self.closed_icon_path
-        self.folder_icon.load(str(icon_path))
+        """Update expand arrow and folder icon using cached SVG data"""
+        # Swap arrow icon (for now using same icon, could add rotation transform)
+        # TODO: Add rotated version for expanded
+
+        # Swap folder icon
+        if self.is_expanded:
+            self.folder_icon.load(self.folder_open_data)
+            self.arrow_label.load(self.arrow_expanded_data)
+        else:
+            self.arrow_label.load(self.arrow_collapsed_data)
+            self.folder_icon.load(self.folder_closed_data)
 
     def _update_style(self, hovered: bool):
         """Update widget styling based on hover state
@@ -174,12 +190,16 @@ class TopicGroup(QWidget):
         self.count = new_count
         self.count_label.setText(str(new_count))
 
-    def set_expanded(self, expanded: bool):
-        """Set the expanded state programmatically
-
-        Args:
-            expanded: Whether to expand or collapse
-        """
-        if self.is_expanded != expanded:
-            self.is_expanded = expanded
+    def set_expanded(self):
+        """Expand this topic group"""
+        if not self.is_expanded:
+            self.is_expanded = True
             self._update_expand_button()
+            self.expand_toggled.emit(self.topic_name, self.is_expanded)
+
+    def set_not_expanded(self):
+        """Collapse this topic group"""
+        if self.is_expanded:
+            self.is_expanded = False
+            self._update_expand_button()
+            self.expand_toggled.emit(self.topic_name, self.is_expanded)
