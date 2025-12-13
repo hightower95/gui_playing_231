@@ -1,15 +1,18 @@
 """
 Left Panel - Topic/category navigation
 
-Displays categorized topics with counts for filtering reports.
+Displays categorized topics with counts in a folder-tree structure.
 """
-from typing import List, Tuple, Optional
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QFrame
+from typing import List, Tuple, Optional, Dict
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QFrame
 from PySide6.QtCore import Qt, Signal
+from .topic_group import TopicGroup
+from .topic_item import TopicItem
+from .all_reports_item import AllReportsItem
 
 
 class LeftPanel(QFrame):
-    """Left navigation panel with topic categories"""
+    """Left navigation panel with expandable topic categories"""
 
     # Signals
     topic_selected = Signal(str)  # Emits topic name when selected
@@ -17,6 +20,13 @@ class LeftPanel(QFrame):
     def __init__(self, parent: Optional[QWidget] = None):
         """Initialize left panel"""
         super().__init__(parent)
+        # Special all reports item
+        self.all_reports_item: Optional[AllReportsItem] = None
+        # Map group name to widget
+        self.topic_groups: Dict[str, TopicGroup] = {}
+        self.topic_items: Dict[str, TopicItem] = {}  # Map item name to widget
+        # Map parent to children
+        self.child_items: Dict[str, List[TopicItem]] = {}
         self._setup_ui()
 
     def _setup_ui(self):
@@ -27,11 +37,14 @@ class LeftPanel(QFrame):
                 border-right: 1px solid #3a3a3a;
             }
         """)
-        self.setMinimumWidth(150)
+        # Calculate minimum width to fit "Project Management12345"
+        # Approximate: 10 (margin) + 16 (arrow) + 8 (space) + 20 (icon) + 8 (space)
+        #              + 180 (text ~18 chars) + 40 (count) + 10 (margin) = 292px minimum
+        self.setMinimumWidth(280)
 
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(10, 15, 10, 15)
-        layout.setSpacing(5)
+        self.main_layout = QVBoxLayout(self)
+        self.main_layout.setContentsMargins(5, 15, 5, 15)
+        self.main_layout.setSpacing(2)
 
         # Header
         header = QLabel("Topics")
@@ -41,72 +54,104 @@ class LeftPanel(QFrame):
             color: #ffffff;
             padding: 5px;
         """)
-        layout.addWidget(header)
+        self.main_layout.addWidget(header)
 
-        # Topic buttons
-        self.topics = self._get_topics()
-        self.topic_buttons = []
+        # Build topic hierarchy
+        self._build_topic_tree()
 
-        for topic, count in self.topics:
-            btn = self._create_topic_button(topic, count)
-            self.topic_buttons.append(btn)
-            layout.addWidget(btn)
+        self.main_layout.addStretch()
 
-        layout.addStretch()
-
-    def _get_topics(self) -> List[Tuple[str, int]]:
-        """Get list of topics with counts"""
-        return [
-            ("All Reports", 10),
-            ("Project Management", 6),
-            ("Team & Resources", 6),
-            ("Financial", 3),
-            ("Quality & Testing", 3),
-            ("Customer", 2),
-            ("Technical", 2)
-        ]
-
-    def _create_topic_button(self, text: str, count: int) -> QPushButton:
-        """Create a topic navigation button
-
-        Args:
-            text: Topic name
-            count: Number of reports in topic
+    def _get_topic_hierarchy(self) -> List[Tuple[str, int, Optional[List[Tuple[str, int]]]]]:
+        """Get hierarchical topic structure
 
         Returns:
-            Configured QPushButton
+            List of (topic_name, count, optional_children)
+            where children is a list of (child_name, child_count)
         """
-        btn = QPushButton(f"  {text}    {count}")
-        btn.setStyleSheet("""
-            QPushButton {
-                text-align: left;
-                padding: 8px 10px;
-                border: none;
-                border-radius: 4px;
-                background-color: transparent;
-                color: #b0b0b0;
-                font-size: 10pt;
-            }
-            QPushButton:hover {
-                background-color: #2d2d2d;
-                color: #ffffff;
-            }
-            QPushButton:pressed {
-                background-color: #353535;
-            }
-        """)
-        btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        btn.clicked.connect(lambda: self.topic_selected.emit(text))
+        return [
+            ("All Reports", 10, None),
+            ("Project Management", 6, [
+                ("Gamma", 3),
+                ("Alpha", 2),
+                ("Beta", 1)
+            ]),
+            ("Team & Resources", 6, [
+                ("Team Velocity", 3),
+                ("Resource Allocation", 3)
+            ]),
+            ("Financial", 3, [
+                ("Budget Reports", 2),
+                ("Cost Analysis", 1)
+            ]),
+        ]
 
-        return btn
+    def _build_topic_tree(self):
+        """Build the topic tree with groups and items"""
+        hierarchy = self._get_topic_hierarchy()
+
+        for topic_name, count, children in hierarchy:
+
+            if topic_name == "All Reports":
+                # Special case: All Reports gets its own widget
+                self.all_reports_item = AllReportsItem(count)
+                self.all_reports_item.clicked.connect(self._on_topic_clicked)
+                self.main_layout.addWidget(self.all_reports_item)
+            elif children:
+                # Create TopicGroup for parents with children
+                group = TopicGroup(topic_name, count)
+                group.clicked.connect(self._on_topic_clicked)
+                group.expand_toggled.connect(self._on_expand_toggled)
+
+                self.topic_groups[topic_name] = group
+                self.main_layout.addWidget(group)
+
+                # Create TopicItem widgets for children
+                child_widgets = []
+                for child_name, child_count in children:
+                    child_item = TopicItem(child_name, child_count)
+                    child_item.clicked.connect(self._on_topic_clicked)
+                    child_item.hide()  # Initially hidden
+                    child_widgets.append(child_item)
+                    self.topic_items[child_name] = child_item
+                    self.main_layout.addWidget(child_item)
+
+                self.child_items[topic_name] = child_widgets
+            else:
+                # Create TopicItem for standalone topics (no children)
+                item = TopicItem(topic_name, count)
+                item.clicked.connect(self._on_topic_clicked)
+                self.topic_items[topic_name] = item
+                self.main_layout.addWidget(item)
+
+    def _on_topic_clicked(self, topic_name: str):
+        """Handle topic item click
+
+        Args:
+            topic_name: Name of clicked topic
+        """
+        self.topic_selected.emit(topic_name)
+
+    def _on_expand_toggled(self, topic_name: str, expanded: bool):
+        """Handle expand/collapse toggle
+
+        Args:
+            topic_name: Name of parent topic
+            expanded: Whether expanded or collapsed
+        """
+        if topic_name in self.child_items:
+            for child in self.child_items[topic_name]:
+                child.setVisible(expanded)
 
     def update_topic_counts(self, topic_counts: dict):
-        """Update the count badges on topic buttons
+        """Update the count badges on topic groups and items
 
         Args:
             topic_counts: Dict mapping topic names to counts
         """
-        for i, (topic, _) in enumerate(self.topics):
-            if topic in topic_counts and i < len(self.topic_buttons):
-                count = topic_counts[topic]
-                self.topic_buttons[i].setText(f"  {topic}    {count}")
+        for topic_name, count in topic_counts.items():
+            if topic_name == "All Reports" and self.all_reports_item:
+                self.all_reports_item.update_count(count)
+            elif topic_name in self.topic_groups:
+                self.topic_groups[topic_name].update_count(count)
+            elif topic_name in self.topic_items:
+                self.topic_items[topic_name].update_count(count)

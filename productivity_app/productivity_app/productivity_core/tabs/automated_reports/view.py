@@ -49,8 +49,8 @@ class AutomatedReportsView(QWidget):
         splitter = QSplitter(Qt.Orientation.Horizontal)
         splitter.addWidget(self.left_panel)
         splitter.addWidget(self.right_area)
-        splitter.setStretchFactor(0, 1)  # Left: 10%
-        splitter.setStretchFactor(1, 9)  # Right: 90%
+        splitter.setStretchFactor(0, 15)  # Left: ~15%
+        splitter.setStretchFactor(1, 85)  # Right: ~85%
         splitter.setStyleSheet("""
             QSplitter::handle {
                 background-color: #3a3a3a;
