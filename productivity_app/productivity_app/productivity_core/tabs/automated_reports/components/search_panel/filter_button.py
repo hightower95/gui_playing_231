@@ -195,6 +195,18 @@ class FilterButton(QWidget):
         self._update_button_style()
         self.selection_changed.emit(self.filter_name, self.selected_items)
 
+    def remove_item(self, item: str):
+        """Remove a specific item from selection
+
+        Args:
+            item: Item to remove
+        """
+        if item in self.selected_items:
+            self.selected_items.remove(item)
+            self._update_button_text()
+            self._update_button_style()
+            self.dropdown.set_options(self.options, self.selected_items)
+
     def get_selected(self) -> Set[str]:
         """Get currently selected items
 

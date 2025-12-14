@@ -175,11 +175,10 @@ class TopicGroup(QWidget):
         super().leaveEvent(event)
 
     def mousePressEvent(self, event):
-        """Handle mouse click - triggers both expansion and selection"""
+        """Handle mouse click - only toggles expansion, doesn't trigger filter"""
         if event.button() == Qt.MouseButton.LeftButton:
             self._toggle_expand()
-            self.clicked.emit(self.topic_name)
-        super().mousePressEvent(event)
+            super().mousePressEvent(event)
 
     def update_count(self, new_count: int):
         """Update the count display
@@ -203,3 +202,14 @@ class TopicGroup(QWidget):
             self.is_expanded = False
             self._update_expand_button()
             self.expand_toggled.emit(self.topic_name, self.is_expanded)
+
+    def select(self):
+        """Select this group - shows selected state"""
+        # TopicGroup doesn't have is_selected state yet, but method exists for API consistency
+        # Could be implemented if parent groups can be selected
+        pass
+
+    def deselect(self):
+        """Deselect this group - returns to normal state"""
+        # TopicGroup doesn't have is_selected state yet, but method exists for API consistency
+        pass

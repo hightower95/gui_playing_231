@@ -99,6 +99,10 @@ class SearchPanel(QFrame):
         self.active_pills = ActiveFilterPills()
         layout.addWidget(self.active_pills)
 
+        # Register filter buttons with pills for synchronization
+        for dimension, button in self.filter_buttons.filter_buttons.items():
+            self.active_pills.register_filter_button(dimension, button)
+
     def _connect_signals(self):
         """Connect internal component signals"""
         self.search_input.textChanged.connect(self.search_changed.emit)

@@ -8,7 +8,7 @@ class AllReportsItem(QWidget):
     """Special widget for 'All Reports' - no arrow, starts where arrow would be"""
 
     # Signals
-    clicked = Signal(str)  # Emits "All Reports"
+    clicked = Signal()  # Simple signal - just means "clear topic selections"
 
     def __init__(
         self,
@@ -116,7 +116,7 @@ class AllReportsItem(QWidget):
     def mousePressEvent(self, event):
         """Handle mouse click"""
         if event.button() == Qt.MouseButton.LeftButton:
-            self.clicked.emit("All Reports")
+            self.clicked.emit()
         super().mousePressEvent(event)
 
     def update_count(self, new_count: int):

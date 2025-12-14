@@ -245,11 +245,12 @@ class SortButton(QWidget):
         self.dropdown_visible = not self.dropdown_visible
 
         if self.dropdown_visible:
-            # Position dropdown below button
+            # Position dropdown below button, aligned to RIGHT edge (like add button)
             button_pos = self.button_container.mapToGlobal(
-                self.button_container.rect().bottomLeft())
-            button_pos.setY(button_pos.y() + 8)
-            self.dropdown.move(button_pos)
+                self.button_container.rect().bottomRight())
+            menu_x = button_pos.x() - self.dropdown.width()
+            menu_y = button_pos.y() + 8
+            self.dropdown.move(menu_x, menu_y)
             self.dropdown.setVisible(True)
             self.dropdown.raise_()
         else:
@@ -272,6 +273,7 @@ class SortButton(QWidget):
 
         self.sort_changed.emit(sort_id, ascending)
         self.dropdown_visible = False
+        self.dropdown.setVisible(False)
 
     def focusOutEvent(self, event):
         """Close dropdown when focus is lost"""

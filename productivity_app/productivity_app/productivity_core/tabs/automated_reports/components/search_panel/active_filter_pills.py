@@ -20,6 +20,9 @@ class ActiveFilterPills(QWidget):
     def __init__(self, parent: Optional[QWidget] = None):
         """Initialize active filter pills"""
         super().__init__(parent)
+        self.active_filters: Dict[str, Set[str]] = {}
+        # Reference to filter buttons
+        self.filter_buttons: Dict[str, 'FilterButton'] = {}
         self._setup_ui()
         self.hide()  # Hidden by default when no filters
 
@@ -63,12 +66,24 @@ class ActiveFilterPills(QWidget):
         clear_layout.addStretch()
         main_layout.addWidget(clear_row)
 
+    def register_filter_button(self, dimension: str, button: 'FilterButton'):
+        """Register a filter button for synchronization
+
+        Args:
+            dimension: Filter dimension name (e.g., 'project')
+            button: FilterButton instance
+        """
+        self.filter_buttons[dimension] = button
+
     def update_filters(self, filters: Dict[str, Set[str]]):
         """Update displayed filter pills - one pill per selection
 
         Args:
             filters: Dict of active filters {key: set_of_values}
         """
+        # Store the active filters
+        self.active_filters = {k: v.copy() for k, v in filters.items()}
+
         # Clear existing pills
         while self.pills_layout.count() > 1:  # Keep the stretch
             item = self.pills_layout.takeAt(0)
@@ -153,11 +168,34 @@ class ActiveFilterPills(QWidget):
         """)
 
         # Make icon clickable
-        close_icon.mousePressEvent = lambda e: self.filter_removed.emit(
+        close_icon.mousePressEvent = lambda e: self._on_pill_removed(
             key, value)
         layout.addWidget(close_icon)
 
         return container
+
+    def _on_pill_removed(self, filter_key: str, item: str):
+        """Handle pill removal - sync with filter button
+
+        Args:
+            filter_key: Filter dimension
+            item: Item value being removed
+        """
+        # Update local state
+        if filter_key in self.active_filters:
+            self.active_filters[filter_key].discard(item)
+            if not self.active_filters[filter_key]:
+                del self.active_filters[filter_key]
+
+        # Sync with filter button
+        if filter_key in self.filter_buttons:
+            self.filter_buttons[filter_key].remove_item(item)
+
+        # Emit signal
+        self.filter_removed.emit(filter_key, item)
+
+        # Update the pills display
+        self.update_filters(self.active_filters)
 
     def show_clear_all_filters(self):
         """Show the clear all filters button"""

@@ -8,7 +8,7 @@ class TopicItem(QWidget):
     """Simple topic item (child) with label and count - no icon or arrow"""
 
     # Signals
-    clicked = Signal(str)  # Emits topic name
+    clicked = Signal(str, bool)  # Emits (topic_name, ctrl_pressed)
 
     def __init__(
         self,
@@ -94,13 +94,12 @@ class TopicItem(QWidget):
                     color: #E0E0E0;
                     background: transparent;
                     border: none;
- 
                 }
             """)
             self.count_label.setStyleSheet("""
                 QLabel {
                     font-size: 9pt;
-                    color: #1e1e1e;
+                    color: #808080;
                     background: transparent;
                     border: none;
                 }
@@ -165,7 +164,9 @@ class TopicItem(QWidget):
     def mousePressEvent(self, event):
         """Handle mouse click"""
         if event.button() == Qt.MouseButton.LeftButton:
-            self.clicked.emit(self.topic_name)
+            ctrl_pressed = bool(event.modifiers() &
+                                Qt.KeyboardModifier.ControlModifier)
+            self.clicked.emit(self.topic_name, ctrl_pressed)
         super().mousePressEvent(event)
 
     def update_count(self, new_count: int):
@@ -186,4 +187,3 @@ class TopicItem(QWidget):
         """Deselect this item - returns to normal state"""
         self.is_selected = False
         self._update_style()
-        self.count_label.setText(str(new_count))

@@ -90,14 +90,27 @@ class AutomatedReportsView(QWidget):
         # Presenter signals
         self.presenter.reports_updated.connect(
             self.results_panel.update_results)
+        self.presenter.result_count_updated.connect(
+            self._on_result_count_updated)
+        self.presenter.topic_selection_changed.connect(
+            self._on_topic_selection_changed)
+        self.presenter.topic_groups_updated.connect(
+            self.left_panel.set_topic_groups)
+        self.presenter.filter_values_updated.connect(
+            self._on_filter_values_updated)
+        self.presenter.sort_methods_updated.connect(
+            self._on_sort_methods_updated)
 
         # Search panel signals
         self.search_panel.search_changed.connect(self._on_search_changed)
         self.search_panel.filters_changed.connect(self._on_filters_changed)
         self.search_panel.filters_cleared.connect(self._on_filters_cleared)
+        self.search_panel.sort_changed.connect(self._on_sort_changed)
 
         # Left panel signals
         self.left_panel.topic_selected.connect(self._on_topic_selected)
+        self.left_panel.clear_topics_selected.connect(
+            self._on_clear_topics_selected)
 
         # Debug signals (if debug mode enabled)
         if self.debug_mode:
@@ -113,31 +126,88 @@ class AutomatedReportsView(QWidget):
 
     def _on_search_changed(self, text: str):
         """Handle search text changes"""
-        filters = self.search_panel.filter_buttons.get_current_filters()
-        self.presenter.apply_filters(
-            search_text=text if text else None, **filters)
+        self.presenter.on_search_changed(text)
 
     def _on_filters_changed(self, filters: dict):
         """Handle filter changes"""
-        search_text = self.search_panel.search_input.text()
-        self.presenter.apply_filters(
-            search_text=search_text if search_text else None,
-            **filters
-        )
+        # filters dict has keys like 'project', 'report_type', etc.
+        for dimension, items in filters.items():
+            if items:  # Only set if there are items
+                self.presenter.on_filter_changed(dimension, items)
 
     def _on_filters_cleared(self):
         """Handle clear all filters"""
-        self.presenter.clear_filters()
+        self.presenter.on_filters_cleared()
 
-    def _on_topic_selected(self, topic: str):
-        """Handle topic selection from left panel"""
-        print(f"[AutomatedReportsView] Topic selected: {topic}")
+    def _on_sort_changed(self, sort_id: str, ascending: bool):
+        """Handle sort parameter change"""
+        self.presenter.on_sort_changed(sort_id, ascending)
+
+    def _on_topic_selected(self, topic: str, ctrl_pressed: bool):
+        """Handle topic selection from left panel
+
+        Args:
+            topic: Topic name
+            ctrl_pressed: Whether ctrl key was held
+        """
+        self.presenter.on_topic_clicked(topic, ctrl_pressed)
+
+    def _on_clear_topics_selected(self):
+        """Handle All Reports click"""
+        self.presenter.on_clear_topics_selected()
+
+    def _on_filter_values_updated(self, filter_values: dict):
+        """Handle filter values update from presenter
+
+        Args:
+            filter_values: Dict of {dimension: [values]}
+        """
+        # TODO: Update filter buttons with these values
+        print(f"[View] Filter values updated: {filter_values}")
+
+    def _on_sort_methods_updated(self, sort_methods: list):
+        """Handle sort methods update from presenter
+
+        Args:
+            sort_methods: List of sort method dicts
+        """
+        # Update sort button with these methods
+        self.search_panel.sort_button.dropdown.set_options(
+            sort_methods,
+            self.presenter.filter_state._sort_field,
+            self.presenter.filter_state._sort_ascending
+        )
+
+    def _on_result_count_updated(self, shown: int, total: int):
+        """Handle result count update from presenter
+
+        Args:
+            shown: Number of results shown
+            total: Total number of results
+        """
+        self.search_panel.show_count(shown, total)
+
+    def _on_topic_selection_changed(self, selected_topics: set):
+        """Handle topic selection state change from presenter
+
+        Args:
+            selected_topics: Set of selected topic names
+        """
+        # Get all topic names
+        all_topics = self.left_panel._get_all_topic_names()
+
+        # Update selection state for each topic
+        for topic_name in all_topics:
+            if topic_name != "All Reports":  # Skip special item
+                should_select = topic_name in selected_topics
+                self.left_panel.set_topic_selected(topic_name, should_select)
 
     def _on_debug_topic_selected(self, topic: str):
         """Handle debug topic selection"""
         print(
             f"[AutomatedReportsView] DEBUG: Topic selected via debug menu: {topic}")
-        # TODO: Implement topic filtering
+        # Trigger normal topic selection
+        self.presenter.on_topic_clicked(topic, ctrl_pressed=False)
 
     def _on_report_clicked(self, report_id: str):
         """Handle report tile click"""

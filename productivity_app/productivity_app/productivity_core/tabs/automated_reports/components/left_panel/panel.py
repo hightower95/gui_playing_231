@@ -16,7 +16,8 @@ class LeftPanel(QFrame):
     """Left navigation panel with expandable topic categories"""
 
     # Signals
-    topic_selected = Signal(str)  # Emits topic name when selected
+    topic_selected = Signal(str, bool)  # Emits (topic_name, ctrl_pressed)
+    clear_topics_selected = Signal()  # Emitted when "All Reports" is clicked
     show_count_requested = Signal(int, int)  # Debug: show count
     hide_count_requested = Signal()  # Debug: hide count
     debug_topic_selected = Signal(str)  # Debug: topic selected from debug menu
@@ -84,14 +85,14 @@ class LeftPanel(QFrame):
                 self._on_debug_topic_selected)
             self.main_layout.addWidget(self.debug_widget)
 
-    def _get_topic_hierarchy(self) -> List[Tuple[str, int, Optional[List[Tuple[str, int]]]]]:
-        """Get hierarchical topic structure
+    def _build_topic_tree(self):
+        """Build the topic tree with groups and items
 
-        Returns:
-            List of (topic_name, count, optional_children)
-            where children is a list of (child_name, child_count)
+        Note: This is used for initial setup. Will be replaced by
+        set_topic_groups() once presenter provides data.
         """
-        return [
+        # Hardcoded initial hierarchy - will be replaced by presenter data
+        hierarchy = [
             ("All Reports", 10, None),
             ("Project Management", 6, [
                 ("Gamma", 3),
@@ -108,21 +109,18 @@ class LeftPanel(QFrame):
             ]),
         ]
 
-    def _build_topic_tree(self):
-        """Build the topic tree with groups and items"""
-        hierarchy = self._get_topic_hierarchy()
-
         for topic_name, count, children in hierarchy:
 
             if topic_name == "All Reports":
                 # Special case: All Reports gets its own widget
                 self.all_reports_item = AllReportsItem(count)
-                self.all_reports_item.clicked.connect(self._on_topic_clicked)
+                self.all_reports_item.clicked.connect(
+                    self._on_all_reports_clicked)
                 self.main_layout.addWidget(self.all_reports_item)
             elif children:
                 # Create TopicGroup for parents with children
                 group = TopicGroup(topic_name, count)
-                group.clicked.connect(self._on_topic_clicked)
+                # Only connect expand_toggled, not clicked (groups shouldn't filter)
                 group.expand_toggled.connect(self._on_expand_toggled)
 
                 self.topic_groups[topic_name] = group
@@ -146,13 +144,18 @@ class LeftPanel(QFrame):
                 self.topic_items[topic_name] = item
                 self.main_layout.addWidget(item)
 
-    def _on_topic_clicked(self, topic_name: str):
+    def _on_topic_clicked(self, topic_name: str, ctrl_pressed: bool = False):
         """Handle topic item click
 
         Args:
             topic_name: Name of clicked topic
+            ctrl_pressed: Whether ctrl key was held
         """
-        self.topic_selected.emit(topic_name)
+        self.topic_selected.emit(topic_name, ctrl_pressed)
+
+    def _on_all_reports_clicked(self):
+        """Handle All Reports item click"""
+        self.clear_topics_selected.emit()
 
     def _on_expand_toggled(self, topic_name: str, expanded: bool):
         """Handle expand/collapse toggle
@@ -215,3 +218,78 @@ class LeftPanel(QFrame):
                 self.topic_groups[topic_name].update_count(count)
             elif topic_name in self.topic_items:
                 self.topic_items[topic_name].update_count(count)
+
+    def set_topic_selected(self, topic_name: str, selected: bool):
+        """Set selection state for a topic item
+
+        Args:
+            topic_name: Name of topic to update
+            selected: Whether it should be selected
+        """
+        if topic_name in self.topic_items:
+            if selected:
+                self.topic_items[topic_name].select()
+            else:
+                self.topic_items[topic_name].deselect()
+        elif topic_name in self.topic_groups:
+            # Topic groups can also be selected
+            if selected:
+                self.topic_groups[topic_name].select()
+            else:
+                self.topic_groups[topic_name].deselect()
+
+    def set_topic_groups(self, topic_data: list):
+        """Set topic groups from presenter data
+
+        Args:
+            topic_data: List of (topic_name, count, optional_children) tuples
+        """
+        # Clear existing topics (but not header or debug widget)
+        for widget in [self.all_reports_item] + list(self.topic_groups.values()) + list(self.topic_items.values()):
+            if widget:
+                widget.setParent(None)
+                widget.deleteLater()
+
+        self.topic_groups.clear()
+        self.topic_items.clear()
+        self.child_items.clear()
+        self.all_reports_item = None
+
+        # Find the position after the header (index 1) and before stretch/debug widget
+        insert_position = 1
+
+        # Rebuild from data
+        for topic_name, count, children in topic_data:
+            if topic_name == "All Reports":
+                self.all_reports_item = AllReportsItem(count)
+                self.all_reports_item.clicked.connect(
+                    self._on_all_reports_clicked)
+                self.main_layout.insertWidget(
+                    insert_position, self.all_reports_item)
+                insert_position += 1
+            elif children:
+                # Create group with children
+                group = TopicGroup(topic_name, count)
+                # Only connect expand_toggled, not clicked (groups shouldn't filter)
+                group.expand_toggled.connect(self._on_expand_toggled)
+                self.topic_groups[topic_name] = group
+                self.main_layout.insertWidget(insert_position, group)
+                insert_position += 1
+
+                child_widgets = []
+                for child_name, child_count in children:
+                    child = TopicItem(child_name, child_count)
+                    child.clicked.connect(self._on_topic_clicked)
+                    child.setVisible(False)
+                    child_widgets.append(child)
+                    self.topic_items[child_name] = child
+                    self.main_layout.insertWidget(insert_position, child)
+                    insert_position += 1
+
+                self.child_items[topic_name] = child_widgets
+            else:
+                item = TopicItem(topic_name, count)
+                item.clicked.connect(self._on_topic_clicked)
+                self.topic_items[topic_name] = item
+                self.main_layout.insertWidget(insert_position, item)
+                insert_position += 1
