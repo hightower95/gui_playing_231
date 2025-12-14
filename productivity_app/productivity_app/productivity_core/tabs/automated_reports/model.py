@@ -43,21 +43,21 @@ class AutomatedReportsModel:
         """Initialize with sample data"""
         self.reports = self._generate_fake_reports(15)
         self.filtered_reports = self.reports.copy()
-    
+
     def _generate_fake_reports(self, count: int = 15) -> List[ReportMetadata]:
         """Generate fake report data for testing
-        
+
         return reports
-    
+
     def _load_sample_reports(self) -> List[ReportMetadata]:
         Args:
             count: Number of reports to generate
-            
+
         Returns:
             List of fake report metadata
         """
         projects = ["Gamma", "Alpha", "Beta", "Delta", "Epsilon"]
-        focus_areas = ["Team Velocity", "Resource Allocation", "Budget Reports", 
+        focus_areas = ["Team Velocity", "Resource Allocation", "Budget Reports",
                        "Quality Metrics", "Sprint Planning", "Risk Analysis"]
         report_templates = [
             ("Velocity Tracker", "Track team velocity across sprints with trend analysis"),
@@ -76,31 +76,31 @@ class AutomatedReportsModel:
             ("Dependency Map", "Project dependencies and integration points"),
             ("Time Tracking", "Effort logging and time allocation analysis"),
         ]
-        
-        topics_pool = ["Project Management", "Team & Resources", "Financial", 
+
+        topics_pool = ["Project Management", "Team & Resources", "Financial",
                        "Quality Assurance", "Operations"]
-        inputs_pool = ["Team ID", "Sprint Number", "Date Range", "Project Code", 
+        inputs_pool = ["Team ID", "Sprint Number", "Date Range", "Project Code",
                        "User Group", "Budget ID", "Release Version"]
-        
+
         reports = []
         for i in range(count):
             template = report_templates[i % len(report_templates)]
             project = random.choice(projects)
             focus = random.choice(focus_areas)
-            
+
             # Vary the data
             report_num = i + 1
             name = f"{template[0]} {report_num}"
             desc = f"{template[1]} - {project} specific implementation"
-            
+
             # Random inputs (1-3)
             num_inputs = random.randint(1, 3)
             inputs = random.sample(inputs_pool, num_inputs)
-            
+
             # Random topics (1-2)
             num_topics = random.randint(1, 2)
             topics = random.sample(topics_pool, num_topics)
-            
+
             reports.append(ReportMetadata(
                 id=f"report_{i + 1}",
                 name=name,
@@ -113,7 +113,7 @@ class AutomatedReportsModel:
                 required_inputs=inputs,
                 topics=topics
             ))
-        
+
         return reports
         """Load sample report data matching the image"""
         return [

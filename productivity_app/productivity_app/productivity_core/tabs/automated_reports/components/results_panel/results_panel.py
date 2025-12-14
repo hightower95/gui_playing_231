@@ -175,9 +175,9 @@ class ResultsPanel(QWidget):
         focus_area: str,
         required_inputs: List[str],
         topics: List[str],
-        location: str = "Local",
+        location: Optional[str] = None,
         card_type: str = "Report",
-        icon: str = "📊"
+        icon: Optional[str] = None
     ):
         """Add a report card to the panel
 
@@ -188,9 +188,9 @@ class ResultsPanel(QWidget):
             focus_area: Focus area name
             required_inputs: List of required inputs
             topics: List of associated topics
-            location: Location indicator
-            card_type: Type badge text
-            icon: Icon emoji
+            location: Optional location indicator
+            card_type: Type badge text (not displayed in current design)
+            icon: Optional icon (defaults based on card_type if not provided)
         """
         card = ReportCard(
             title=title,
@@ -256,6 +256,9 @@ class ResultsPanel(QWidget):
 
         # Add report cards using grid
         for report in reports:
+            # Only show location for local reports
+            location = report.scope.title() if report.scope.lower() == "local" else None
+
             card = ReportCard(
                 title=report.name,
                 description=report.description,
@@ -263,13 +266,8 @@ class ResultsPanel(QWidget):
                 focus_area=report.focus_area,
                 required_inputs=report.required_inputs,
                 topics=report.topics,
-                location=report.scope.title(),
+                location=location,
                 card_type="Report Group" if report.report_type == "group" else "Report",
                 icon="📚" if report.report_type == "group" else "📊"
             )
             self.grid.add_card(card)
-        for report in reports:
-            tile = ReportTile(report)
-            tile.clicked.connect(
-                lambda r=report.id: self.report_clicked.emit(r))
-            self.grid.add_card(tile)

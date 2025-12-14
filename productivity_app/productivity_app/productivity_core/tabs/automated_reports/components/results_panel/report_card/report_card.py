@@ -1,8 +1,8 @@
 """Report Card - Modular card for displaying report metadata"""
 from typing import Optional, List
-from PySide6.QtWidgets import QFrame, QVBoxLayout, QWidget
-from PySide6.QtCore import QSize
-from PySide6.QtGui import QResizeEvent
+from PySide6.QtWidgets import QFrame, QVBoxLayout, QLabel, QWidget, QSizePolicy
+from PySide6.QtCore import QSize, Qt
+from PySide6.QtGui import QResizeEvent, QCursor
 
 
 from .header import CardHeader
@@ -26,7 +26,7 @@ class ReportCard(QFrame):
         topics: List[str],
         location: str = "Local",
         card_type: str = "Report",
-        icon: str = "📊",
+        icon: Optional[str] = None,
         parent: Optional[QWidget] = None
     ):
         """Initialize report card
@@ -40,7 +40,7 @@ class ReportCard(QFrame):
             topics: List of associated topics
             location: Location indicator
             card_type: Type badge text
-            icon: Icon emoji
+            icon: Optional icon (defaults based on card_type if not provided)
             parent: Parent widget
         """
         super().__init__(parent)
@@ -61,49 +61,64 @@ class ReportCard(QFrame):
     def _build_ui(self):
         """Build card UI from modular components"""
         self.setObjectName("reportCard")
+        self.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(16, 16, 16, 16)
         layout.setSpacing(12)
 
-        # Header
+        # Header (icon + pill badge + optional location)
         header = CardHeader(
             card_type=self.card_type,
             location=self.location,
             icon=self.icon
         )
+        header.setSizePolicy(QSizePolicy.Policy.Expanding,
+                             QSizePolicy.Policy.Fixed)
         layout.addWidget(header)
 
-        # Report summary
+        # Report summary (title + description)
         summary = ReportSummary(
             title=self.title,
             description=self.description
         )
+        summary.setSizePolicy(QSizePolicy.Policy.Expanding,
+                              QSizePolicy.Policy.Fixed)
         layout.addWidget(summary)
 
-        # Tags (Project, Focus Area)
+        # Divider after summary
+        summary_divider = QFrame()
+        summary_divider.setObjectName("cardDivider")
+        summary_divider.setFrameShape(QFrame.Shape.HLine)
+        summary_divider.setFixedHeight(1)
+        layout.addWidget(summary_divider)
+
+        # Tags (Project, Focus Area) - "Report Aspects" section
         tags = TagsSection(tags={
             "Project": self.project,
             "Focus Area": self.focus_area
         })
         layout.addWidget(tags)
 
-        # Divider
-        divider = QFrame()
-        divider.setObjectName("cardDivider")
-        divider.setFrameShape(QFrame.Shape.HLine)
-        divider.setFixedHeight(1)
-        layout.addWidget(divider)
-
-        # Required inputs
+        # Divider before required inputs
         if self.required_inputs:
+            inputs_divider = QFrame()
+            inputs_divider.setObjectName("cardDivider")
+            inputs_divider.setFrameShape(QFrame.Shape.HLine)
+            inputs_divider.setFixedHeight(1)
+            layout.addWidget(inputs_divider)
+
+            # Required inputs
             inputs = RequiredInputs(inputs=self.required_inputs)
             layout.addWidget(inputs)
 
-        # Topic groups
+        # Topic groups at bottom (includes its own divider)
         if self.topics:
             topic_groups = TopicGroups(topics=self.topics)
             layout.addWidget(topic_groups)
+
+        # Add stretch at bottom to push content to top
+        layout.addStretch()
 
     def _apply_styles(self):
         """Apply stylesheet to card"""
@@ -111,8 +126,12 @@ class ReportCard(QFrame):
 
     def sizeHint(self) -> QSize:
         """Provide size hint for layout"""
-        return QSize(300, 250)
+        return QSize(300, 280)
 
     def minimumSizeHint(self) -> QSize:
         """Provide minimum size hint"""
-        return QSize(250, 200)
+        return QSize(250, 280)
+
+    def maximumHeight(self) -> int:
+        """Set maximum height to prevent expansion"""
+        return 280

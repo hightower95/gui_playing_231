@@ -15,16 +15,16 @@ from .filter_state import FilterState
 
 class LoadReportsWorker(QRunnable):
     """Worker for loading reports in background thread"""
-    
+
     class Signals(QObject):
         finished = Signal(list)  # Emits list of ReportMetadata
         error = Signal(str)
-    
+
     def __init__(self, model: AutomatedReportsModel):
         super().__init__()
         self.model = model
         self.signals = self.Signals()
-    
+
     def run(self):
         """Load reports in background"""
         try:
@@ -60,26 +60,26 @@ class AutomatedReportsPresenter(QObject):
         self._load_filter_values()
         self._load_sort_methods()
         self._load_reports_async()
-    
+
     def _load_reports_async(self):
         """Load reports in background thread"""
         worker = LoadReportsWorker(self.model)
         worker.signals.finished.connect(self._on_reports_loaded)
         worker.signals.error.connect(self._on_reports_load_error)
         self.thread_pool.start(worker)
-    
+
     def _on_reports_loaded(self, reports: List[ReportMetadata]):
         """Handle reports loaded from worker
-        
+
         Args:
             reports: List of loaded reports
         """
         self.reports_updated.emit(reports)
         self.update_result_count()
-    
+
     def _on_reports_load_error(self, error: str):
         """Handle error loading reports
-        
+
         Args:
             error: Error message
         """
