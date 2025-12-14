@@ -33,33 +33,30 @@ class SearchPanel(QFrame):
                 border-bottom: 1px solid #363535;
             }
         """)
-        self.setMaximumHeight(180)
+        self.setMinimumHeight(120)
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(25, 20, 25, 20)
-        layout.setSpacing(15)
+        layout.setSpacing(12)
 
-        # Title and results count row
-        header_layout = QHBoxLayout()
+        # Title
         title = QLabel("Report Library")
         title.setStyleSheet("""
-            font-size: 14pt;
-            font-weight: bold;
+            font-size: 20pt;
             color: #4fc3f7;
             border: none;
         """)
-        header_layout.addWidget(title)
+        layout.addWidget(title)
 
-        # Results count
-        self.results_count = QLabel("Showing 0 of 0")
+        # Results count (below title, hidden by default)
+        self.results_count = QLabel("")
         self.results_count.setStyleSheet("""
-            font-size: 10pt;
+            font-size: 9pt;
             color: #909090;
             border: none;
         """)
-        header_layout.addWidget(self.results_count)
-        header_layout.addStretch()
-        layout.addLayout(header_layout)
+        self.results_count.hide()
+        layout.addWidget(self.results_count)
 
         # Search input
         search_layout = QHBoxLayout()
@@ -81,6 +78,7 @@ class SearchPanel(QFrame):
         self.filter_buttons.filters_changed.connect(self._on_filters_changed)
         self.filter_buttons.filters_cleared.connect(self._on_filters_cleared)
         self.active_pills.filter_removed.connect(self._on_filter_removed)
+        self.active_pills.clear_all_clicked.connect(self._on_filters_cleared)
 
     def _on_filters_changed(self, filters: dict):
         """Handle filter changes
@@ -97,28 +95,51 @@ class SearchPanel(QFrame):
         self.active_pills.update_filters({})
         self.filters_cleared.emit()
 
-    def _on_filter_removed(self, filter_key: str):
+    def _on_filter_removed(self, filter_key: str, filter_value: str):
         """Handle individual filter removal
 
         Args:
-            filter_key: Key of filter to remove
+            filter_key: Key of filter (e.g., 'project')
+            filter_value: Specific value to remove (e.g., 'Project 1')
         """
-        # Clear the corresponding filter button
+        # Remove the specific value from the filter button
         if filter_key in self.filter_buttons.filter_buttons:
-            self.filter_buttons.filter_buttons[filter_key].clear_selection()
-            self.filter_buttons.scope_combo.setCurrentIndex(0)
+            filter_btn = self.filter_buttons.filter_buttons[filter_key]
+            current_selected = filter_btn.get_selected()
+            if filter_value in current_selected:
+                current_selected.remove(filter_value)
+                # Update the button's selection
+                filter_btn.selected_items = current_selected
+                filter_btn._update_button_text()
+                filter_btn.dropdown.set_options(filter_btn.options, current_selected)
+                # Emit filters changed
+                self.filter_buttons._on_filter_changed(filter_key, current_selected)
 
-    def update_results_count(self, shown: int, total: int):
-        """Update the results count display
+    def show_count(self, count: int, total: int):
+        """Show results count with specific values
 
         Args:
-            shown: Number of results currently shown
+            count: Number of results currently shown
             total: Total number of results
         """
-        self.results_count.setText(f"Showing {shown} of {total}")
-        self.filter_buttons.scope_combo.setCurrentIndex(0)
+        self.results_count.setText(f"Showing {count} of {total}")
+        self.results_count.show()
 
-        # The combobox change will trigger filters_changed signal
+    def display_count(self):
+        """Show the results count (if previously set)"""
+        self.results_count.show()
+
+    def hide_count(self):
+        """Hide the results count"""
+        self.results_count.hide()
+
+    def show_clear_all_filters(self):
+        """Show the clear all filters button"""
+        self.active_pills.show_clear_all_filters()
+
+    def hide_clear_all_filters(self):
+        """Hide the clear all filters button"""
+        self.active_pills.hide_clear_all_filters()
 
     def clear_all(self):
         """Clear search and all filters"""

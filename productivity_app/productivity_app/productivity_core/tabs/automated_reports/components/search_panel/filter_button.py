@@ -13,6 +13,13 @@ from .filter_dropdown import FilterDropdown
 class FilterButton(QWidget):
     """Modern filter button with dropdown checkbox list"""
 
+    # Configuration constants for easy adjustment
+    BUTTON_PADDING_VERTICAL = 4
+    BUTTON_PADDING_HORIZONTAL = 10
+    BUTTON_BORDER_RADIUS = 16
+    ARROW_SIZE = 16
+    ARROW_TOP_OFFSET = 2
+
     # Signals
     selection_changed = Signal(str, set)  # Emits (filter_name, selected_items)
 
@@ -44,25 +51,27 @@ class FilterButton(QWidget):
 
         # Button container with text and arrow
         self.button_container = QWidget()
-        self.button_container.setStyleSheet("""
-            QWidget {
-                padding: 6px 12px;
+        self.button_container.setObjectName("buttonContainer")
+        self.button_container.setStyleSheet(f"""
+            QWidget#buttonContainer {{
+                padding: 5px;
                 border: 1px solid #3a3a3a;
-                border-radius: 12px;
+                border-radius: {self.BUTTON_BORDER_RADIUS}px;
                 background-color: #2a2a2a;
-            }
-            QWidget:hover {
+            }}
+            QWidget#buttonContainer:hover {{
                 border: 1px solid #4a4a4a;
                 background-color: #2d2d2d;
-            }
+            }}
         """)
         self.button_container.setCursor(Qt.CursorShape.PointingHandCursor)
         self.button_container.setAttribute(
             Qt.WidgetAttribute.WA_StyledBackground, True)
 
         button_layout = QHBoxLayout(self.button_container)
-        button_layout.setContentsMargins(5, 0, 0, 5)
-        button_layout.setSpacing(2)
+        button_layout.setContentsMargins(self.BUTTON_PADDING_HORIZONTAL, self.BUTTON_PADDING_VERTICAL,
+                                         self.BUTTON_PADDING_HORIZONTAL, self.BUTTON_PADDING_VERTICAL)
+        button_layout.setSpacing(4)
 
         # Text label
         self.button_label = QLabel()
@@ -72,40 +81,25 @@ class FilterButton(QWidget):
                 font-size: 10pt;
                 background: transparent;
                 border: none;
-                padding-right: 0;
-                margin-right: 0;
+                padding: 0px;
+                padding-bottom: 2px;
             }
         """)
         self._update_button_text()
         button_layout.addWidget(self.button_label)
 
-        # Arrow icon container to control positioning
-        arrow_container = QWidget()
-        arrow_container.setStyleSheet(
-            "background: transparent; border: none; padding-top:10px;")
-        arrow_layout = QVBoxLayout(arrow_container)
-        # arrow_layout.setContentsMargins(0, 2, 0, 0)  # Push down 2px
-        arrow_layout.setSpacing(3)
-
-        # Down arrow icon (SVG) - use keyboard_arrow_down
+        # Down arrow icon (SVG)
         icon_dir = Path(__file__).parent.parent / "left_panel"
         arrow_path = icon_dir / "keyboard_arrow_down_22dp_E3E3E3_FILL0_wght100_GRAD200_opsz24.svg"
 
-        # Cache arrow icon
         with open(arrow_path, 'rb') as f:
             arrow_data = QByteArray(f.read())
 
         self.arrow_icon = QSvgWidget()
         self.arrow_icon.load(arrow_data)
-
-        # self.arrow_icon.setContentsMargins(0, 14, 0, 0)
-        # self.arrow_icon.setFixedSize(14, 14)
-        self.arrow_icon.setStyleSheet(
-            "background: transparent; border: none;")
-        arrow_layout.addWidget(self.arrow_icon)
-        arrow_layout.addStretch()
-
-        button_layout.addWidget(arrow_container)
+        self.arrow_icon.setContentsMargins(0, self.ARROW_TOP_OFFSET, 0, 0)
+        self.arrow_icon.setStyleSheet("background: transparent; border: none;")
+        button_layout.addWidget(self.arrow_icon)
 
         main_layout.addWidget(self.button_container)
 

@@ -30,7 +30,8 @@ class FilterButtons(QWidget):
 
         # Create filter buttons
         self.project_filter = FilterButton(
-            "Project", [f"Project {i}" for i in range(1, 21)])  # 20 items to test scrolling
+            # 20 items to test scrolling
+            "Project", [f"Project {i}" for i in range(1, 21)])
         self.project_filter.selection_changed.connect(self._on_filter_changed)
         layout.addWidget(self.project_filter)
         self.filter_buttons['project'] = self.project_filter
@@ -56,25 +57,6 @@ class FilterButtons(QWidget):
         self.filter_buttons['scope'] = self.scope_filter
 
         layout.addStretch()
-
-        # Clear filters button
-        clear_btn = QPushButton("Clear all filters")
-        clear_btn.setStyleSheet("""
-            QPushButton {
-                padding: 6px 12px;
-                border: none;
-                border-radius: 4px;
-                background-color: transparent;
-                color: #4fc3f7;
-                font-size: 9pt;
-            }
-            QPushButton:hover {
-                text-decoration: underline;
-            }
-        """)
-        clear_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        clear_btn.clicked.connect(self._on_clear_clicked)
-        layout.addWidget(clear_btn)
 
     def _on_filter_changed(self, filter_name: str, selected_items: Set[str]):
         """Handle filter change and emit signal

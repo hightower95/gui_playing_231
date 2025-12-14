@@ -10,13 +10,13 @@ from PySide6.QtCore import Qt, Signal
 
 class FilterDropdown(QFrame):
     """Popup dropdown with checkbox list for filter options"""
-    
+
     # Signals
     selection_changed = Signal(set)  # Emits set of selected items
-    
+
     def __init__(self, parent: Optional[QWidget] = None):
         """Initialize filter dropdown
-        
+
         Args:
             parent: Parent widget
         """
@@ -24,7 +24,7 @@ class FilterDropdown(QFrame):
         self.options: List[str] = []
         self.selected_items: Set[str] = set()
         self._setup_ui()
-    
+
     def _setup_ui(self):
         """Setup the dropdown UI"""
         self.setStyleSheet("""
@@ -35,11 +35,11 @@ class FilterDropdown(QFrame):
             }
         """)
         self.setMinimumWidth(200)
-        
+
         layout = QVBoxLayout(self)
         layout.setContentsMargins(8, 8, 8, 8)
         layout.setSpacing(4)
-        
+
         # Scroll area for options (only scrolls after 10 items)
         self.scroll = QScrollArea()
         self.scroll.setWidgetResizable(True)
@@ -58,19 +58,19 @@ class FilterDropdown(QFrame):
                 border-radius: 4px;
             }
         """)
-        
+
         # Container for checkboxes
         self.options_widget = QWidget()
         self.options_layout = QVBoxLayout(self.options_widget)
         self.options_layout.setContentsMargins(4, 4, 4, 4)
         self.options_layout.setSpacing(2)
-        
+
         self.scroll.setWidget(self.options_widget)
         layout.addWidget(self.scroll)
-    
+
     def set_options(self, options: List[str], selected: Set[str] = None):
         """Set available options and selected items
-        
+
         Args:
             options: List of available options
             selected: Set of currently selected items
@@ -79,7 +79,7 @@ class FilterDropdown(QFrame):
         self.selected_items = selected or set()
         self._populate_options()
         self._update_scroll_height()
-    
+
     def _populate_options(self):
         """Populate the checkbox options"""
         # Clear existing
@@ -87,7 +87,7 @@ class FilterDropdown(QFrame):
             item = self.options_layout.takeAt(0)
             if item.widget():
                 item.widget().deleteLater()
-        
+
         # Add checkboxes
         for option in self.options:
             checkbox = QCheckBox(option)
@@ -123,25 +123,25 @@ class FilterDropdown(QFrame):
             checkbox.stateChanged.connect(
                 lambda state, opt=option: self._on_checkbox_changed(opt, state))
             self.options_layout.addWidget(checkbox)
-        
+
         self.options_layout.addStretch()
-    
+
     def _update_scroll_height(self):
         """Update scroll area height based on number of options"""
         # Each checkbox is approximately 32px (padding + text)
         item_height = 32
         num_items = len(self.options)
-        
+
         if num_items <= 10:
             # Show all items without scrolling
             self.scroll.setMaximumHeight(num_items * item_height + 20)
         else:
             # Show 10 items and enable scrolling
             self.scroll.setMaximumHeight(10 * item_height + 20)
-    
+
     def _on_checkbox_changed(self, option: str, state: int):
         """Handle checkbox state change
-        
+
         Args:
             option: Option that was toggled
             state: Checkbox state
@@ -150,17 +150,17 @@ class FilterDropdown(QFrame):
             self.selected_items.add(option)
         else:
             self.selected_items.discard(option)
-        
+
         self.selection_changed.emit(self.selected_items)
-    
+
     def get_selected(self) -> Set[str]:
         """Get currently selected items
-        
+
         Returns:
             Set of selected item names
         """
         return self.selected_items.copy()
-    
+
     def clear_selection(self):
         """Clear all selected items"""
         self.selected_items.clear()
