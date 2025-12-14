@@ -78,20 +78,23 @@ class TopicItem(QWidget):
             hovered: Whether the widget is being hovered
         """
         if self.is_selected:
-            # Selected state - distinct visual feedback
+            # Selected state - subtle blue tint matching filter button style
             self.setStyleSheet("""
                 QWidget {
-                    background-color: #4fc3f7;
+                    background-color: rgba(79, 195, 247, 0.15);
                     border-radius: 6px;
+                }
+                QWidget:hover {
+                    background-color: rgba(79, 195, 247, 0.2);
                 }
             """)
             self.name_label.setStyleSheet("""
                 QLabel {
                     font-size: 10pt;
-                    color: #1e1e1e;
+                    color: #E0E0E0;
                     background: transparent;
                     border: none;
-                    font-weight: bold;
+ 
                 }
             """)
             self.count_label.setStyleSheet("""

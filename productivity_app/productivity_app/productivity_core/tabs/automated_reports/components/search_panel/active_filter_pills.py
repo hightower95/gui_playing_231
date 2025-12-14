@@ -41,7 +41,7 @@ class ActiveFilterPills(QWidget):
         clear_row = QWidget()
         clear_layout = QHBoxLayout(clear_row)
         clear_layout.setContentsMargins(0, 0, 0, 0)
-        
+
         self.clear_all_btn = QPushButton("Clear all filters")
         self.clear_all_btn.setStyleSheet("""
             QPushButton {
@@ -76,7 +76,8 @@ class ActiveFilterPills(QWidget):
                 item.widget().deleteLater()
 
         # Count total selections
-        total_selections = sum(len(values) for values in filters.values() if values)
+        total_selections = sum(len(values)
+                               for values in filters.values() if values)
 
         if total_selections == 0:
             self.hide()
@@ -92,7 +93,8 @@ class ActiveFilterPills(QWidget):
             if values:  # Only if there are selected values
                 for value in values:
                     pill = self._create_pill(key, value)
-                    self.pills_layout.insertWidget(self.pills_layout.count() - 1, pill)
+                    self.pills_layout.insertWidget(
+                        self.pills_layout.count() - 1, pill)
 
     def _create_pill(self, key: str, value: str) -> QWidget:
         """Create a filter pill widget
@@ -134,7 +136,8 @@ class ActiveFilterPills(QWidget):
         layout.addWidget(label)
 
         # Remove button with SVG icon
-        icon_path = Path(__file__).parent / "close_small_28dp_E3E3E3_FILL0_wght200_GRAD0_opsz24.svg"
+        icon_path = Path(__file__).parent / \
+            "close_small_28dp_E3E3E3_FILL0_wght200_GRAD0_opsz24.svg"
         with open(icon_path, 'rb') as f:
             close_data = QByteArray(f.read())
 
@@ -148,9 +151,10 @@ class ActiveFilterPills(QWidget):
                 border-radius: 7px;
             }
         """)
-        
+
         # Make icon clickable
-        close_icon.mousePressEvent = lambda e: self.filter_removed.emit(key, value)
+        close_icon.mousePressEvent = lambda e: self.filter_removed.emit(
+            key, value)
         layout.addWidget(close_icon)
 
         return container

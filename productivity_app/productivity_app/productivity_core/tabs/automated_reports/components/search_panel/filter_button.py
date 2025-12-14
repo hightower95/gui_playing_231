@@ -16,7 +16,7 @@ class FilterButton(QWidget):
     # Configuration constants for easy adjustment
     BUTTON_PADDING_VERTICAL = 4
     BUTTON_PADDING_HORIZONTAL = 10
-    BUTTON_BORDER_RADIUS = 16
+    BUTTON_BORDER_RADIUS = 9
     ARROW_SIZE = 16
     ARROW_TOP_OFFSET = 2
 
@@ -52,18 +52,7 @@ class FilterButton(QWidget):
         # Button container with text and arrow
         self.button_container = QWidget()
         self.button_container.setObjectName("buttonContainer")
-        self.button_container.setStyleSheet(f"""
-            QWidget#buttonContainer {{
-                padding: 5px;
-                border: 1px solid #3a3a3a;
-                border-radius: {self.BUTTON_BORDER_RADIUS}px;
-                background-color: #2a2a2a;
-            }}
-            QWidget#buttonContainer:hover {{
-                border: 1px solid #4a4a4a;
-                background-color: #2d2d2d;
-            }}
-        """)
+        self._update_button_style()
         self.button_container.setCursor(Qt.CursorShape.PointingHandCursor)
         self.button_container.setAttribute(
             Qt.WidgetAttribute.WA_StyledBackground, True)
@@ -120,7 +109,41 @@ class FilterButton(QWidget):
         """
         self.selected_items = selected_items
         self._update_button_text()
+        self._update_button_style()
         self.selection_changed.emit(self.filter_name, self.selected_items)
+
+    def _update_button_style(self):
+        """Update button style based on whether filters are active"""
+        has_selection = len(self.selected_items) > 0
+
+        if has_selection:
+            # Blue tint when filters active
+            self.button_container.setStyleSheet(f"""
+                QWidget#buttonContainer {{
+                    padding: 0px;
+                    border: 1px solid #4fc3f7;
+                    border-radius: {self.BUTTON_BORDER_RADIUS}px;
+                    background-color: rgba(79, 195, 247, 0.15);
+                }}
+                QWidget#buttonContainer:hover {{
+                    border: 1px solid #4fc3f7;
+                    background-color: rgba(79, 195, 247, 0.2);
+                }}
+            """)
+        else:
+            # Default style
+            self.button_container.setStyleSheet(f"""
+                QWidget#buttonContainer {{
+                    padding: 0px;
+                    border: 1px solid #3a3a3a;
+                    border-radius: {self.BUTTON_BORDER_RADIUS}px;
+                    background-color: #2a2a2a;
+                }}
+                QWidget#buttonContainer:hover {{
+                    border: 1px solid #4a4a4a;
+                    background-color: #2d2d2d;
+                }}
+            """)
 
     def _toggle_dropdown(self):
         """Toggle dropdown visibility and position it below button"""
@@ -169,6 +192,7 @@ class FilterButton(QWidget):
         self.selected_items.clear()
         self.dropdown.clear_selection()
         self._update_button_text()
+        self._update_button_style()
         self.selection_changed.emit(self.filter_name, self.selected_items)
 
     def get_selected(self) -> Set[str]:

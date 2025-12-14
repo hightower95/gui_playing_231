@@ -9,6 +9,7 @@ from PySide6.QtCore import Qt, Signal
 from .topic_group import TopicGroup
 from .topic_item import TopicItem
 from .all_reports_item import AllReportsItem
+from .debug_widget import DebugWidget
 
 
 class LeftPanel(QFrame):
@@ -16,10 +17,19 @@ class LeftPanel(QFrame):
 
     # Signals
     topic_selected = Signal(str)  # Emits topic name when selected
+    show_count_requested = Signal(int, int)  # Debug: show count
+    hide_count_requested = Signal()  # Debug: hide count
+    debug_topic_selected = Signal(str)  # Debug: topic selected from debug menu
 
-    def __init__(self, parent: Optional[QWidget] = None):
-        """Initialize left panel"""
+    def __init__(self, parent: Optional[QWidget] = None, debug_mode: bool = False):
+        """Initialize left panel
+
+        Args:
+            parent: Parent widget
+            debug_mode: Enable debug widget
+        """
         super().__init__(parent)
+        self.debug_mode = debug_mode
         # Special all reports item
         self.all_reports_item: Optional[AllReportsItem] = None
         # Map group name to widget
@@ -60,6 +70,19 @@ class LeftPanel(QFrame):
         self._build_topic_tree()
 
         self.main_layout.addStretch()
+
+        # Debug widget at bottom if debug_mode
+        if self.debug_mode:
+            # Get all available topic names
+            available_topics = self._get_all_topic_names()
+            self.debug_widget = DebugWidget(available_topics=available_topics)
+            self.debug_widget.show_count_requested.connect(
+                self.show_count_requested.emit)
+            self.debug_widget.hide_count_requested.connect(
+                self.hide_count_requested.emit)
+            self.debug_widget.topic_selected.connect(
+                self._on_debug_topic_selected)
+            self.main_layout.addWidget(self.debug_widget)
 
     def _get_topic_hierarchy(self) -> List[Tuple[str, int, Optional[List[Tuple[str, int]]]]]:
         """Get hierarchical topic structure
@@ -141,6 +164,43 @@ class LeftPanel(QFrame):
         if topic_name in self.child_items:
             for child in self.child_items[topic_name]:
                 child.setVisible(expanded)
+
+    def _on_debug_topic_selected(self, topic_name: str):
+        """Handle topic selection from debug menu
+
+        Args:
+            topic_name: Name of topic to select
+        """
+        # Select the topic item
+        if topic_name in self.topic_items:
+            self.topic_items[topic_name].select()
+        elif self.all_reports_item and topic_name == "All Reports":
+            # For All Reports, just emit the signal
+            pass
+
+        # Emit both signals
+        self.debug_topic_selected.emit(topic_name)
+        self.topic_selected.emit(topic_name)
+
+    def _get_all_topic_names(self) -> list:
+        """Get all available topic names
+
+        Returns:
+            List of all topic names (groups and items)
+        """
+        topics = []
+
+        # Add All Reports
+        if self.all_reports_item:
+            topics.append("All Reports")
+
+        # Add all group names
+        topics.extend(self.topic_groups.keys())
+
+        # Add all individual items
+        topics.extend(self.topic_items.keys())
+
+        return sorted(topics)
 
     def update_topic_counts(self, topic_counts: dict):
         """Update the count badges on topic groups and items

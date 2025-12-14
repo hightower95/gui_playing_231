@@ -9,6 +9,8 @@ from PySide6.QtCore import Signal
 from .text_input import SearchInput
 from .filter_buttons import FilterButtons
 from .active_filter_pills import ActiveFilterPills
+from .add_button import AddButton
+from .sort_button import SortButton
 
 
 class SearchPanel(QFrame):
@@ -18,6 +20,9 @@ class SearchPanel(QFrame):
     search_changed = Signal(str)  # Emits search text
     filters_changed = Signal(dict)  # Emits filter dict
     filters_cleared = Signal()
+    sort_changed = Signal(str, bool)  # Emits sort option
+    # Emits option ID (load_report, create_group, load_plugins)
+    add_option_clicked = Signal(str)
 
     def __init__(self, parent: Optional[QWidget] = None):
         """Initialize search panel"""
@@ -39,34 +44,56 @@ class SearchPanel(QFrame):
         layout.setContentsMargins(25, 20, 25, 20)
         layout.setSpacing(12)
 
-        # Title
+        # Title row with count
+        title_row = QHBoxLayout()
+        title_row.setSpacing(15)
+
         title = QLabel("Report Library")
         title.setStyleSheet("""
             font-size: 20pt;
             color: #4fc3f7;
             border: none;
         """)
-        layout.addWidget(title)
+        title_row.addWidget(title)
 
-        # Results count (below title, hidden by default)
+        # Results count (inline with title, hidden by default)
         self.results_count = QLabel("")
         self.results_count.setStyleSheet("""
             font-size: 9pt;
             color: #909090;
             border: none;
+            padding-top: 8px;
         """)
         self.results_count.hide()
-        layout.addWidget(self.results_count)
+        title_row.addWidget(self.results_count)
+        title_row.addStretch()
+
+        layout.addLayout(title_row)
+
+        # Add button row (above search input)
+        add_row = QHBoxLayout()
+        add_row.addStretch()
+        self.add_button = AddButton()
+        add_row.addWidget(self.add_button)
+        layout.addLayout(add_row)
 
         # Search input
-        search_layout = QHBoxLayout()
         self.search_input = SearchInput()
-        search_layout.addWidget(self.search_input)
-        layout.addLayout(search_layout)
+        layout.addWidget(self.search_input)
 
-        # Filter buttons
+        # Filter buttons row with Sort button
+        filters_row = QHBoxLayout()
+        filters_row.setSpacing(10)
+
         self.filter_buttons = FilterButtons()
-        layout.addWidget(self.filter_buttons)
+        filters_row.addWidget(self.filter_buttons)
+        filters_row.addStretch()
+
+        # Sort button aligned right
+        self.sort_button = SortButton()
+        filters_row.addWidget(self.sort_button)
+
+        layout.addLayout(filters_row)
 
         # Active filter pills (hidden by default)
         self.active_pills = ActiveFilterPills()
@@ -79,6 +106,8 @@ class SearchPanel(QFrame):
         self.filter_buttons.filters_cleared.connect(self._on_filters_cleared)
         self.active_pills.filter_removed.connect(self._on_filter_removed)
         self.active_pills.clear_all_clicked.connect(self._on_filters_cleared)
+        self.sort_button.sort_changed.connect(self.sort_changed.emit)
+        self.add_button.option_clicked.connect(self.add_option_clicked.emit)
 
     def _on_filters_changed(self, filters: dict):
         """Handle filter changes
@@ -111,9 +140,11 @@ class SearchPanel(QFrame):
                 # Update the button's selection
                 filter_btn.selected_items = current_selected
                 filter_btn._update_button_text()
-                filter_btn.dropdown.set_options(filter_btn.options, current_selected)
+                filter_btn.dropdown.set_options(
+                    filter_btn.options, current_selected)
                 # Emit filters changed
-                self.filter_buttons._on_filter_changed(filter_key, current_selected)
+                self.filter_buttons._on_filter_changed(
+                    filter_key, current_selected)
 
     def show_count(self, count: int, total: int):
         """Show results count with specific values

@@ -17,8 +17,8 @@ def main():
     """Launch the automated reports demo"""
     app = QApplication(sys.argv)
 
-    # Create and show the view
-    window = AutomatedReportsView()
+    # Create and show the view with debug mode enabled
+    window = AutomatedReportsView(debug_mode=True)
     window.setWindowTitle("Automated Reports - Experiment")
     window.resize(1400, 800)
     window.show()

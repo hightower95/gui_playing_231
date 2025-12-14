@@ -20,9 +20,15 @@ class AutomatedReportsView(QWidget):
     TAB_TITLE = "📊 Automated Reports"
     MODULE_ID = "automated_reports"
 
-    def __init__(self, parent: Optional[QWidget] = None):
-        """Initialize the automated reports view"""
+    def __init__(self, parent: Optional[QWidget] = None, debug_mode: bool = False):
+        """Initialize the automated reports view
+
+        Args:
+            parent: Parent widget
+            debug_mode: Enable debug commands
+        """
         super().__init__(parent)
+        self.debug_mode = debug_mode
         self.presenter = AutomatedReportsPresenter(self)
         self._setup_ui()
         self._connect_signals()
@@ -40,7 +46,7 @@ class AutomatedReportsView(QWidget):
         main_layout.setSpacing(0)
 
         # Left panel (10% width) - Topics/Categories
-        self.left_panel = LeftPanel()
+        self.left_panel = LeftPanel(debug_mode=self.debug_mode)
 
         # Right area (90% width) - Search + Results
         self.right_area = self._create_right_area()
@@ -93,6 +99,15 @@ class AutomatedReportsView(QWidget):
         # Left panel signals
         self.left_panel.topic_selected.connect(self._on_topic_selected)
 
+        # Debug signals (if debug mode enabled)
+        if self.debug_mode:
+            self.left_panel.show_count_requested.connect(
+                self.search_panel.show_count)
+            self.left_panel.hide_count_requested.connect(
+                self.search_panel.hide_count)
+            self.left_panel.debug_topic_selected.connect(
+                self._on_debug_topic_selected)
+
         # Results panel signals
         self.results_panel.report_clicked.connect(self._on_report_clicked)
 
@@ -117,6 +132,11 @@ class AutomatedReportsView(QWidget):
     def _on_topic_selected(self, topic: str):
         """Handle topic selection from left panel"""
         print(f"[AutomatedReportsView] Topic selected: {topic}")
+
+    def _on_debug_topic_selected(self, topic: str):
+        """Handle debug topic selection"""
+        print(
+            f"[AutomatedReportsView] DEBUG: Topic selected via debug menu: {topic}")
         # TODO: Implement topic filtering
 
     def _on_report_clicked(self, report_id: str):
