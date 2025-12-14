@@ -73,6 +73,10 @@ class FilterButtons(QWidget):
         for filter_btn in self.filter_buttons.values():
             filter_btn.clear_selection()
         self.filters_cleared.emit()
+    
+    def clear_all(self):
+        """Clear all filter selections"""
+        self._on_clear_clicked()
 
     def get_current_filters(self) -> Dict[str, Set[str]]:
         """Get current filter values

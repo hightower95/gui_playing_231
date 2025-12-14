@@ -131,9 +131,9 @@ class AutomatedReportsView(QWidget):
     def _on_filters_changed(self, filters: dict):
         """Handle filter changes"""
         # filters dict has keys like 'project', 'report_type', etc.
+        # Need to update all dimensions, including empty ones (to clear)
         for dimension, items in filters.items():
-            if items:  # Only set if there are items
-                self.presenter.on_filter_changed(dimension, items)
+            self.presenter.on_filter_changed(dimension, items)
 
     def _on_filters_cleared(self):
         """Handle clear all filters"""

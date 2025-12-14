@@ -206,6 +206,8 @@ class FilterButton(QWidget):
             self._update_button_text()
             self._update_button_style()
             self.dropdown.set_options(self.options, self.selected_items)
+            # Emit signal to notify of change
+            self.selection_changed.emit(self.filter_name, self.selected_items)
 
     def get_selected(self) -> Set[str]:
         """Get currently selected items

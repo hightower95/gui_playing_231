@@ -5,7 +5,9 @@ Handles:
 - Report metadata storage
 - Search and filtering logic
 - Report categorization
+- Fake data generation for testing
 """
+import random
 from typing import List, Dict, Optional
 from dataclasses import dataclass
 
@@ -23,12 +25,15 @@ class ReportMetadata:
     tags: List[str]
     required_inputs: List[str] = None
     contained_reports: List[str] = None  # For report groups
+    topics: List[str] = None  # Associated topic groups
 
     def __post_init__(self):
         if self.required_inputs is None:
             self.required_inputs = []
         if self.contained_reports is None:
             self.contained_reports = []
+        if self.topics is None:
+            self.topics = []
 
 
 class AutomatedReportsModel:
@@ -36,10 +41,80 @@ class AutomatedReportsModel:
 
     def __init__(self):
         """Initialize with sample data"""
-        self.reports = self._load_sample_reports()
+        self.reports = self._generate_fake_reports(15)
         self.filtered_reports = self.reports.copy()
-
+    
+    def _generate_fake_reports(self, count: int = 15) -> List[ReportMetadata]:
+        """Generate fake report data for testing
+        
+        return reports
+    
     def _load_sample_reports(self) -> List[ReportMetadata]:
+        Args:
+            count: Number of reports to generate
+            
+        Returns:
+            List of fake report metadata
+        """
+        projects = ["Gamma", "Alpha", "Beta", "Delta", "Epsilon"]
+        focus_areas = ["Team Velocity", "Resource Allocation", "Budget Reports", 
+                       "Quality Metrics", "Sprint Planning", "Risk Analysis"]
+        report_templates = [
+            ("Velocity Tracker", "Track team velocity across sprints with trend analysis"),
+            ("Resource Dashboard", "Monitor resource allocation and utilization rates"),
+            ("Budget Overview", "Financial tracking and budget variance reporting"),
+            ("Quality Score", "Code quality metrics and test coverage analysis"),
+            ("Sprint Report", "Comprehensive sprint performance and completion rates"),
+            ("Risk Assessment", "Risk identification and mitigation tracking"),
+            ("Burndown Chart", "Visual sprint burndown with prediction modeling"),
+            ("Capacity Planning", "Team capacity and workload distribution"),
+            ("Defect Tracking", "Bug trends and resolution time analysis"),
+            ("Performance Metrics", "System performance and response time monitoring"),
+            ("Customer Satisfaction", "User feedback and satisfaction scoring"),
+            ("Technical Debt", "Code debt tracking and remediation planning"),
+            ("Release Notes", "Automated release documentation generation"),
+            ("Dependency Map", "Project dependencies and integration points"),
+            ("Time Tracking", "Effort logging and time allocation analysis"),
+        ]
+        
+        topics_pool = ["Project Management", "Team & Resources", "Financial", 
+                       "Quality Assurance", "Operations"]
+        inputs_pool = ["Team ID", "Sprint Number", "Date Range", "Project Code", 
+                       "User Group", "Budget ID", "Release Version"]
+        
+        reports = []
+        for i in range(count):
+            template = report_templates[i % len(report_templates)]
+            project = random.choice(projects)
+            focus = random.choice(focus_areas)
+            
+            # Vary the data
+            report_num = i + 1
+            name = f"{template[0]} {report_num}"
+            desc = f"{template[1]} - {project} specific implementation"
+            
+            # Random inputs (1-3)
+            num_inputs = random.randint(1, 3)
+            inputs = random.sample(inputs_pool, num_inputs)
+            
+            # Random topics (1-2)
+            num_topics = random.randint(1, 2)
+            topics = random.sample(topics_pool, num_topics)
+            
+            reports.append(ReportMetadata(
+                id=f"report_{i + 1}",
+                name=name,
+                description=desc,
+                project=project,
+                focus_area=focus,
+                report_type="single",
+                scope="local",
+                tags=[focus, project],
+                required_inputs=inputs,
+                topics=topics
+            ))
+        
+        return reports
         """Load sample report data matching the image"""
         return [
             ReportMetadata(

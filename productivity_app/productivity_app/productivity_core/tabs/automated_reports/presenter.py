@@ -5,11 +5,33 @@ Handles:
 - User interactions from view
 - Model updates and queries
 - Signal emissions for UI updates
+- Async data loading via worker threads
 """
-from typing import Optional, Set, Dict
-from PySide6.QtCore import QObject, Signal
+from typing import Optional, Set, Dict, List
+from PySide6.QtCore import QObject, Signal, QThread, QRunnable, QThreadPool
 from .model import AutomatedReportsModel, ReportMetadata
 from .filter_state import FilterState
+
+
+class LoadReportsWorker(QRunnable):
+    """Worker for loading reports in background thread"""
+    
+    class Signals(QObject):
+        finished = Signal(list)  # Emits list of ReportMetadata
+        error = Signal(str)
+    
+    def __init__(self, model: AutomatedReportsModel):
+        super().__init__()
+        self.model = model
+        self.signals = self.Signals()
+    
+    def run(self):
+        """Load reports in background"""
+        try:
+            reports = self.model.get_all_reports()
+            self.signals.finished.emit(reports)
+        except Exception as e:
+            self.signals.error.emit(str(e))
 
 
 class AutomatedReportsPresenter(QObject):
@@ -30,13 +52,38 @@ class AutomatedReportsPresenter(QObject):
         super().__init__(parent)
         self.model = AutomatedReportsModel()
         self.filter_state = FilterState()
+        self.thread_pool = QThreadPool()
 
     def initialize(self):
         """Initialize and load initial data"""
         self._load_topic_groups()
         self._load_filter_values()
         self._load_sort_methods()
-        self._apply_current_filters()
+        self._load_reports_async()
+    
+    def _load_reports_async(self):
+        """Load reports in background thread"""
+        worker = LoadReportsWorker(self.model)
+        worker.signals.finished.connect(self._on_reports_loaded)
+        worker.signals.error.connect(self._on_reports_load_error)
+        self.thread_pool.start(worker)
+    
+    def _on_reports_loaded(self, reports: List[ReportMetadata]):
+        """Handle reports loaded from worker
+        
+        Args:
+            reports: List of loaded reports
+        """
+        self.reports_updated.emit(reports)
+        self.update_result_count()
+    
+    def _on_reports_load_error(self, error: str):
+        """Handle error loading reports
+        
+        Args:
+            error: Error message
+        """
+        print(f"[Presenter] Error loading reports: {error}")
 
     def _load_topic_groups(self):
         """Load topic groups from model and emit signal"""

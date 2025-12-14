@@ -125,7 +125,10 @@ class SearchPanel(QFrame):
     def _on_filters_cleared(self):
         """Handle clear filters request"""
         self.search_input.clear()
+        self.filter_buttons.clear_all()
         self.active_pills.update_filters({})
+        # Emit empty filters to ensure presenter gets the update
+        self.filters_changed.emit({})
         self.filters_cleared.emit()
 
     def _on_filter_removed(self, filter_key: str, filter_value: str):
