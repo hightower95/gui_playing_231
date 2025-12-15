@@ -31,7 +31,8 @@ class RequiredInputs(QWidget):
         if self.inputs:
             # Badges container (no label, just badges)
             badges_container = QWidget()
-            badges_container.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+            badges_container.setAttribute(
+                Qt.WidgetAttribute.WA_TranslucentBackground)
             badges_layout = QHBoxLayout(badges_container)
             badges_layout.setContentsMargins(0, 0, 0, 0)
             badges_layout.setSpacing(8)

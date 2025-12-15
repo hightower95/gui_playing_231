@@ -38,7 +38,8 @@ class TopicGroups(QWidget):
 
             # Topic badges container - use flow layout for wrapping
             badges_container = QWidget()
-            badges_container.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+            badges_container.setAttribute(
+                Qt.WidgetAttribute.WA_TranslucentBackground)
             badges_layout = QHBoxLayout(badges_container)
             badges_layout.setContentsMargins(0, 0, 0, 0)
             badges_layout.setSpacing(4)  # Tighter spacing for compact look

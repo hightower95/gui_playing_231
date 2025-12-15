@@ -251,7 +251,8 @@ class AutomatedReportsView(QWidget):
         """Toggle the visibility of the left panel with animation"""
         if self.left_panel_visible:
             # Hide panel
-            self.animation = QPropertyAnimation(self.left_panel, b"maximumWidth")
+            self.animation = QPropertyAnimation(
+                self.left_panel, b"maximumWidth")
             self.animation.setDuration(250)
             self.animation.setStartValue(self.left_panel.width())
             self.animation.setEndValue(0)
@@ -264,7 +265,8 @@ class AutomatedReportsView(QWidget):
             # Show panel
             self.left_panel.show()
             self.left_panel.setMaximumWidth(16777215)  # Reset to default max
-            self.animation = QPropertyAnimation(self.left_panel, b"minimumWidth")
+            self.animation = QPropertyAnimation(
+                self.left_panel, b"minimumWidth")
             self.animation.setDuration(250)
             self.animation.setStartValue(0)
             self.animation.setEndValue(280)
@@ -272,5 +274,5 @@ class AutomatedReportsView(QWidget):
             self.animation.start()
             self.toggle_panel_btn.setText("◀")
             self.toggle_panel_btn.setToolTip("Hide Topics Panel")
-        
+
         self.left_panel_visible = not self.left_panel_visible
