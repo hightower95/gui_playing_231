@@ -11,6 +11,8 @@ CARD_STYLE = """
     QFrame#reportCard:hover {
         background-color: #2d2d2d;
         border: 1px solid #4a4a4a;
+        /* Note: Box-shadow not directly supported in Qt stylesheets, 
+           but border highlight provides visual feedback */
     }
 """
 
@@ -54,6 +56,7 @@ SUMMARY_STYLE = """
         font-size: 10pt;
         background: transparent;
         border: none;
+        line-height: 1.4;
     }
 """
 

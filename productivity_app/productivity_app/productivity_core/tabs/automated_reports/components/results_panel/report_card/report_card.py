@@ -93,10 +93,9 @@ class ReportCard(QFrame):
         summary_divider.setFixedHeight(1)
         layout.addWidget(summary_divider)
 
-        # Tags (Project, Focus Area) - "Report Aspects" section
+        # Tags (Project only) - "Report Aspects" section
         tags = TagsSection(tags={
-            "Project": self.project,
-            "Focus Area": self.focus_area
+            "Project": self.project
         })
         layout.addWidget(tags)
 
@@ -131,7 +130,7 @@ class ReportCard(QFrame):
     def minimumSizeHint(self) -> QSize:
         """Provide minimum size hint"""
         return QSize(250, 300)
-    
+
     def maximumHeight(self) -> int:
         """Set maximum height to prevent expansion"""
         return 300
