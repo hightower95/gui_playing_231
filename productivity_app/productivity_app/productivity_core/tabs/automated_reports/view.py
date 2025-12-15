@@ -196,8 +196,18 @@ class AutomatedReportsView(QWidget):
         Args:
             filter_values: Dict of {dimension: [values]}
         """
-        # TODO: Update filter buttons with these values
-        print(f"[View] Filter values updated: {filter_values}")
+        # Update filter button options with actual data from model
+        if 'project' in filter_values:
+            self.search_panel.filter_buttons.project_filter.set_options(filter_values['project'])
+        
+        if 'input' in filter_values:
+            self.search_panel.filter_buttons.input_filter.set_options(filter_values['input'])
+        
+        if 'report_type' in filter_values:
+            self.search_panel.filter_buttons.report_type_filter.set_options(filter_values['report_type'])
+        
+        if 'scope' in filter_values:
+            self.search_panel.filter_buttons.scope_filter.set_options(filter_values['scope'])
 
     def _on_sort_methods_updated(self, sort_methods: list):
         """Handle sort methods update from presenter

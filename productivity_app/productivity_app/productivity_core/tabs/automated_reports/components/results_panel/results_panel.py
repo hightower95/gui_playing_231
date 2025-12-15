@@ -275,7 +275,7 @@ class ResultsPanel(QWidget):
                 required_inputs=report.required_inputs,
                 topics=report.topics,
                 location=location,
-                card_type="Report Group" if report.report_type == "group" else "Report",
-                icon="📚" if report.report_type == "group" else "📊"
+                card_type=report.report_type,  # Use actual report type from model
+                icon=None  # Let header determine icon based on card_type
             )
             self.grid.add_card(card)

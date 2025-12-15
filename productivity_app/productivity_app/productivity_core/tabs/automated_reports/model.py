@@ -47,9 +47,6 @@ class AutomatedReportsModel:
     def _generate_fake_reports(self, count: int = 15) -> List[ReportMetadata]:
         """Generate fake report data for testing
 
-        return reports
-
-    def _load_sample_reports(self) -> List[ReportMetadata]:
         Args:
             count: Number of reports to generate
 
@@ -59,22 +56,23 @@ class AutomatedReportsModel:
         projects = ["Gamma", "Alpha", "Beta", "Delta", "Epsilon"]
         focus_areas = ["Team Velocity", "Resource Allocation", "Budget Reports",
                        "Quality Metrics", "Sprint Planning", "Risk Analysis"]
+        report_types = ["Report", "Analysis", "Graph", "Assessment"]  # Match card types
         report_templates = [
-            ("Velocity Tracker", "Track team velocity across sprints with trend analysis"),
-            ("Resource Dashboard", "Monitor resource allocation and utilization rates"),
-            ("Budget Overview", "Financial tracking and budget variance reporting"),
-            ("Quality Score", "Code quality metrics and test coverage analysis"),
-            ("Sprint Report", "Comprehensive sprint performance and completion rates"),
-            ("Risk Assessment", "Risk identification and mitigation tracking"),
-            ("Burndown Chart", "Visual sprint burndown with prediction modeling"),
-            ("Capacity Planning", "Team capacity and workload distribution"),
-            ("Defect Tracking", "Bug trends and resolution time analysis"),
-            ("Performance Metrics", "System performance and response time monitoring"),
-            ("Customer Satisfaction", "User feedback and satisfaction scoring"),
-            ("Technical Debt", "Code debt tracking and remediation planning"),
-            ("Release Notes", "Automated release documentation generation"),
-            ("Dependency Map", "Project dependencies and integration points"),
-            ("Time Tracking", "Effort logging and time allocation analysis"),
+            ("Velocity Tracker", "Track team velocity across sprints with trend analysis", "Graph"),
+            ("Resource Dashboard", "Monitor resource allocation and utilization rates", "Report"),
+            ("Budget Overview", "Financial tracking and budget variance reporting", "Report"),
+            ("Quality Score", "Code quality metrics and test coverage analysis", "Analysis"),
+            ("Sprint Report", "Comprehensive sprint performance and completion rates", "Report"),
+            ("Risk Assessment", "Risk identification and mitigation tracking", "Assessment"),
+            ("Burndown Chart", "Visual sprint burndown with prediction modeling", "Graph"),
+            ("Capacity Planning", "Team capacity and workload distribution", "Analysis"),
+            ("Defect Tracking", "Bug trends and resolution time analysis", "Graph"),
+            ("Performance Metrics", "System performance and response time monitoring", "Analysis"),
+            ("Customer Satisfaction", "User feedback and satisfaction scoring", "Assessment"),
+            ("Technical Debt", "Code debt tracking and remediation planning", "Assessment"),
+            ("Release Notes", "Automated release documentation generation", "Report"),
+            ("Dependency Map", "Project dependencies and integration points", "Graph"),
+            ("Time Tracking", "Effort logging and time allocation analysis", "Analysis"),
         ]
 
         topics_pool = ["Project Management", "Team & Resources", "Financial",
@@ -92,6 +90,7 @@ class AutomatedReportsModel:
             report_num = i + 1
             name = f"{template[0]} {report_num}"
             desc = f"{template[1]} - {project} specific implementation"
+            report_type = template[2]  # Use the type from template
 
             # Random inputs (1-3)
             num_inputs = random.randint(1, 3)
@@ -107,7 +106,7 @@ class AutomatedReportsModel:
                 description=desc,
                 project=project,
                 focus_area=focus,
-                report_type="single",
+                report_type=report_type,
                 scope="local",
                 tags=[focus, project],
                 required_inputs=inputs,
@@ -183,3 +182,18 @@ class AutomatedReportsModel:
     def get_focus_areas(self) -> List[str]:
         """Get list of unique focus areas"""
         return list(set(r.focus_area for r in self.reports))
+
+    def get_report_types(self) -> List[str]:
+        """Get list of unique report types"""
+        return sorted(list(set(r.report_type for r in self.reports)))
+
+    def get_required_inputs(self) -> List[str]:
+        """Get list of unique required inputs across all reports"""
+        inputs_set = set()
+        for report in self.reports:
+            inputs_set.update(report.required_inputs)
+        return sorted(list(inputs_set))
+
+    def get_scopes(self) -> List[str]:
+        """Get list of unique scopes"""
+        return sorted(list(set(r.scope for r in self.reports)))

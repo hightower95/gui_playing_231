@@ -28,31 +28,26 @@ class FilterButtons(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(10)
 
-        # Create filter buttons
-        self.project_filter = FilterButton(
-            # 20 items to test scrolling
-            "Project", [f"Project {i}" for i in range(1, 21)])
+        # Create filter buttons (options will be populated from model)
+        self.project_filter = FilterButton("Project", [])
         self.project_filter.selection_changed.connect(self._on_filter_changed)
         layout.addWidget(self.project_filter)
         self.filter_buttons['project'] = self.project_filter
 
-        self.input_filter = FilterButton(
-            "Input", ["Team ID", "Sprint Number", "Date Range", "Project Code", "Budget ID"])
+        self.input_filter = FilterButton("Input", [])
         self.input_filter.setToolTip("Input Required")
         self.input_filter.selection_changed.connect(
             self._on_filter_changed)
         layout.addWidget(self.input_filter)
         self.filter_buttons['input'] = self.input_filter
 
-        self.report_type_filter = FilterButton(
-            "Report Type", ["Single Report", "Report Bundle"])
+        self.report_type_filter = FilterButton("Report Type", [])
         self.report_type_filter.selection_changed.connect(
             self._on_filter_changed)
         layout.addWidget(self.report_type_filter)
         self.filter_buttons['report_type'] = self.report_type_filter
 
-        self.scope_filter = FilterButton(
-            "Scope", ["Team", "Department", "Organization"])
+        self.scope_filter = FilterButton("Scope", [])
         self.scope_filter.selection_changed.connect(self._on_filter_changed)
         layout.addWidget(self.scope_filter)
         self.filter_buttons['scope'] = self.scope_filter

@@ -110,10 +110,10 @@ class AutomatedReportsPresenter(QObject):
         """Load available filter values from model and emit signal"""
         # Get unique values from model
         filter_values = {
-            'project': self.model.get_projects(),
-            'focus_area': self.model.get_focus_areas(),
-            'report_type': ['Single Report', 'Report Group'],
-            'scope': ['Local', 'Shared']
+            'project': sorted(self.model.get_projects()),
+            'input': self.model.get_required_inputs(),
+            'report_type': self.model.get_report_types(),
+            'scope': [s.title() for s in self.model.get_scopes()]
         }
         self.filter_values_updated.emit(filter_values)
 
