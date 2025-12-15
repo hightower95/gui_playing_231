@@ -1,7 +1,7 @@
 """
 Filter Buttons - Modern filter buttons with checkbox dropdowns
 
-Provides filter buttons for Project, Focus Area, Report Type, and Scope.
+Provides filter buttons for Project, Input Required, Report Type, and Scope.
 """
 from typing import Optional, List, Dict, Set
 from PySide6.QtWidgets import QWidget, QHBoxLayout, QPushButton
@@ -36,12 +36,13 @@ class FilterButtons(QWidget):
         layout.addWidget(self.project_filter)
         self.filter_buttons['project'] = self.project_filter
 
-        self.focus_area_filter = FilterButton(
-            "Focus Area", ["Team Velocity", "Resource Allocation", "Budget Reports"])
-        self.focus_area_filter.selection_changed.connect(
+        self.input_filter = FilterButton(
+            "Input", ["Team ID", "Sprint Number", "Date Range", "Project Code", "Budget ID"])
+        self.input_filter.setToolTip("Input Required")
+        self.input_filter.selection_changed.connect(
             self._on_filter_changed)
-        layout.addWidget(self.focus_area_filter)
-        self.filter_buttons['focus_area'] = self.focus_area_filter
+        layout.addWidget(self.input_filter)
+        self.filter_buttons['input'] = self.input_filter
 
         self.report_type_filter = FilterButton(
             "Report Type", ["Single Report", "Report Bundle"])
@@ -86,27 +87,20 @@ class FilterButtons(QWidget):
         """
         return {
             'project': self.project_filter.get_selected(),
-            'focus_area': self.focus_area_filter.get_selected(),
+            'input': self.input_filter.get_selected(),
             'report_type': self.report_type_filter.get_selected(),
             'scope': self.scope_filter.get_selected(),
         }
 
-    def populate_options(self, projects: List[str] = None, focus_areas: List[str] = None):
+    def populate_options(self, projects: List[str] = None, inputs: List[str] = None):
         """Populate dropdown options
 
         Args:
             projects: List of project names
-            focus_areas: List of focus area names
+            inputs: List of required input names
         """
         if projects:
             self.project_filter.set_options(projects)
 
-        if focus_areas:
-            self.focus_area_filter.set_options(focus_areas)
-
-            current = self.focus_area_combo.currentIndex()
-            self.focus_area_combo.clear()
-            self.focus_area_combo.addItem("Focus Area")
-            self.focus_area_combo.addItems(focus_areas)
-            self.focus_area_combo.setCurrentIndex(
-                0 if current == 0 else min(current, len(focus_areas)))
+        if inputs:
+            self.input_filter.set_options(inputs)

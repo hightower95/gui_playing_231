@@ -7,22 +7,24 @@ from PySide6.QtGui import QFontMetrics, QPaintEvent, QPainter
 
 class ElidingLabel(QLabel):
     """Label that shows ellipsis when text is too long"""
-    
+
     def __init__(self, text: str = "", parent: Optional[QWidget] = None):
         super().__init__(text, parent)
         self._full_text = text
-        
+
     def setText(self, text: str):
         """Set the full text"""
         self._full_text = text
         super().setText(text)
-        
+
     def paintEvent(self, event: QPaintEvent):
         """Custom paint to show elided text"""
         painter = QPainter(self)
         metrics = QFontMetrics(self.font())
-        elided = metrics.elidedText(self._full_text, Qt.TextElideMode.ElideRight, self.width())
-        painter.drawText(self.rect(), self.alignment() | Qt.TextFlag.TextSingleLine, elided)
+        elided = metrics.elidedText(
+            self._full_text, Qt.TextElideMode.ElideRight, self.width())
+        painter.drawText(self.rect(), self.alignment() |
+                         Qt.TextFlag.TextSingleLine, elided)
 
 
 class ReportSummary(QWidget):
