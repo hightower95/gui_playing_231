@@ -1,0 +1,17 @@
+
+
+1. Parameters
+
+2. Folder structure
+
+3. Example Report
+    We start with FileParameter. Ignore DataParameter
+
+4. Registration
+
+5. Generate Summaries
+    What reports do we have, what inputs do they need?
+    For input X, what reports are linked?
+    
+
+
