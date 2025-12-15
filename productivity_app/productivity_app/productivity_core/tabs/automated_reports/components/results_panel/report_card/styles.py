@@ -42,8 +42,9 @@ HEADER_STYLE = """
 SUMMARY_STYLE = """
     QLabel#cardTitle {
         color: #E0E0E0;
-        font-size: 14pt;
+        font-size: 15pt;
         font-weight: 600;
+        line-height: 1.3;
         background: transparent;
         border: none;
     }
@@ -59,8 +60,9 @@ SUMMARY_STYLE = """
 # Tags/metadata styles
 TAGS_STYLE = """
     QLabel#metadataLabel {
-        color: #909090;
-        font-size: 9pt;
+        color: #707070;
+        font-size: 8pt;
+        font-weight: 400;
         background: transparent;
         border: none;
     }
@@ -88,7 +90,7 @@ BADGE_STYLE = """
     
     QLabel[objectName^="badge_muted"] {
         background-color: rgba(144, 144, 144, 0.12);
-        color: #a0a0a0;
+        color: #b0b0b0;
         border-radius: 8px;
         padding: 4px 12px;
         font-size: 9pt;
@@ -111,12 +113,12 @@ BADGE_STYLE = """
     QLabel[objectName^="badge_green"] {
         background-color: rgba(102, 187, 106, 0.15);
         color: #81c784;
-        border-radius: 6px;
-        padding: 2px 8px;
-        font-size: 8pt;
+        border-radius: 4px;
+        padding: 2px 6px;
+        font-size: 7pt;
         border: none;
-        min-height: 20px;
-        max-height: 20px;
+        min-height: 18px;
+        max-height: 18px;
     }
     
     QLabel[objectName^="badge_secondaryHighlight"] {

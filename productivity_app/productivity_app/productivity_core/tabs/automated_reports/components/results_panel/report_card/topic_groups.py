@@ -39,12 +39,12 @@ class TopicGroups(QWidget):
             badges_container = QWidget()
             badges_layout = QHBoxLayout(badges_container)
             badges_layout.setContentsMargins(0, 0, 0, 0)
-            badges_layout.setSpacing(6)
-
+            badges_layout.setSpacing(4)  # Tighter spacing for compact look
+            
             for topic in self.topics:
                 badge = self._create_badge(topic)
                 badges_layout.addWidget(badge)
-
+            
             badges_layout.addStretch()
             layout.addWidget(badges_container)
         else:

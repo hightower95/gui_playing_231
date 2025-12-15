@@ -29,7 +29,7 @@ class ReportSummary(QWidget):
         """Build summary UI"""
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(8)
+        layout.setSpacing(6)  # Tighter spacing for related content
 
         # Title
         title_label = QLabel(self.title)

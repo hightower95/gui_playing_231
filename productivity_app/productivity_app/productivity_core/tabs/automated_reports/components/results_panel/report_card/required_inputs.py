@@ -27,14 +27,8 @@ class RequiredInputs(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(8)
 
-        # Section label
         if self.inputs:
-            label = QLabel(
-                f"Requires {len(self.inputs)} input{'s' if len(self.inputs) != 1 else ''}")
-            label.setObjectName("sectionLabel")
-            layout.addWidget(label)
-
-            # Badges container
+            # Badges container (no label, just badges)
             badges_container = QWidget()
             badges_layout = QHBoxLayout(badges_container)
             badges_layout.setContentsMargins(0, 0, 0, 0)
