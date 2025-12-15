@@ -1,6 +1,7 @@
 """Topic groups section - displays associated topic groups"""
 from typing import Optional, List
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame
+from PySide6.QtCore import Qt
 
 
 class TopicGroups(QWidget):
@@ -37,7 +38,7 @@ class TopicGroups(QWidget):
 
             # Topic badges container - use flow layout for wrapping
             badges_container = QWidget()
-            badges_container.setStyleSheet("background: transparent;")
+            badges_container.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
             badges_layout = QHBoxLayout(badges_container)
             badges_layout.setContentsMargins(0, 0, 0, 0)
             badges_layout.setSpacing(4)  # Tighter spacing for compact look

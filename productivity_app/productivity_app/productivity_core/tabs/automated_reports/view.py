@@ -8,8 +8,8 @@ Layout:
   - Bottom: Scrollable results displayed as tiles
 """
 from typing import Optional
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QSplitter
-from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QSplitter, QPushButton
+from PySide6.QtCore import Qt, QPropertyAnimation, QEasingCurve
 from .presenter import AutomatedReportsPresenter
 from .components import LeftPanel, SearchPanel, ResultsPanel
 
@@ -47,24 +47,25 @@ class AutomatedReportsView(QWidget):
 
         # Left panel (10% width) - Topics/Categories
         self.left_panel = LeftPanel(debug_mode=self.debug_mode)
+        self.left_panel_visible = True
 
         # Right area (90% width) - Search + Results
         self.right_area = self._create_right_area()
 
         # Use splitter for resizable panels
-        splitter = QSplitter(Qt.Orientation.Horizontal)
-        splitter.addWidget(self.left_panel)
-        splitter.addWidget(self.right_area)
-        splitter.setStretchFactor(0, 15)  # Left: ~15%
-        splitter.setStretchFactor(1, 85)  # Right: ~85%
-        splitter.setStyleSheet("""
+        self.splitter = QSplitter(Qt.Orientation.Horizontal)
+        self.splitter.addWidget(self.left_panel)
+        self.splitter.addWidget(self.right_area)
+        self.splitter.setStretchFactor(0, 15)  # Left: ~15%
+        self.splitter.setStretchFactor(1, 85)  # Right: ~85%
+        self.splitter.setStyleSheet("""
             QSplitter::handle {
                 background-color: #3a3a3a;
                 width: 1px;
             }
         """)
 
-        main_layout.addWidget(splitter)
+        main_layout.addWidget(self.splitter)
 
     def _create_right_area(self) -> QWidget:
         """Create right area with search panel and results panel"""
@@ -79,9 +80,42 @@ class AutomatedReportsView(QWidget):
         self.search_panel = SearchPanel()
         layout.addWidget(self.search_panel)
 
-        # Results panel (bottom - takes remaining space)
+        # Results panel (middle - takes remaining space)
         self.results_panel = ResultsPanel()
         layout.addWidget(self.results_panel, stretch=1)
+
+        # Toggle button for left panel at bottom
+        self.toggle_panel_btn = QPushButton("◀")
+        self.toggle_panel_btn.setFixedSize(32, 32)
+        self.toggle_panel_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #2d2d2d;
+                border: 1px solid #3a3a3a;
+                border-radius: 6px;
+                color: #e3e3e3;
+                font-size: 14px;
+                padding: 0px;
+            }
+            QPushButton:hover {
+                background-color: #3a3a3a;
+                border: 1px solid #4a4a4a;
+            }
+            QPushButton:pressed {
+                background-color: #252525;
+            }
+        """)
+        self.toggle_panel_btn.setToolTip("Toggle Topics Panel")
+        self.toggle_panel_btn.clicked.connect(self._toggle_left_panel)
+
+        # Add toggle button to bottom-left
+        toggle_container = QWidget()
+        toggle_layout = QHBoxLayout(toggle_container)
+        toggle_layout.setContentsMargins(8, 8, 8, 8)
+        toggle_layout.setSpacing(0)
+        toggle_layout.addWidget(self.toggle_panel_btn)
+        toggle_layout.addStretch()
+
+        layout.addWidget(toggle_container)
 
         return container
 
@@ -212,3 +246,31 @@ class AutomatedReportsView(QWidget):
     def _on_report_clicked(self, report_id: str):
         """Handle report tile click"""
         self.presenter.open_report(report_id)
+
+    def _toggle_left_panel(self):
+        """Toggle the visibility of the left panel with animation"""
+        if self.left_panel_visible:
+            # Hide panel
+            self.animation = QPropertyAnimation(self.left_panel, b"maximumWidth")
+            self.animation.setDuration(250)
+            self.animation.setStartValue(self.left_panel.width())
+            self.animation.setEndValue(0)
+            self.animation.setEasingCurve(QEasingCurve.Type.InOutQuad)
+            self.animation.finished.connect(lambda: self.left_panel.hide())
+            self.animation.start()
+            self.toggle_panel_btn.setText("▶")
+            self.toggle_panel_btn.setToolTip("Show Topics Panel")
+        else:
+            # Show panel
+            self.left_panel.show()
+            self.left_panel.setMaximumWidth(16777215)  # Reset to default max
+            self.animation = QPropertyAnimation(self.left_panel, b"minimumWidth")
+            self.animation.setDuration(250)
+            self.animation.setStartValue(0)
+            self.animation.setEndValue(280)
+            self.animation.setEasingCurve(QEasingCurve.Type.InOutQuad)
+            self.animation.start()
+            self.toggle_panel_btn.setText("◀")
+            self.toggle_panel_btn.setToolTip("Hide Topics Panel")
+        
+        self.left_panel_visible = not self.left_panel_visible

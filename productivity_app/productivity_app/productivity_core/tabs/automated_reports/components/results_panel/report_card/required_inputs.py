@@ -1,6 +1,7 @@
 """Required inputs section - displays input requirements"""
 from typing import Optional, List
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel
+from PySide6.QtCore import Qt
 
 
 class RequiredInputs(QWidget):
@@ -30,7 +31,7 @@ class RequiredInputs(QWidget):
         if self.inputs:
             # Badges container (no label, just badges)
             badges_container = QWidget()
-            badges_container.setStyleSheet("background: transparent;")
+            badges_container.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
             badges_layout = QHBoxLayout(badges_container)
             badges_layout.setContentsMargins(0, 0, 0, 0)
             badges_layout.setSpacing(8)

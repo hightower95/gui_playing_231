@@ -129,16 +129,8 @@ class ReportCard(QFrame):
 
     def minimumSizeHint(self) -> QSize:
         """Provide minimum size hint"""
-        return QSize(280, 300)
+        return QSize(320, 300)
 
     def maximumSizeHint(self) -> QSize:
         """Provide maximum size hint to prevent cards from growing"""
-        return QSize(350, 300)
-
-    def maximumHeight(self) -> int:
-        """Set maximum height to prevent expansion"""
-        return 300
-
-    def maximumWidth(self) -> int:
-        """Set maximum width to prevent expansion"""
-        return 350
+        return QSize(320, 300)

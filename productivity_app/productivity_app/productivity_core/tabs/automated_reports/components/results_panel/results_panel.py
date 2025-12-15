@@ -44,6 +44,10 @@ class ResultsGrid(QWidget):
         if self.current_row is None or self.cards_in_current_row >= self.cards_per_row:
             self._start_new_row()
 
+        # Set fixed size policy to prevent stretching
+        card.setFixedWidth(320)
+        card.setMaximumHeight(300)
+
         # Add card to current row
         self.current_row.addWidget(card)
         self.cards.append(card)
@@ -56,6 +60,7 @@ class ResultsGrid(QWidget):
         self.current_row = QHBoxLayout(row_widget)
         self.current_row.setContentsMargins(0, 0, 0, 0)
         self.current_row.setSpacing(self.card_spacing)
+        self.current_row.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
         # Add to main layout
         self.main_layout.addWidget(row_widget)
@@ -237,13 +242,16 @@ class ResultsPanel(QWidget):
 
         # Calculate optimal cards per row based on width
         available_width = self.scroll.width() - 40  # Account for margins
-        min_card_width = 300
+        card_width = 320
         spacing = 16
 
         # Calculate how many cards can fit
         cards_per_row = max(1, (available_width + spacing) //
-                            (min_card_width + spacing))
-        cards_per_row = min(cards_per_row, 4)  # Cap at 4
+                            (card_width + spacing))
+        cards_per_row = min(cards_per_row, 6)  # Cap at 6
+
+        # Update grid if different
+        self.set_cards_per_row(cards_per_row)
 
     def update_results(self, reports: List[ReportMetadata]):
         """Update displayed reports (legacy method for backwards compatibility)
