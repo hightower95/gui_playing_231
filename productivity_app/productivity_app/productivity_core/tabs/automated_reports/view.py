@@ -164,10 +164,12 @@ class AutomatedReportsView(QWidget):
 
     def _on_filters_changed(self, filters: dict):
         """Handle filter changes"""
-        # filters dict has keys like 'project', 'report_type', etc.
-        # Need to update all dimensions, including empty ones (to clear)
+        # Update all filter dimensions at once to avoid multiple filter operations
         for dimension, items in filters.items():
-            self.presenter.on_filter_changed(dimension, items)
+            self.presenter.filter_state.set_filter(dimension, items)
+        
+        # Apply filters once after all dimensions are updated
+        self.presenter._apply_current_filters()
 
     def _on_filters_cleared(self):
         """Handle clear all filters"""
@@ -198,16 +200,20 @@ class AutomatedReportsView(QWidget):
         """
         # Update filter button options with actual data from model
         if 'project' in filter_values:
-            self.search_panel.filter_buttons.project_filter.set_options(filter_values['project'])
-        
+            self.search_panel.filter_buttons.project_filter.set_options(
+                filter_values['project'])
+
         if 'input' in filter_values:
-            self.search_panel.filter_buttons.input_filter.set_options(filter_values['input'])
-        
+            self.search_panel.filter_buttons.input_filter.set_options(
+                filter_values['input'])
+
         if 'report_type' in filter_values:
-            self.search_panel.filter_buttons.report_type_filter.set_options(filter_values['report_type'])
-        
+            self.search_panel.filter_buttons.report_type_filter.set_options(
+                filter_values['report_type'])
+
         if 'scope' in filter_values:
-            self.search_panel.filter_buttons.scope_filter.set_options(filter_values['scope'])
+            self.search_panel.filter_buttons.scope_filter.set_options(
+                filter_values['scope'])
 
     def _on_sort_methods_updated(self, sort_methods: list):
         """Handle sort methods update from presenter

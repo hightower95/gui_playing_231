@@ -87,24 +87,13 @@ class AutomatedReportsPresenter(QObject):
 
     def _load_topic_groups(self):
         """Load topic groups from model and emit signal"""
-        # TODO: Get from model - for now using hardcoded structure
-        topic_data = [
-            ("All Reports", 10, None),
-            ("Project Management", 6, [
-                ("Gamma", 3),
-                ("Alpha", 2),
-                ("Beta", 1)
-            ]),
-            ("Team & Resources", 6, [
-                ("Team Velocity", 3),
-                ("Resource Allocation", 3)
-            ]),
-            ("Financial", 3, [
-                ("Budget Reports", 2),
-                ("Cost Analysis", 1)
-            ]),
-        ]
+        # Get actual topic hierarchy with counts from model
+        topic_data = self.model.get_topic_hierarchy()
         self.topic_groups_updated.emit(topic_data)
+    
+    def refresh_topic_groups(self):
+        """Refresh topic groups and counts - call after data changes"""
+        self._load_topic_groups()
 
     def _load_filter_values(self):
         """Load available filter values from model and emit signal"""
@@ -214,13 +203,13 @@ class AutomatedReportsPresenter(QObject):
         """Query model with current filter state and emit results"""
         query = self.filter_state.to_query_dict()
 
-        # Query model (for now, use existing filter_reports method)
-        # TODO: Update model to handle topic filtering
+        # Query model with lists of filter values including topics
         filtered = self.model.filter_reports(
-            project=query['project'][0] if query['project'] else None,
-            focus_area=query['focus_area'][0] if query['focus_area'] else None,
-            report_type=query['report_type'][0] if query['report_type'] else None,
-            scope=query['scope'][0] if query['scope'] else None,
+            topics=query['topics'],
+            project=list(query['project']) if query['project'] else None,
+            focus_area=list(query['focus_area']) if query['focus_area'] else None,
+            report_type=list(query['report_type']) if query['report_type'] else None,
+            scope=list(query['scope']) if query['scope'] else None,
             search_text=query['search_text']
         )
 
@@ -239,12 +228,13 @@ class AutomatedReportsPresenter(QObject):
         # Get total count
         total = len(self.model.get_all_reports())
 
-        # Get filtered count
+        # Get filtered count with lists including topics
         filtered = self.model.filter_reports(
-            project=query['project'][0] if query['project'] else None,
-            focus_area=query['focus_area'][0] if query['focus_area'] else None,
-            report_type=query['report_type'][0] if query['report_type'] else None,
-            scope=query['scope'][0] if query['scope'] else None,
+            topics=query['topics'],
+            project=list(query['project']) if query['project'] else None,
+            focus_area=list(query['focus_area']) if query['focus_area'] else None,
+            report_type=list(query['report_type']) if query['report_type'] else None,
+            scope=list(query['scope']) if query['scope'] else None,
             search_text=query['search_text']
         )
         shown = len(filtered)
