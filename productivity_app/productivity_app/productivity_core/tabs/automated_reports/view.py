@@ -167,7 +167,7 @@ class AutomatedReportsView(QWidget):
         # Update all filter dimensions at once to avoid multiple filter operations
         for dimension, items in filters.items():
             self.presenter.filter_state.set_filter(dimension, items)
-        
+
         # Apply filters once after all dimensions are updated
         self.presenter._apply_current_filters()
 

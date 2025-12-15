@@ -308,7 +308,36 @@ class AutomatedReportsModel:
 
     def refresh_data(self):
         """Refresh all derived data (counts, hierarchies, etc.)
-
+        
         Call this when reports are added, removed, or modified.
         """
         self.filtered_reports = self.reports.copy()
+    
+    def sort_reports(self, reports: List[ReportMetadata], sort_by: str = 'name', ascending: bool = True) -> List[ReportMetadata]:
+        """Sort reports by specified field
+        
+        Args:
+            reports: List of reports to sort
+            sort_by: Field to sort by ('name', 'date', 'type', 'project')
+            ascending: Sort direction
+            
+        Returns:
+            Sorted list of reports
+        """
+        if sort_by == 'name':
+            sorted_reports = sorted(reports, key=lambda r: r.name.lower())
+        elif sort_by == 'date':
+            # For now, sort by ID as proxy for creation date
+            sorted_reports = sorted(reports, key=lambda r: r.id)
+        elif sort_by == 'type':
+            sorted_reports = sorted(reports, key=lambda r: (r.report_type, r.name.lower()))
+        elif sort_by == 'project':
+            sorted_reports = sorted(reports, key=lambda r: (r.project, r.name.lower()))
+        else:
+            # Default to name
+            sorted_reports = sorted(reports, key=lambda r: r.name.lower())
+        
+        if not ascending:
+            sorted_reports = list(reversed(sorted_reports))
+        
+        return sorted_reports

@@ -90,7 +90,7 @@ class AutomatedReportsPresenter(QObject):
         # Get actual topic hierarchy with counts from model
         topic_data = self.model.get_topic_hierarchy()
         self.topic_groups_updated.emit(topic_data)
-    
+
     def refresh_topic_groups(self):
         """Refresh topic groups and counts - call after data changes"""
         self._load_topic_groups()
@@ -207,13 +207,22 @@ class AutomatedReportsPresenter(QObject):
         filtered = self.model.filter_reports(
             topics=query['topics'],
             project=list(query['project']) if query['project'] else None,
-            focus_area=list(query['focus_area']) if query['focus_area'] else None,
-            report_type=list(query['report_type']) if query['report_type'] else None,
+            focus_area=list(query['focus_area']
+                            ) if query['focus_area'] else None,
+            report_type=list(query['report_type']
+                             ) if query['report_type'] else None,
             scope=list(query['scope']) if query['scope'] else None,
             search_text=query['search_text']
         )
+        
+        # Apply sorting
+        sorted_reports = self.model.sort_reports(
+            filtered,
+            sort_by=query['sort_by'],
+            ascending=query['ascending']
+        )
 
-        self.reports_updated.emit(filtered)
+        self.reports_updated.emit(sorted_reports)
         self.update_result_count()
 
     def _update_ui_selection_state(self):
@@ -232,8 +241,10 @@ class AutomatedReportsPresenter(QObject):
         filtered = self.model.filter_reports(
             topics=query['topics'],
             project=list(query['project']) if query['project'] else None,
-            focus_area=list(query['focus_area']) if query['focus_area'] else None,
-            report_type=list(query['report_type']) if query['report_type'] else None,
+            focus_area=list(query['focus_area']
+                            ) if query['focus_area'] else None,
+            report_type=list(query['report_type']
+                             ) if query['report_type'] else None,
             scope=list(query['scope']) if query['scope'] else None,
             search_text=query['search_text']
         )
