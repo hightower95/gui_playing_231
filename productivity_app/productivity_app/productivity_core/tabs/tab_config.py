@@ -38,6 +38,7 @@ from ..remote_docs import RemoteDocsPresenter
 from ..devops import DevOpsPresenter
 from .settings_tab import SettingsTab
 from .start_page import StartPageView
+from .automated_reports import AutomatedReportsView
 
 
 # ============================================================================
@@ -207,6 +208,26 @@ TAB_CONFIG: List[Dict[str, Any]] = [
             ],
             'show_in_start_page': True,
             'enable_navigation': False,
+            'user_guide_url': None
+        },
+    },
+    {
+        'id': AutomatedReportsView.MODULE_ID,
+        'presenter_class': AutomatedReportsView,
+        'init_args': lambda services, deps: [],
+        'delay_ms': 500,
+        'view_from_presenter': False,
+        'visible': True,
+        'default_focus': False,
+        'tile': {
+            'title': "📊 Automated Reports",
+            'subtitle': "Searchable library of automated reports",
+            'bullets': [
+                "Browse reports by category and topic",
+                "Filter by type, input, project, and scope",
+                "Sort by name, date, type, or project"
+            ],
+            'show_in_start_page': True,
             'user_guide_url': None
         },
     },

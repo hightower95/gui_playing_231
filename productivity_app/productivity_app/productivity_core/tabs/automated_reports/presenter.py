@@ -214,7 +214,7 @@ class AutomatedReportsPresenter(QObject):
             scope=list(query['scope']) if query['scope'] else None,
             search_text=query['search_text']
         )
-        
+
         # Apply sorting
         sorted_reports = self.model.sort_reports(
             filtered,

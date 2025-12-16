@@ -98,7 +98,8 @@ class TestFilterOperations:
         filtered_upper = model.filter_reports(scope=["LOCAL"])
         filtered_mixed = model.filter_reports(scope=["Local"])
 
-        assert len(filtered_lower) == len(filtered_upper) == len(filtered_mixed)
+        assert len(filtered_lower) == len(
+            filtered_upper) == len(filtered_mixed)
 
     def test_filter_by_topics(self):
         """Filter by topics should return reports with matching topics"""
