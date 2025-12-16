@@ -25,7 +25,7 @@ from productivity_app.data_pipeline.types_enum import FileTypes
     parameters=[
         # Use default PartsList parameter
         DataSources.PartsList
-        
+
         # Or modify it:
         # DataSources.PartsList.modify(name="input_parts", description="Custom description")
     ]
@@ -53,20 +53,21 @@ def generate_parts_summary(input_parts: Iterable[Part]) -> Dict[str, Any]:
     """
     # Convert to list if needed for multiple iterations
     parts_list = list(input_parts)
-    
+
     # The parameter's schema automatically validates that
     # each Part has part_name and part_number fields
-    
+
     summary = {
         'total_parts': len(parts_list),
         'unique_part_numbers': len(set(p.part_number for p in parts_list)),
         'part_names': [p.part_name for p in parts_list]
     }
-    
+
     # Check if any parts have quantity
     parts_with_quantity = [p for p in parts_list if p.quantity is not None]
     if parts_with_quantity:
-        summary['total_quantity'] = sum(p.quantity for p in parts_with_quantity)
+        summary['total_quantity'] = sum(
+            p.quantity for p in parts_with_quantity)
 
     return summary
 

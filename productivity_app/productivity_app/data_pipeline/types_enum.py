@@ -6,6 +6,8 @@ class DataTypes(Enum):
     PartsList = "PartsList"
     BOMData = "BOMData"
     TestResults = "TestResults"
+    FilePath = "FilePath"
+    DataFrame = "DataFrame"
 
 
 class FileTypes(Enum):

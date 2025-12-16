@@ -15,7 +15,7 @@ class Part:
     description: Optional[str] = None
     quantity: Optional[int] = None
     unit_cost: Optional[float] = None
-    
+
     def __post_init__(self):
         """Normalize field names from DataFrame columns"""
         # Handle common column name variations

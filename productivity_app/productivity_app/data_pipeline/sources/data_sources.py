@@ -16,10 +16,10 @@ from productivity_app.data_pipeline.parameters.parts_list import PartsList
 
 class DataSources:
     """Namespace for pre-configured data source parameters"""
-    
+
     # Parts list parameter
     PartsList = PartsList
-    
+
     # Add more pre-configured parameters here
     # BOMData = BOMData
     # TestResults = TestResults
