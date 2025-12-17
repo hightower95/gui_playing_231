@@ -21,7 +21,7 @@ InputParameter = Parameter
 
 __all__ = [
     'Parameter',
-    'PrimitiveParameter', 
+    'PrimitiveParameter',
     'CollectedParameter',
     'ChoiceParameter',
     'DataSource',

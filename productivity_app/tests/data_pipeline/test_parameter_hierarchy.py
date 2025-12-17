@@ -19,7 +19,7 @@ def test_parameter_base_class():
         description="Test parameter",
         title="Test Title"
     )
-    
+
     assert param.name == "test"
     assert param.description == "Test parameter"
     assert param.title == "Test Title"
@@ -33,7 +33,7 @@ def test_primitive_parameter_defaults():
         name="test_path",
         description="Test path parameter"
     )
-    
+
     assert param.is_root is True
     assert param.required is True
     assert isinstance(param, Parameter)
@@ -46,7 +46,7 @@ def test_collected_parameter_defaults():
         description="Test collected parameter",
         output_type=DataTypes.PartsList
     )
-    
+
     assert param.is_root is False
     assert param.required is True
     assert param.output_type == DataTypes.PartsList
@@ -59,7 +59,7 @@ def test_collected_parameter_output_type_optional():
         name="test",
         description="Test"
     )
-    
+
     assert param.output_type is None
 
 
@@ -71,7 +71,7 @@ def test_choice_parameter():
         choices=["option1", "option2", "option3"],
         default="option1"
     )
-    
+
     assert param.choices == ["option1", "option2", "option3"]
     assert param.default == "option1"
     assert param.multiselect is False  # Default
@@ -86,7 +86,7 @@ def test_choice_parameter_multiselect():
         choices=["a", "b", "c"],
         multiselect=True
     )
-    
+
     assert param.multiselect is True
     assert param.default is None  # Default when not specified
 
@@ -98,14 +98,14 @@ def test_parameter_callable_modification():
         description="Original description",
         required=True
     )
-    
+
     # Create modified copy
     modified = original(required=False, description="New description")
-    
+
     # Original should be unchanged
     assert original.required is True
     assert original.description == "Original description"
-    
+
     # Modified should have new values
     assert modified.required is False
     assert modified.description == "New description"
@@ -121,13 +121,13 @@ def test_parameter_callable_with_multiple_changes():
         required=True,
         output_type=DataTypes.DataFrame
     )
-    
+
     modified = param(
         required=False,
         description="Updated description",
         output_type=DataTypes.PartsList
     )
-    
+
     assert modified.required is False
     assert modified.description == "Updated description"
     assert modified.output_type == DataTypes.PartsList
@@ -137,11 +137,11 @@ def test_parameter_callable_with_multiple_changes():
 def test_parameter_frozen_dataclass():
     """Parameters should be frozen (immutable)"""
     param = PrimitiveParameter(name="test", description="Test")
-    
+
     # Direct attribute modification should fail
     with pytest.raises(FrozenInstanceError):
         param.name = "new_name"
-    
+
     with pytest.raises(FrozenInstanceError):
         param.required = False
 
@@ -149,14 +149,16 @@ def test_parameter_frozen_dataclass():
 def test_parameter_call_preserves_type():
     """Calling parameter should preserve its type"""
     prim = PrimitiveParameter(name="prim", description="Primitive")
-    coll = CollectedParameter(name="coll", description="Collected", output_type=DataTypes.PartsList)
-    choice = ChoiceParameter(name="choice", description="Choice", choices=["a", "b"])
-    
+    coll = CollectedParameter(
+        name="coll", description="Collected", output_type=DataTypes.PartsList)
+    choice = ChoiceParameter(
+        name="choice", description="Choice", choices=["a", "b"])
+
     # Modified copies should maintain their types
     modified_prim = prim(required=False)
     modified_coll = coll(required=False)
     modified_choice = choice(default="a")
-    
+
     assert isinstance(modified_prim, PrimitiveParameter)
     assert isinstance(modified_coll, CollectedParameter)
     assert isinstance(modified_choice, ChoiceParameter)
@@ -169,7 +171,7 @@ def test_primitive_parameter_is_root_override():
         description="Test",
         is_root=False  # Override default
     )
-    
+
     assert param.is_root is False
 
 
@@ -180,7 +182,7 @@ def test_collected_parameter_is_root_override():
         description="Test",
         is_root=True  # Override default
     )
-    
+
     assert param.is_root is True
 
 
@@ -188,7 +190,7 @@ def test_parameter_title_optional():
     """Title defaults to name if not provided"""
     param = Parameter(name="test")
     assert param.title == "test"  # Defaults to name in __post_init__
-    
+
     param_with_title = Parameter(name="test", title="Test Title")
     assert param_with_title.title == "Test Title"
 
@@ -197,7 +199,7 @@ def test_parameter_description_optional():
     """Description defaults to empty string if not provided"""
     param = Parameter(name="test")
     assert param.description == ""  # Default empty string
-    
+
     param_with_desc = Parameter(name="test", description="Test description")
     assert param_with_desc.description == "Test description"
 
@@ -209,6 +211,6 @@ def test_choice_parameter_with_is_root():
         choices=["a", "b"],
         is_root=True
     )
-    
+
     assert param.is_root is True
     assert isinstance(param, Parameter)

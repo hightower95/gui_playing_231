@@ -48,25 +48,25 @@ class ParameterRegistry:
                 f"New: {parameter}"
             )
         self._registry[name] = parameter
-    
+
     def define_parameter(self, name: str, parameter: 'Parameter') -> 'Parameter':
         """Define and register a parameter in one call
-        
+
         Convenience function for parameter definition files.
-        
+
         Args:
             name: Parameter identifier (e.g., 'FilePath', 'PartsList')
             parameter: Parameter instance
-            
+
         Returns:
             The registered parameter (for assignment to module variable)
-            
+
         Raises:
             ValueError: If parameter with this name already registered
         """
         self.register(name, parameter)
         return parameter
-    
+
     def get(self, name: str) -> Optional['Parameter']:
         """Get parameter by name
 

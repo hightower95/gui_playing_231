@@ -1,15 +1,16 @@
+"""
+CSV Columns Report Example
 
-
-from productivity_app.data_pipeline.models.part import Part
+Demonstrates basic report creation with simple file input.
+"""
 from productivity_app.data_pipeline.reports.decorator import report
-from productivity_app.data_pipeline.parameters.input_parameters import DataSource
-# Alternative import: from productivity_app.data_pipeline.parameters import ParameterEnum
+from productivity_app.data_pipeline.parameters import ParameterEnum
 
 
 @report(
     title="CSV Columns Report",
     description="Generates a report of the columns in a CSV file.",
-    inputs=[DataSource.FilePath],  # or ParameterEnum.FilePath - both work!
+    inputs=[ParameterEnum.FilePath],
 )
 def csv_columns_report(filepath: str) -> str:
     """Generate a report of CSV columns
@@ -37,7 +38,7 @@ def csv_columns_report(filepath: str) -> str:
 @report(
     title="CSV Columns Report with Output",
     description="Generates a report of the columns in a CSV file with optional output file.",
-    inputs=[DataSource.InputPath, DataSource.OutputPath],
+    inputs=[ParameterEnum.InputPath, ParameterEnum.OutputPath],
 )
 def csv_columns_report_with_output_path(input_path: str, output_path: str = None) -> str:
     """Generate a report of CSV columns
@@ -66,27 +67,27 @@ def csv_columns_report_with_output_path(input_path: str, output_path: str = None
     print(report_columns_pretty)
     return columns
 
-
 @report(
     title="CSV Columns - Using Schema",
-    description="Generates a report of the columns in a CSV file with optional output file.",
-    inputs=[DataSource.PartsList],
+    description="Generates a report from a parts list (demonstrates collected parameters).",
+    inputs=[ParameterEnum.PartsList],
 )
-def parts_list_with_output_path(parts: list[Part]) -> str:
-    """Generate a report of CSV columns
+def parts_list_report(parts: list) -> str:
+    """Generate a report from parts list
 
-    This report does not read a filepath, rather it says it requires a list of Part objects, and does 
-    not care how they got there (could be from CSV, Excel, database, etc).
+    This report requires a list of Part objects (CollectedParameter).
+    The data pipeline will use a collector to convert CSV/Excel into parts.
 
     Args:
         parts: List of Part objects
 
     Returns:
-        A string report of the columns in the CSV file
+        Part count as string
     """
-
     part_count = len(parts)
-    print("report generated:")
-    print(f"Number of parts: {part_count}")
+    report = f"Number of parts: {part_count}"
+    
+    print("Report generated:")
+    print(report)
 
-    return part_count
+    return report

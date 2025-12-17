@@ -27,7 +27,7 @@ def test_register_1_parameter():
 
 def test_registered_unnamed_inputs_is_ok():
     """Report function can have parameters not in inputs list"""
-    
+
     @report(
         title="Test Unnamed Inputs OK",
         description="Function has extra params not in inputs",
@@ -35,12 +35,12 @@ def test_registered_unnamed_inputs_is_ok():
     )
     def test_extra_params(filepath: str, extra_param: str = "default"):
         return f"{filepath},{extra_param}"
-    
+
     registered = report_registry.get_report_by_name("Test Unnamed Inputs OK")
-    
+
     # Only filepath is in inputs
     assert len(registered.get_parameters()) == 1
-    
+
     # But function can be called with just the registered param
     result = registered.generate(filepath="test.csv")
     assert result == "test.csv,default"
@@ -48,7 +48,7 @@ def test_registered_unnamed_inputs_is_ok():
 
 def test_register_too_many_inputs_gets_error():
     """Registering more inputs than function params causes error at registration time"""
-    
+
     with pytest.raises(ValueError, match="inputs .* not found in function signature"):
         @report(
             title="Test Too Many Inputs",
