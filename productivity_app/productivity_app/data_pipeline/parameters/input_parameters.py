@@ -25,6 +25,7 @@ class InputParameter:
     required: bool = True
     description: str = ""
     title: Optional[str] = None
+    is_root: bool = False  # True for primitive inputs like FilePath
 
     def __post_init__(self):
         """Set title to name if not provided"""
@@ -58,22 +59,23 @@ class DataSource:
 
     FilePath = InputParameter(
         name="filepath",
-        required=True,
-        description="Path to file"
+        description="Path to file",
+        is_root=True  # Root input - user provides directly
     )
 
     InputPath = InputParameter(
         name="input_path",
         title="Input File Path",
-        required=True,
-        description="Path to input file"
+        description="Path to input file",
+        is_root=True  # Root input - user provides directly
     )
 
     OutputPath = InputParameter(
         name="output_path",
         title="Output File Path",
         required=False,
-        description="Path to output file"
+        description="Path to output file",
+        is_root=True  # Root input - user provides directly
     )
 
     Strictness = ChoiceParameter(
@@ -83,6 +85,14 @@ class DataSource:
         title="Strictness Level",
         choices=["strict", "moderate", "lenient"],
         default="moderate"
+    )
+
+    # In input_parameters.py
+    PartsList = InputParameter(
+        name="parts",
+        description="List of Part objects",
+        title="Parts List",
+        is_root=False  # Derived input - comes from collectors
     )
 
     # Add more common inputs here

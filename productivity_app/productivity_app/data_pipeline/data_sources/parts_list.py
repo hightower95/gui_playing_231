@@ -36,10 +36,10 @@ PARTS_LIST_SCHEMA = DataSchema(
 )
 
 data_schemas.register(DataTypes.PartsList, PARTS_LIST_SCHEMA)
-
-PartsList = Source.DataSource(
-    name="parts_list",
-    data_type=DataTypes.PartsList,
-    required=True,
-    description="Parts list data source",
-)
+# PartsList = CollectedParameter(
+#     name="parts_list",
+#     data_type=DataTypes.PartsList,
+#     required=True,
+#     description="Parts list data source",
+# )
+# TODO: Sources.AddSource(PartsList)

@@ -1,5 +1,6 @@
 
 
+from productivity_app.data_pipeline.models.part import Part
 from productivity_app.data_pipeline.reports.decorator import report
 from productivity_app.data_pipeline.parameters.input_parameters import DataSource
 
@@ -63,3 +64,28 @@ def csv_columns_report_with_output_path(input_path: str, output_path: str = None
     print("report generated:")
     print(report_columns_pretty)
     return columns
+
+
+@report(
+    title="CSV Columns - Using Schema",
+    description="Generates a report of the columns in a CSV file with optional output file.",
+    inputs=[DataSource.PartsList],
+)
+def parts_list_with_output_path(parts: list[Part]) -> str:
+    """Generate a report of CSV columns
+
+    This report does not read a filepath, rather it says it requires a list of Part objects, and does 
+    not care how they got there (could be from CSV, Excel, database, etc).
+
+    Args:
+        parts: List of Part objects
+
+    Returns:
+        A string report of the columns in the CSV file
+    """
+
+    part_count = len(parts)
+    print("report generated:")
+    print(f"Number of parts: {part_count}")
+
+    return part_count

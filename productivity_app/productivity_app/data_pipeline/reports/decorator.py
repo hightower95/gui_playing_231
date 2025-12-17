@@ -3,7 +3,7 @@ Report decorator
 """
 import inspect
 from typing import List, Any, Callable
-from productivity_app.data_pipeline.reports.register import report_registry
+from productivity_app.data_pipeline.registry import registry
 
 
 def report(title: str, description: str, inputs: List[Any]):
@@ -30,6 +30,6 @@ def report(title: str, description: str, inputs: List[Any]):
                 f"signature. Function parameters: {list(func_params)}"
             )
 
-        report_registry.register(title, func, description, inputs)
+        registry.register_report(title, func, description, inputs)
         return func
     return decorator

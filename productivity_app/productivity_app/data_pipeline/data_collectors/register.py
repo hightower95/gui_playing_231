@@ -1,69 +1,31 @@
 """
 Lightweight registry for data collectors
 
-Tracks what data collectors exist and what data types they provide.
+DEPRECATED: Use central registry instead.
+This module provides backwards compatibility aliases.
 """
-from typing import Dict, List, Any, Callable
-from productivity_app.data_pipeline.types_enum import DataTypes
+from productivity_app.data_pipeline.registry import registry
 
 
 class CollectorRegistry:
-    """Registry for data collectors"""
+    """Registry for data collectors - delegates to central registry"""
 
-    def __init__(self):
-        self._collectors: Dict[str, Dict[str, Any]] = {}
+    def register(self, name: str, func, inputs, outputs):
+        """Register a data collector"""
+        registry.register_collector(name, func, inputs, outputs)
 
-    def register(self,
-                 name: str,
-                 func: Callable,
-                 inputs: List[Any],
-                 outputs: List[DataTypes]):
-        """Register a data collector
+    def get_collectors_for_type(self, data_type):
+        """Find collectors that provide a specific data type"""
+        return registry.get_collectors_for_type(data_type)
 
-        Args:
-            name: Collector name
-            func: The collector function
-            inputs: List of input parameter types
-            outputs: List of DataTypes this collector provides
-        """
-        self._collectors[name] = {
-            'func': func,
-            'inputs': inputs,
-            'outputs': outputs
-        }
-
-    def get_collectors_for_type(self, data_type: DataTypes) -> List[str]:
-        """Find collectors that provide a specific data type
-
-        Args:
-            data_type: The DataType to search for
-
-        Returns:
-            List of collector names that provide this type
-        """
-        return [
-            name for name, info in self._collectors.items()
-            if data_type in info['outputs']
-        ]
-
-    def get_collector(self, name: str) -> Dict[str, Any]:
+    def get_collector(self, name: str):
         """Get collector info by name"""
-        return self._collectors.get(name)
+        return registry.get_collector(name)
 
-    def get_collector_by_name(self, name: str) -> Callable:
-        """Get the actual collector function by name
-
-        Args:
-            name: Collector name
-
-        Returns:
-            The collector function that can be called
-        """
-        collector_info = self._collectors.get(name)
-        if collector_info:
-            return collector_info['func']
-        return None
+    def get_collector_by_name(self, name: str):
+        """Get the actual collector function by name"""
+        return registry.get_collector_by_name(name)
 
 
-# Global registry instance
+# Backwards compatibility alias
 collector_registry = CollectorRegistry()
