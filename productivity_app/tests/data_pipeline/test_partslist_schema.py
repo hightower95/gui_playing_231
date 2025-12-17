@@ -12,7 +12,7 @@ def test_partslist_has_schema():
 def test_partslist_knows_required_columns():
     """PartsList knows to look for Part Name and Part Number"""
     required = DataSources.PartsList.schema.required_columns
-    
+
     assert "Part Name" in required
     assert "Part Number" in required
 
@@ -20,6 +20,6 @@ def test_partslist_knows_required_columns():
 def test_partslist_knows_optional_columns():
     """PartsList knows optional columns"""
     optional = DataSources.PartsList.schema.optional_columns
-    
+
     assert "Quantity" in optional
     assert "Unit Cost" in optional

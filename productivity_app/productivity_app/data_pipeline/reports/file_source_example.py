@@ -3,11 +3,11 @@ Example: FileSource with Schema Validation
 
 Shows how to create a FileSource parameter that validates file structure.
 """
-from productivity_app.data_pipeline.parameters.parts_list import PartsList
+from productivity_app.productivity_app.data_pipeline.parameters.parts_list import PartsList
 from productivity_app.data_pipeline.types_enum import FileTypes, DataTypes
-from productivity_app.data_pipeline.schemas import DataSchema, data_schemas, FileSchema
+from productivity_app.data_pipeline.data_schemas import DataSchema, data_schemas, FileSchema
 from productivity_app.data_pipeline.sources.base import Source
-from productivity_app.data_pipeline.decorators.register_report import register_report
+from productivity_app.productivity_app.data_pipeline.reports.decorator import register_report
 
 
 # Define a schema for Excel files containing parts

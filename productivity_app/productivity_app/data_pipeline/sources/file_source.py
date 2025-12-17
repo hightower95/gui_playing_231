@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from typing import Optional
 from productivity_app.data_pipeline.sources.base import Source
 from productivity_app.data_pipeline.types_enum import FileTypes
-from productivity_app.data_pipeline.schemas.file_schema import FileSchema
+from productivity_app.data_pipeline.data_schemas.file_schema import FileSchema
 
 
 @dataclass(frozen=True)

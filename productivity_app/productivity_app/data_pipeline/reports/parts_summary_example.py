@@ -13,7 +13,7 @@ import pandas as pd
 
 from productivity_app.data_pipeline.sources.data_sources import DataSources
 from productivity_app.data_pipeline.models.part import Part
-from productivity_app.data_pipeline.decorators.register_report import register_report
+from productivity_app.productivity_app.data_pipeline.reports.decorator import register_report
 from productivity_app.data_pipeline.sources.base import Source
 from productivity_app.data_pipeline.types_enum import FileTypes
 

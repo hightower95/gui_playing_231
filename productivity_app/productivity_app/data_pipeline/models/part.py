@@ -15,11 +15,3 @@ class Part:
     description: Optional[str] = None
     quantity: Optional[int] = None
     unit_cost: Optional[float] = None
-
-    def __post_init__(self):
-        """Normalize field names from DataFrame columns"""
-        # Handle common column name variations
-        if hasattr(self, 'Part Name'):
-            self.part_name = getattr(self, 'Part Name')
-        if hasattr(self, 'Part Number'):
-            self.part_number = getattr(self, 'Part Number')

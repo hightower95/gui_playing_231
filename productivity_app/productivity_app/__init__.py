@@ -41,4 +41,5 @@ def start(*args, **kwargs):
 main = start
 
 # Expose version info
-__all__ = ["start", "main", "__version__", "__author__", "__license__"]
+__all__ = ["start", "main",
+           "__version__", "__author__", "__license__"]

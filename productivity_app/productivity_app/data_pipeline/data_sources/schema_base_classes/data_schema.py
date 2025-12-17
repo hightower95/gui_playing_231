@@ -33,7 +33,7 @@ class DataSchema:
             Tuple of (is_valid, list of error messages)
         """
         errors = []
-        
+
         if isinstance(data, pd.DataFrame):
             columns = data.columns
         elif isinstance(data, dict):
@@ -41,32 +41,34 @@ class DataSchema:
         else:
             # Try generic attribute access
             try:
-                columns = [col for col in self.required_columns if hasattr(data, col)]
+                columns = [
+                    col for col in self.required_columns if hasattr(data, col)]
             except:
                 return False, ["Cannot determine columns from data"]
-        
+
         # Check for missing required columns
         missing = [col for col in self.required_columns if col not in columns]
         if missing:
             errors.append(f"Missing required columns: {', '.join(missing)}")
-        
+
         return len(errors) == 0, errors
-    
+
     def convert(self, df: pd.DataFrame) -> List[Any]:
         """Convert DataFrame to typed objects using registered converter
-        
+
         Args:
             df: DataFrame to convert
-            
+
         Returns:
             List of typed objects
-            
+
         Raises:
             ValueError: If no converter is registered
         """
         if self.converter is None:
-            raise ValueError(f"No converter registered for schema '{self.name}'")
-        
+            raise ValueError(
+                f"No converter registered for schema '{self.name}'")
+
         return self.converter(df)
 
     def get_all_columns(self) -> list[str]:
