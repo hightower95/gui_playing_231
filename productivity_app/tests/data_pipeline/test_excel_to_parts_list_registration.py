@@ -1,7 +1,7 @@
 """
 Test that ExcelToPartsListCollector is properly registered
 """
-from productivity_app.productivity_app.data_pipeline.data_collectors.register import collector_registry
+from productivity_app.data_pipeline.data_collectors.register import collector_registry
 from productivity_app.data_pipeline.types_enum import DataTypes
 from productivity_app.data_pipeline.parameters.input_parameters import DataSource
 # Import to trigger registration

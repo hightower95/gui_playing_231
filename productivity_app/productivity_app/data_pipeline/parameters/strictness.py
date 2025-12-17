@@ -5,17 +5,15 @@ from productivity_app.data_pipeline.parameters.input_parameters import ChoicePar
 from productivity_app.data_pipeline.parameters.parameter_registry import parameter_registry
 
 
-Name = "Strictness"
-
-parameter = ChoiceParameter(
-    name="strictness",
-    required=False,
-    description="Validation strictness level",
-    title="Strictness Level",
-    choices=["strict", "moderate", "lenient"],
-    default="moderate",
-    is_root=True  # User-provided choice
+parameter = parameter_registry.define_parameter(
+    name="Strictness",
+    parameter=ChoiceParameter(
+        name="strictness",
+        required=False,
+        description="Validation strictness level",
+        title="Strictness Level",
+        choices=["strict", "moderate", "lenient"],
+        default="moderate",
+        is_root=True  # User-provided choice
+    )
 )
-
-# Auto-register on import
-parameter_registry.register(Name, parameter)

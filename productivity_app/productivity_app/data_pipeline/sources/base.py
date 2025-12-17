@@ -56,7 +56,7 @@ class Source(ABC):
             DataSourceParameter instance
         """
         from productivity_app.data_pipeline.sources.data_source import DataSourceParameter
-        from productivity_app.data_pipeline.data_schemas.schema_register import data_schemas
+        from productivity_app.data_pipeline.data_sources.schema_base_classes.schema_register import data_schemas
 
         # Auto-fetch schema from registry if not provided
         if schema is None:

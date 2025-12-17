@@ -10,11 +10,12 @@ from productivity_app.data_pipeline.models.part import Part
 from productivity_app.data_pipeline.data_sources.schema_base_classes.schema_register import data_schemas
 from productivity_app.data_pipeline.data_collectors.csv_collector import csv_collector
 from productivity_app.data_pipeline.parameters.input_parameters import DataSource
+# Alternative import: from productivity_app.data_pipeline.parameters import ParameterEnum
 
 
 @data_collector(
     name="CSVToPartsListCollector",
-    inputs=[DataSource.FilePath],
+    inputs=[DataSource.FilePath],  # or ParameterEnum.FilePath - both work!
     outputs=[DataTypes.PartsList]
 )
 def csv_to_parts_list_collector(filepath: str) -> List[Part]:

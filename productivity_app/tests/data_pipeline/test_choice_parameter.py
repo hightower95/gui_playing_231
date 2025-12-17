@@ -2,7 +2,7 @@
 Tests for ChoiceParameter
 """
 import pytest
-from productivity_app.data_pipeline.parameters.input_parameters import (
+from productivity_app.data_pipeline.parameters import (
     ChoiceParameter, InputParameter, DataSource
 )
 from productivity_app.data_pipeline.reports.decorator import report

@@ -3,12 +3,13 @@
 from productivity_app.data_pipeline.models.part import Part
 from productivity_app.data_pipeline.reports.decorator import report
 from productivity_app.data_pipeline.parameters.input_parameters import DataSource
+# Alternative import: from productivity_app.data_pipeline.parameters import ParameterEnum
 
 
 @report(
     title="CSV Columns Report",
     description="Generates a report of the columns in a CSV file.",
-    inputs=[DataSource.FilePath],
+    inputs=[DataSource.FilePath],  # or ParameterEnum.FilePath - both work!
 )
 def csv_columns_report(filepath: str) -> str:
     """Generate a report of CSV columns

@@ -30,7 +30,7 @@ class Parameter:
 
     def __call__(self, **kwargs):
         """Allow modifying parameters via function call syntax
-        
+
         Usage:
             FilePath(required=False)
             FilePath(title="Input File")
@@ -41,17 +41,17 @@ class Parameter:
 @dataclass(frozen=True)
 class PrimitiveParameter(Parameter):
     """Parameter for raw user input (FilePath, URL, etc.)
-    
+
     These inputs are provided directly by the user, not derived from collectors.
     is_root is True by default.
     """
     is_root: bool = True  # Primitives are always root inputs
-    
+
 
 @dataclass(frozen=True)
 class CollectedParameter(Parameter):
     """Parameter for data derived from collectors (PartsList, DataFrame, etc.)
-    
+
     These inputs come from running data collectors. The output_type field
     links to the DataType that collectors produce.
     is_root is False by default.
@@ -63,7 +63,7 @@ class CollectedParameter(Parameter):
 @dataclass(frozen=True)
 class ChoiceParameter(Parameter):
     """Parameter with predefined choices (dropdown/select)
-    
+
     Can be either primitive or collected depending on use case.
     """
     choices: Optional[List[Any]] = None
@@ -81,27 +81,19 @@ class ChoiceParameter(Parameter):
 
 
 # Backwards compatibility: DataSource delegates to ParameterEnum
-# Import ParameterEnum after all parameters are defined
-from productivity_app.data_pipeline.parameters.parameter_enum import ParameterEnum
-
-
+# Cannot import ParameterEnum here - would cause circular import
+# DataSource will be populated in parameters/__init__.py after all imports
 class DataSource:
     """Backwards compatible namespace - delegates to ParameterEnum
-    
+
     DEPRECATED: Use ParameterEnum directly for new code.
     This class is maintained for backwards compatibility with existing code.
-    
+
     Usage:
         # Old style (still works):
         inputs=[DataSource.FilePath]
-        
+
         # New style (preferred):
         inputs=[ParameterEnum.FilePath]
     """
-    
-    # Delegate all attributes to ParameterEnum
-    FilePath = ParameterEnum.FilePath
-    InputPath = ParameterEnum.InputPath
-    OutputPath = ParameterEnum.OutputPath
-    PartsList = ParameterEnum.PartsList
-    Strictness = ParameterEnum.Strictness
+    pass  # Will be populated in parameters/__init__.py

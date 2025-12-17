@@ -5,13 +5,11 @@ from productivity_app.data_pipeline.parameters.input_parameters import Primitive
 from productivity_app.data_pipeline.parameters.parameter_registry import parameter_registry
 
 
-Name = "InputPath"
-
-parameter = PrimitiveParameter(
-    name="input_path",
-    description="Path to input file",
-    title="Input File Path"
+parameter = parameter_registry.define_parameter(
+    name="InputPath",
+    parameter=PrimitiveParameter(
+        name="input_path",
+        description="Path to input file",
+        title="Input File Path"
+    )
 )
-
-# Auto-register on import
-parameter_registry.register(Name, parameter)

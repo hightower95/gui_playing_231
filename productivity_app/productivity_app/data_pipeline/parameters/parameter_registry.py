@@ -16,28 +16,28 @@ if TYPE_CHECKING:
 
 class ParameterRegistry:
     """Singleton registry for input parameters"""
-    
+
     _instance = None
-    
+
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
             cls._instance._initialized = False
         return cls._instance
-    
+
     def __init__(self):
         if self._initialized:
             return
         self._initialized = True
         self._registry: Dict[str, 'Parameter'] = {}
-    
+
     def register(self, name: str, parameter: 'Parameter'):
         """Register a parameter
-        
+
         Args:
             name: Parameter identifier (e.g., 'FilePath', 'PartsList')
             parameter: Parameter instance
-            
+
         Raises:
             ValueError: If parameter with this name already registered
         """
@@ -49,28 +49,46 @@ class ParameterRegistry:
             )
         self._registry[name] = parameter
     
-    def get(self, name: str) -> Optional['Parameter']:
-        """Get parameter by name
+    def define_parameter(self, name: str, parameter: 'Parameter') -> 'Parameter':
+        """Define and register a parameter in one call
+        
+        Convenience function for parameter definition files.
         
         Args:
-            name: Parameter identifier
+            name: Parameter identifier (e.g., 'FilePath', 'PartsList')
+            parameter: Parameter instance
             
+        Returns:
+            The registered parameter (for assignment to module variable)
+            
+        Raises:
+            ValueError: If parameter with this name already registered
+        """
+        self.register(name, parameter)
+        return parameter
+    
+    def get(self, name: str) -> Optional['Parameter']:
+        """Get parameter by name
+
+        Args:
+            name: Parameter identifier
+
         Returns:
             Parameter instance or None if not found
         """
         return self._registry.get(name)
-    
+
     def get_all_parameters(self) -> Dict[str, 'Parameter']:
         """Get all registered parameters
-        
+
         Returns:
             Dictionary of name -> parameter
         """
         return self._registry.copy()
-    
+
     def get_primitives(self) -> List['PrimitiveParameter']:
         """Get all primitive parameters (user-provided inputs)
-        
+
         Returns:
             List of PrimitiveParameter instances
         """
@@ -79,10 +97,10 @@ class ParameterRegistry:
             p for p in self._registry.values()
             if isinstance(p, PrimitiveParameter)
         ]
-    
+
     def get_collected(self) -> List['CollectedParameter']:
         """Get all collected parameters (derived from collectors)
-        
+
         Returns:
             List of CollectedParameter instances
         """
@@ -91,7 +109,7 @@ class ParameterRegistry:
             p for p in self._registry.values()
             if isinstance(p, CollectedParameter)
         ]
-    
+
     def clear(self):
         """Clear all registered parameters (useful for testing)"""
         self._registry.clear()

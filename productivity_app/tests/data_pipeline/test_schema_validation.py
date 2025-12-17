@@ -3,7 +3,7 @@ Test DataSchema validates columns of different data types
 """
 import pytest
 import pandas as pd
-from productivity_app.data_pipeline.data_schemas import DataSchema
+from productivity_app.data_pipeline.data_sources.schema_base_classes import DataSchema
 
 
 def test_dataschema_validates_dataframe():

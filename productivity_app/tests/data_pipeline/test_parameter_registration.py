@@ -4,7 +4,7 @@ Tests for report parameter registration
 import pytest
 from productivity_app.data_pipeline.reports.decorator import report
 from productivity_app.data_pipeline.reports.register import report_registry
-from productivity_app.data_pipeline.parameters.input_parameters import DataSource, InputParameter
+from productivity_app.data_pipeline.parameters import DataSource, InputParameter
 
 
 def test_register_1_parameter():

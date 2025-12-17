@@ -2,8 +2,8 @@
 Generic Excel collector that reads Excel and validates against a schema
 """
 import pandas as pd
-from productivity_app.data_pipeline.data_schemas import DataSchema
-from productivity_app.productivity_app.data_pipeline.data_collectors.decorator import data_collector
+from productivity_app.data_pipeline.data_sources.schema_base_classes import DataSchema
+from productivity_app.data_pipeline.data_collectors.decorator import data_collector
 from productivity_app.data_pipeline.types_enum import DataTypes
 from productivity_app.data_pipeline.parameters.input_parameters import DataSource
 

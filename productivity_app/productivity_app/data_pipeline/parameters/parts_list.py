@@ -6,14 +6,15 @@ from productivity_app.data_pipeline.parameters.parameter_registry import paramet
 from productivity_app.data_pipeline.types_enum import DataTypes
 
 
-Name = "PartsList"
-
-parameter = CollectedParameter(
-    name="parts",
-    description="List of Part objects",
-    title="Parts List",
-    output_type=DataTypes.PartsList
+parameter = parameter_registry.define_parameter(
+    name="PartsList",
+    parameter=CollectedParameter(
+        name="parts",
+        description="List of Part objects",
+        title="Parts List",
+        output_type=DataTypes.PartsList
+    )
 )
 
-# Auto-register on import
-parameter_registry.register(Name, parameter)
+# Backwards compatibility
+PartsList = parameter

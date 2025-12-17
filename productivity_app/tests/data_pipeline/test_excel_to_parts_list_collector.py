@@ -5,7 +5,7 @@ import pytest
 import pandas as pd
 from pathlib import Path
 from productivity_app.data_pipeline.data_collectors.excel_to_parts_list import excel_to_parts_list_collector
-from productivity_app.productivity_app.data_pipeline.data_collectors.register import collector_registry
+from productivity_app.data_pipeline.data_collectors.register import collector_registry
 from productivity_app.data_pipeline.types_enum import DataTypes
 from productivity_app.data_pipeline.models.part import Part
 

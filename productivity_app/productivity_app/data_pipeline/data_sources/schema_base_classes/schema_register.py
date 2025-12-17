@@ -5,7 +5,7 @@ Centralized registry for data schemas mapped to data types.
 """
 from typing import Optional
 from productivity_app.data_pipeline.types_enum import DataTypes
-from productivity_app.data_pipeline.data_schemas.data_schema import DataSchema
+from productivity_app.data_pipeline.data_sources.schema_base_classes.data_schema import DataSchema
 
 
 class _SchemaRegister:

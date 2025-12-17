@@ -11,7 +11,7 @@ Usage:
     # Or modify
     parameters=[DataSources.PartsList.modify(name="input_parts")]
 """
-from productivity_app.productivity_app.data_pipeline.parameters.parts_list import PartsList
+from productivity_app.data_pipeline.parameters.parts_list import PartsList
 
 
 class DataSources:
