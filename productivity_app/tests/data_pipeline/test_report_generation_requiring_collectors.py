@@ -59,11 +59,11 @@ def test_registry_provides_root_parameters():
     # So get_base_inputs() should return FilePath (is_root=True)
 
     assert len(root_dependencies) > 0, "Should find at least one root input"
-    
+
     # Check that we get a root parameter (FilePath)
     root_names = [p.name for p in root_dependencies]
     assert "filepath" in root_names, "Should trace back to filepath as root input"
-    
+
     # Verify the root parameter has is_root=True
     for param in root_dependencies:
         assert param.is_root is True, f"Root parameter {param.name} should have is_root=True"
@@ -91,13 +91,13 @@ def test_report_needs_collector_lookup():
     # Check if report can be generated
     can_gen = registered.can_generate()
     issues = registered.get_issues()
-    
+
     # Should report issue if no collectors are registered
     # (depends on whether excel_to_parts_list is imported)
     if not can_gen:
         assert len(issues) > 0
         assert any("parts" in issue.lower() for issue in issues)
-    
+
     # GUI would need to:
     # 1. See input is PartsList
     # 2. Look up collectors that output DataTypes.PartsList
