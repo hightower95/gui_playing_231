@@ -43,14 +43,11 @@ def sample_csv_files(tmp_path):
 def test_compare_two_csvs_basic(sample_csv_files):
     """Test basic comparison of two CSV parts lists"""
 
-    # Import schema registration (must happen before collectors)
-    from productivity_app.data_pipeline.data_sources import parts_list as parts_list_schema
-
-    # Import collectors and reports to register them
+    # Import collectors and reports (schema auto-registers)
     from productivity_app.data_pipeline.data_collectors import csv_to_parts_list
     from productivity_app.data_pipeline.reports import compare_parts
     from productivity_app.data_pipeline.registry import registry
-
+    
     csv1, csv2 = sample_csv_files
 
     # Get the comparison report
@@ -91,16 +88,13 @@ def test_compare_two_csvs_basic(sample_csv_files):
 def test_compare_csvs_with_field_changes(sample_csv_files):
     """Test detailed comparison that detects field-level changes"""
 
-    # Import schema registration
-    from productivity_app.data_pipeline.data_sources import parts_list as parts_list_schema
-
+    # Import collectors and reports (schema auto-registers)
     from productivity_app.data_pipeline.data_collectors import csv_to_parts_list
     from productivity_app.data_pipeline.reports import compare_parts
     from productivity_app.data_pipeline.registry import registry
-
+    
     csv1, csv2 = sample_csv_files
-
-    # Get detailed comparison report
+    
     report = registry.get_report("Parts Comparison - Detailed")
     assert report is not None, "Parts Comparison - Detailed report not found"
 
@@ -133,10 +127,8 @@ def test_compare_csvs_with_field_changes(sample_csv_files):
 
 def test_compare_identical_csvs(tmp_path):
     """Test comparison of identical files shows no differences"""
-
-    # Import schema registration
-    from productivity_app.data_pipeline.data_sources import parts_list as parts_list_schema
-
+    
+    # Import collectors and reports (schema auto-registers)
     from productivity_app.data_pipeline.data_collectors import csv_to_parts_list
     from productivity_app.data_pipeline.reports import compare_parts
     from productivity_app.data_pipeline.registry import registry
@@ -170,10 +162,8 @@ def test_compare_identical_csvs(tmp_path):
 
 def test_compare_completely_different_csvs(tmp_path):
     """Test comparison where files have no parts in common"""
-
-    # Import schema registration
-    from productivity_app.data_pipeline.data_sources import parts_list as parts_list_schema
-
+    
+    # Import collectors and reports (schema auto-registers)
     from productivity_app.data_pipeline.data_collectors import csv_to_parts_list
     from productivity_app.data_pipeline.reports import compare_parts
     from productivity_app.data_pipeline.registry import registry
