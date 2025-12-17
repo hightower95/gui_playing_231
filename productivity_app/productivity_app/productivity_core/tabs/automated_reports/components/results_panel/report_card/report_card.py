@@ -1,7 +1,7 @@
 """Report Card - Modular card for displaying report metadata"""
 from typing import Optional, List
 from PySide6.QtWidgets import QFrame, QVBoxLayout, QLabel, QWidget, QSizePolicy
-from PySide6.QtCore import QSize, Qt
+from PySide6.QtCore import QSize, Qt, Signal
 from PySide6.QtGui import QResizeEvent, QCursor
 
 
@@ -15,6 +15,9 @@ from .styles import COMPLETE_CARD_STYLE
 
 class ReportCard(QFrame):
     """Modular report card with separate section components"""
+    
+    # Signal emitted when card is clicked
+    clicked = Signal()
 
     def __init__(
         self,
@@ -134,3 +137,10 @@ class ReportCard(QFrame):
     def maximumSizeHint(self) -> QSize:
         """Provide maximum size hint to prevent cards from growing"""
         return QSize(320, 300)
+
+    def mousePressEvent(self, event):
+        """Handle mouse click on card"""
+        if event.button() == Qt.MouseButton.LeftButton:
+            print(f"[ReportCard] Card clicked: {self.title}")
+            self.clicked.emit()
+        super().mousePressEvent(event)

@@ -4,13 +4,13 @@ CSV Columns Report Example
 Demonstrates basic report creation with simple file input.
 """
 from productivity_app.data_pipeline.reports.decorator import report
-from productivity_app.data_pipeline.parameters import ParameterEnum
+from productivity_app.data_pipeline.parameters import Variables
 
 
 @report(
     title="CSV Columns Report",
     description="Generates a report of the columns in a CSV file.",
-    inputs=[ParameterEnum.FilePath],
+    inputs=[Variables.FilePath],
 )
 def csv_columns_report(filepath: str) -> str:
     """Generate a report of CSV columns
@@ -38,7 +38,7 @@ def csv_columns_report(filepath: str) -> str:
 @report(
     title="CSV Columns Report with Output",
     description="Generates a report of the columns in a CSV file with optional output file.",
-    inputs=[ParameterEnum.InputPath, ParameterEnum.OutputPath],
+    inputs=[Variables.InputPath, Variables.OutputPath],
 )
 def csv_columns_report_with_output_path(input_path: str, output_path: str = None) -> str:
     """Generate a report of CSV columns
@@ -71,7 +71,7 @@ def csv_columns_report_with_output_path(input_path: str, output_path: str = None
 @report(
     title="CSV Columns - Using Schema",
     description="Generates a report from a parts list (demonstrates collected parameters).",
-    inputs=[ParameterEnum.PartsList],
+    inputs=[Variables.PartsList],
 )
 def parts_list_report(parts: list) -> str:
     """Generate a report from parts list

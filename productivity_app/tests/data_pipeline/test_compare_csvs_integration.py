@@ -47,7 +47,7 @@ def test_compare_two_csvs_basic(sample_csv_files):
     from productivity_app.data_pipeline.data_collectors import csv_to_parts_list
     from productivity_app.data_pipeline.reports import compare_parts
     from productivity_app.data_pipeline.registry import registry
-    
+
     csv1, csv2 = sample_csv_files
 
     # Get the comparison report
@@ -92,9 +92,9 @@ def test_compare_csvs_with_field_changes(sample_csv_files):
     from productivity_app.data_pipeline.data_collectors import csv_to_parts_list
     from productivity_app.data_pipeline.reports import compare_parts
     from productivity_app.data_pipeline.registry import registry
-    
+
     csv1, csv2 = sample_csv_files
-    
+
     report = registry.get_report("Parts Comparison - Detailed")
     assert report is not None, "Parts Comparison - Detailed report not found"
 
@@ -127,7 +127,7 @@ def test_compare_csvs_with_field_changes(sample_csv_files):
 
 def test_compare_identical_csvs(tmp_path):
     """Test comparison of identical files shows no differences"""
-    
+
     # Import collectors and reports (schema auto-registers)
     from productivity_app.data_pipeline.data_collectors import csv_to_parts_list
     from productivity_app.data_pipeline.reports import compare_parts
@@ -162,7 +162,7 @@ def test_compare_identical_csvs(tmp_path):
 
 def test_compare_completely_different_csvs(tmp_path):
     """Test comparison where files have no parts in common"""
-    
+
     # Import collectors and reports (schema auto-registers)
     from productivity_app.data_pipeline.data_collectors import csv_to_parts_list
     from productivity_app.data_pipeline.reports import compare_parts

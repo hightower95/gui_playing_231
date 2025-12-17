@@ -30,6 +30,7 @@ class AutomatedReportsView(QWidget):
         super().__init__(parent)
         self.debug_mode = debug_mode
         self.presenter = AutomatedReportsPresenter(self)
+        self.overlay = None  # Overlay for modal-like setup panel
         self._setup_ui()
         self._connect_signals()
 
@@ -134,6 +135,10 @@ class AutomatedReportsView(QWidget):
             self._on_filter_values_updated)
         self.presenter.sort_methods_updated.connect(
             self._on_sort_methods_updated)
+
+        # Setup panel signals
+        self.presenter.show_setup_panel.connect(self._show_setup_panel)
+        self.presenter.show_results_panel.connect(self._show_results_panel)
 
         # Search panel signals
         self.search_panel.search_changed.connect(self._on_search_changed)
@@ -261,7 +266,51 @@ class AutomatedReportsView(QWidget):
 
     def _on_report_clicked(self, report_id: str):
         """Handle report tile click"""
-        self.presenter.open_report(report_id)
+        print(f"[AutomatedReportsView] Report clicked: {report_id}")
+        self.presenter.open_report(report_id, parent=self)
+        
+    def _show_setup_panel(self, report_meta):
+        """Show the setup panel in an overlay"""
+        from .components import SetupReportPanel, OverlayWidget
+        
+        print(f"[AutomatedReportsView] Showing setup panel overlay for: {report_meta.name}")
+        
+        # Create overlay if it doesn't exist
+        if not self.overlay:
+            self.overlay = OverlayWidget(self)
+            self.overlay.clicked_outside.connect(self.presenter.cancel_setup)
+            
+        # Create setup panel
+        setup_panel = SetupReportPanel(
+            report_title=report_meta.name,
+            report_description=report_meta.description,
+            required_inputs=report_meta.required_inputs
+        )
+        
+        # Connect signals
+        setup_panel.report_executed.connect(self.presenter.execute_report)
+        setup_panel.cancelled.connect(self.presenter.cancel_setup)
+        
+        # Set content in overlay
+        self.overlay.set_content(setup_panel)
+        
+        # Position overlay to cover entire view
+        self.overlay.setGeometry(self.rect())
+        self.overlay.raise_()
+        self.overlay.show()
+        
+    def _show_results_panel(self):
+        """Hide the overlay and show results panel"""
+        print(f"[AutomatedReportsView] Hiding setup panel overlay")
+        
+        if self.overlay:
+            self.overlay.hide()
+            
+    def resizeEvent(self, event):
+        """Handle resize to reposition overlay"""
+        super().resizeEvent(event)
+        if self.overlay and self.overlay.isVisible():
+            self.overlay.setGeometry(self.rect())
 
     def _toggle_left_panel(self):
         """Toggle the visibility of the left panel with animation"""

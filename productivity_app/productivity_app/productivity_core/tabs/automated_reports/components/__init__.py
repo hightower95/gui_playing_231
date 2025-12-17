@@ -6,6 +6,9 @@ from .search_panel.filter_buttons import FilterButtons
 from .search_panel.active_filter_pills import ActiveFilterPills
 from .results_panel.tile import ReportTile
 from .results_panel.results_panel import ResultsPanel
+from .report_config_dialog import ReportConfigDialog
+from .setup_report_interstitial import SetupReportPanel
+from .overlay import OverlayWidget
 
 __all__ = [
     'LeftPanel',
@@ -14,5 +17,8 @@ __all__ = [
     'FilterButtons',
     'ActiveFilterPills',
     'ReportTile',
-    'ResultsPanel'
+    'ResultsPanel',
+    'ReportConfigDialog',
+    'SetupReportPanel',
+    'OverlayWidget'
 ]

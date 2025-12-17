@@ -5,9 +5,8 @@ Handles:
 - Report metadata storage
 - Search and filtering logic
 - Report categorization
-- Fake data generation for testing
+- Integration with data_pipeline registry
 """
-import random
 from typing import List, Dict, Optional
 from dataclasses import dataclass
 
@@ -40,9 +39,51 @@ class AutomatedReportsModel:
     """Model for managing automated reports library"""
 
     def __init__(self):
-        """Initialize with sample data"""
-        self.reports = self._generate_fake_reports(15)
+        """Initialize with reports from data_pipeline registry"""
+        self.reports = self._load_reports_from_registry()
         self.filtered_reports = self.reports.copy()
+
+    def _load_reports_from_registry(self) -> List[ReportMetadata]:
+        """Load reports from data_pipeline registry
+        
+        Returns:
+            List of ReportMetadata objects
+        """
+        from productivity_app.data_pipeline.registry import registry
+        from productivity_app.data_pipeline.parameters import PrimitiveParameter, CollectedParameter
+        # Import reports module to trigger registration
+        import productivity_app.data_pipeline.reports  # noqa: F401
+        
+        reports = []
+        registry_reports = registry.get_all_reports()
+        
+        for i, (title, report_info) in enumerate(registry_reports.items()):
+            # Extract input types
+            inputs = report_info.get('inputs', [])
+            required_inputs = []
+            
+            for inp in inputs:
+                if isinstance(inp, PrimitiveParameter):
+                    required_inputs.append(inp.name)
+                elif isinstance(inp, CollectedParameter):
+                    # This represents a document/data source
+                    required_inputs.append(f"{inp.name} (from collector)")
+            
+            # Create ReportMetadata
+            reports.append(ReportMetadata(
+                id=f"pipeline_report_{i + 1}",
+                name=title,
+                description=report_info.get('description', 'No description available'),
+                project="Data Pipeline",  # All pipeline reports grouped under this project
+                focus_area="Automated Analysis",
+                report_type="Report",  # Could enhance this by inferring from inputs
+                scope="local",
+                tags=["Data Pipeline", "Automated"],
+                required_inputs=required_inputs,
+                topics=["Data Pipeline", "Automated Analysis"]
+            ))
+        
+        return reports
 
     def _generate_fake_reports(self, count: int = 15) -> List[ReportMetadata]:
         """Generate fake report data for testing

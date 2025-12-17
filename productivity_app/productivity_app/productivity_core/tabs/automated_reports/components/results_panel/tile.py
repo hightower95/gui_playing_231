@@ -44,6 +44,10 @@ class ReportTile(QFrame):
         self.setMinimumHeight(120)
         self.setMaximumHeight(160)
 
+        # Enable mouse tracking and set focus policy
+        self.setMouseTracking(True)
+        self.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
+
         layout = QVBoxLayout(self)
         layout.setSpacing(8)
 
@@ -55,6 +59,8 @@ class ReportTile(QFrame):
         icon_label = QLabel(icon)
         icon_label.setStyleSheet(
             "font-size: 16pt; background: transparent; border: none;")
+        icon_label.setAttribute(
+            Qt.WidgetAttribute.WA_TransparentForMouseEvents)
         header_layout.addWidget(icon_label)
 
         # Title
@@ -67,6 +73,7 @@ class ReportTile(QFrame):
             border: none;
         """)
         title.setWordWrap(True)
+        title.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
         header_layout.addWidget(title, stretch=1)
 
         # Scope badge
@@ -77,6 +84,8 @@ class ReportTile(QFrame):
             background: transparent;
             border: none;
         """)
+        scope_badge.setAttribute(
+            Qt.WidgetAttribute.WA_TransparentForMouseEvents)
         header_layout.addWidget(scope_badge)
 
         layout.addLayout(header_layout)
@@ -90,6 +99,7 @@ class ReportTile(QFrame):
             border: none;
         """)
         desc.setWordWrap(True)
+        desc.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
         layout.addWidget(desc)
 
         # Metadata row
@@ -99,12 +109,16 @@ class ReportTile(QFrame):
         project_label = QLabel(f"Project: {self.report.project}")
         project_label.setStyleSheet(
             "font-size: 8pt; color: #4fc3f7; background: transparent; border: none;")
+        project_label.setAttribute(
+            Qt.WidgetAttribute.WA_TransparentForMouseEvents)
         meta_layout.addWidget(project_label)
 
         # Focus Area
         focus_label = QLabel(f"Focus Area: {self.report.focus_area}")
         focus_label.setStyleSheet(
             "font-size: 8pt; color: #4fc3f7; background: transparent; border: none;")
+        focus_label.setAttribute(
+            Qt.WidgetAttribute.WA_TransparentForMouseEvents)
         meta_layout.addWidget(focus_label)
 
         meta_layout.addStretch()
@@ -115,8 +129,8 @@ class ReportTile(QFrame):
             tags_layout = QHBoxLayout()
             tags_label = QLabel(
                 f"Contains {len(self.report.contained_reports)} reports:")
-            tags_label.setStyleSheet(
-                "font-size: 8pt; color: #909090; background: transparent; border: none;")
+            tags_label.setAttribute(
+                Qt.WidgetAttribute.WA_TransparentForMouseEvents)
             tags_layout.addWidget(tags_label)
 
             for contained in self.report.contained_reports[:3]:  # Show first 3
@@ -129,6 +143,8 @@ class ReportTile(QFrame):
                     border-radius: 3px;
                     padding: 2px 6px;
                 """)
+                tag.setAttribute(
+                    Qt.WidgetAttribute.WA_TransparentForMouseEvents)
                 tags_layout.addWidget(tag)
 
             tags_layout.addStretch()
@@ -146,6 +162,8 @@ class ReportTile(QFrame):
                     background: transparent;
                     border: none;
                 """)
+                tag_label.setAttribute(
+                    Qt.WidgetAttribute.WA_TransparentForMouseEvents)
                 tags_layout.addWidget(tag_label)
 
             tags_layout.addStretch()
@@ -156,5 +174,7 @@ class ReportTile(QFrame):
     def mousePressEvent(self, event):
         """Handle mouse click on tile"""
         if event.button() == Qt.MouseButton.LeftButton:
+            print(
+                f"[ReportTile] Mouse pressed on tile: {self.report.id} - {self.report.name}")
             self.clicked.emit(self.report.id)
         super().mousePressEvent(event)

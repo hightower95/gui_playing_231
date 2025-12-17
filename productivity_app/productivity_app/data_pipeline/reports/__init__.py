@@ -19,5 +19,6 @@ def get_all_reports():
 
 
 # Import to trigger registration
+from productivity_app.data_pipeline.reports import compare_parts  # noqa: F401
 
 __all__ = ['report', 'get_report_by_name', 'get_all_reports']
