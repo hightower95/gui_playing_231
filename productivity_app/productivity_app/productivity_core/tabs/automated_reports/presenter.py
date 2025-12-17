@@ -46,7 +46,8 @@ class AutomatedReportsPresenter(QObject):
     filter_values_updated = Signal(dict)  # Emits dict of {dimension: [values]}
     # Emits list of {id, label, ascending, icon} dicts
     sort_methods_updated = Signal(list)
-    show_setup_panel = Signal(object)  # Emits report metadata to show setup panel
+    # Emits report metadata to show setup panel
+    show_setup_panel = Signal(object)
     show_results_panel = Signal()  # Signal to show results panel again
 
     def __init__(self, parent=None):
@@ -285,62 +286,64 @@ class AutomatedReportsPresenter(QObject):
 
     def open_report(self, report_id: str, parent=None):
         """Handle report opening - show setup panel inline
-        
+
         Args:
             report_id: ID of the report to open
             parent: Parent widget (not used for inline panel)
         """
         print(f"[AutomatedReportsPresenter] Opening report: {report_id}")
-        
+
         # Find the report metadata
         report_meta = None
         for report in self.model.reports:
             if report.id == report_id:
                 report_meta = report
                 break
-        
+
         if not report_meta:
             print(f"[AutomatedReportsPresenter] Report not found: {report_id}")
             return
-            
+
         print(f"[AutomatedReportsPresenter] Found report: {report_meta.name}")
-        print(f"[AutomatedReportsPresenter] Required inputs: {report_meta.required_inputs}")
-        
+        print(
+            f"[AutomatedReportsPresenter] Required inputs: {report_meta.required_inputs}")
+
         # Emit signal to show setup panel with this report
         self.show_setup_panel.emit(report_meta)
-        
+
     def execute_report(self, title: str, parameters: Dict[str, str]):
         """Execute a report with the provided parameters
-        
+
         Args:
             title: Report title
             parameters: Dictionary of input parameters
         """
         print(f"[AutomatedReportsPresenter] Executing report: {title}")
         print(f"[AutomatedReportsPresenter] Parameters: {parameters}")
-        
+
         try:
             # Get the actual report from data_pipeline registry
             from productivity_app.data_pipeline.registry import registry
             report_wrapper = registry.get_report(title)
-            
+
             if not report_wrapper:
-                print(f"[AutomatedReportsPresenter] Report not in registry: {title}")
+                print(
+                    f"[AutomatedReportsPresenter] Report not in registry: {title}")
                 return
-            
+
             # TODO: Convert file paths to actual data using collectors
             # For now, just print what would happen
             result = report_wrapper.generate(**parameters)
             print(f"[AutomatedReportsPresenter] Report result: {result}")
-            
+
             # TODO: Display results in UI or save to file
-            
+
             # Return to results panel
             self.show_results_panel.emit()
-            
+
         except Exception as e:
             print(f"[AutomatedReportsPresenter] Error executing report: {e}")
-            
+
     def cancel_setup(self):
         """Handle cancellation of report setup"""
         print(f"[AutomatedReportsPresenter] Setup cancelled, returning to results")

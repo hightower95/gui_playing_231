@@ -218,11 +218,12 @@ class ResultsPanel(QWidget):
         """
         print(f"[ResultsPanel] Adding tile: {metadata.id} - {metadata.name}")
         tile = ReportTile(metadata)
-        
+
         def on_tile_clicked():
-            print(f"[ResultsPanel] Tile clicked signal received: {metadata.id}")
+            print(
+                f"[ResultsPanel] Tile clicked signal received: {metadata.id}")
             self.report_clicked.emit(metadata.id)
-            
+
         tile.clicked.connect(on_tile_clicked)
         self.grid.add_card(tile)
 
@@ -284,15 +285,16 @@ class ResultsPanel(QWidget):
                 card_type=report.report_type,  # Use actual report type from model
                 icon=None  # Let header determine icon based on card_type
             )
-            
+
             # Connect card click to emit report_clicked signal with report ID
-            card.clicked.connect(lambda r_id=report.id: self._on_card_clicked(r_id))
-            
+            card.clicked.connect(
+                lambda r_id=report.id: self._on_card_clicked(r_id))
+
             self.grid.add_card(card)
-    
+
     def _on_card_clicked(self, report_id: str):
         """Handle card click and emit report_clicked signal
-        
+
         Args:
             report_id: ID of the clicked report
         """

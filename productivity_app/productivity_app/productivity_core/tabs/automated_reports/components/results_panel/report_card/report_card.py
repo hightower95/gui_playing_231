@@ -15,7 +15,7 @@ from .styles import COMPLETE_CARD_STYLE
 
 class ReportCard(QFrame):
     """Modular report card with separate section components"""
-    
+
     # Signal emitted when card is clicked
     clicked = Signal()
 
