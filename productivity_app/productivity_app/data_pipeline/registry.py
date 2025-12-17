@@ -105,12 +105,12 @@ class CentralRegistry:
 
     def get_report(self, title: str):
         """Get report wrapper by title
-        
+
         Returns:
             ReportWrapper instance with generate() method, or None if not found
         """
         from productivity_app.data_pipeline.reports.register import ReportWrapper
-        
+
         report_info = self._reports.get(title)
         if report_info:
             return ReportWrapper(

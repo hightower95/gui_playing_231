@@ -28,7 +28,7 @@ def clear_registries():
 
 def test_get_all_reports_empty():
     """Test get_all_reports returns empty list when no reports registered"""
-    
+
     registry = ParameterRegistry()
     all_reports = get_all_reports()
     assert all_reports == []
@@ -37,7 +37,7 @@ def test_get_all_reports_empty():
 
 def test_get_all_reports_single_report():
     """Test get_all_reports with one report"""
-    
+
     registry = ParameterRegistry()
 
     @report(
@@ -57,7 +57,7 @@ def test_get_all_reports_single_report():
 
 def test_get_all_reports_multiple():
     """Test get_all_reports with multiple reports"""
-    
+
     registry = ParameterRegistry()
 
     @report(
@@ -93,7 +93,7 @@ def test_get_all_reports_multiple():
 
 def test_report_required_parameters():
     """Test accessing required_parameters on a report"""
-    
+
     registry = ParameterRegistry()
 
     @report(
@@ -120,7 +120,7 @@ def test_report_required_parameters():
 
 def test_iterate_required_parameters():
     """Test iterating over required_parameters"""
-    
+
     registry = ParameterRegistry()
 
     @report(
@@ -155,7 +155,7 @@ def test_iterate_required_parameters():
 
 def test_multiple_parameters_same_type():
     """Test report with multiple FilePath parameters"""
-    
+
     registry = ParameterRegistry()
 
     # Create two separate FilePath parameters
@@ -209,7 +209,7 @@ def test_multiple_parameters_same_type():
 
 def test_report_wrapper_attributes():
     """Test that ReportWrapper exposes all necessary attributes"""
-    
+
     registry = ParameterRegistry()
 
     @report(
@@ -245,7 +245,7 @@ def test_report_wrapper_attributes():
 
 def test_optional_parameters():
     """Test report with both required and optional parameters"""
-    
+
     registry = ParameterRegistry()
 
     required_param = FilePath(

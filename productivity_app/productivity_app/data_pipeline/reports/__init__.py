@@ -11,7 +11,7 @@ def get_report_by_name(title: str):
 
 def get_all_reports():
     """Get all registered reports as wrappers
-    
+
     Returns:
         List of ReportWrapper objects
     """

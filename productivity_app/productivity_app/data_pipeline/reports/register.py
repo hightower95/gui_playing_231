@@ -28,10 +28,10 @@ class ReportRegistry:
                 description=report_info.get('description', '')
             )
         return None
-    
+
     def get_all_reports(self):
         """Get all reports as wrappers
-        
+
         Returns:
             List of ReportWrapper objects
         """
