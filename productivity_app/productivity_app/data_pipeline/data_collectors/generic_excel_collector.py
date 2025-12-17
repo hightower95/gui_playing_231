@@ -5,12 +5,12 @@ import pandas as pd
 from productivity_app.data_pipeline.data_sources.schema_base_classes import DataSchema
 from productivity_app.data_pipeline.data_collectors.decorator import data_collector
 from productivity_app.data_pipeline.types_enum import DataTypes
-from productivity_app.data_pipeline.parameters.input_parameters import DataSource
+from productivity_app.data_pipeline.parameters import Variables
 
 
 @data_collector(
     name="ExcelGeneric",
-    inputs=[DataSource.FilePath],
+    inputs=[Variables.FilePath],
     outputs=[DataTypes.DataFrame]
 )
 def generic_excel_collector(filepath: str, schema: DataSchema = None) -> pd.DataFrame:

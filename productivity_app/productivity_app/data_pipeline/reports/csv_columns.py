@@ -67,6 +67,7 @@ def csv_columns_report_with_output_path(input_path: str, output_path: str = None
     print(report_columns_pretty)
     return columns
 
+
 @report(
     title="CSV Columns - Using Schema",
     description="Generates a report from a parts list (demonstrates collected parameters).",
@@ -86,7 +87,7 @@ def parts_list_report(parts: list) -> str:
     """
     part_count = len(parts)
     report = f"Number of parts: {part_count}"
-    
+
     print("Report generated:")
     print(report)
 

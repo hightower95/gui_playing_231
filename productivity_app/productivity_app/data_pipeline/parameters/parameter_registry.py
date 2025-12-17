@@ -15,7 +15,12 @@ if TYPE_CHECKING:
 
 
 class ParameterRegistry:
-    """Singleton registry for input parameters"""
+    """Singleton registry for input parameters
+
+    Why?
+    We can check that all parameters have a unique name, and allow new runtime additions without conflicts.
+
+    """
 
     _instance = None
 

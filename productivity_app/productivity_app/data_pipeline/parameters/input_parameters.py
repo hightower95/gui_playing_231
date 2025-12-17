@@ -78,22 +78,3 @@ class ChoiceParameter(Parameter):
                 raise ValueError(
                     f"Default value '{self.default}' not in choices {self.choices}"
                 )
-
-
-# Backwards compatibility: DataSource delegates to ParameterEnum
-# Cannot import ParameterEnum here - would cause circular import
-# DataSource will be populated in parameters/__init__.py after all imports
-class DataSource:
-    """Backwards compatible namespace - delegates to ParameterEnum
-
-    DEPRECATED: Use ParameterEnum directly for new code.
-    This class is maintained for backwards compatibility with existing code.
-
-    Usage:
-        # Old style (still works):
-        inputs=[DataSource.FilePath]
-
-        # New style (preferred):
-        inputs=[ParameterEnum.FilePath]
-    """
-    pass  # Will be populated in parameters/__init__.py

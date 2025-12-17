@@ -24,18 +24,37 @@ class ReportRegistry:
             return ReportWrapper(
                 title=title,
                 func=report_info['func'],
-                inputs=report_info['inputs']
+                inputs=report_info['inputs'],
+                description=report_info.get('description', '')
             )
         return None
+    
+    def get_all_reports(self):
+        """Get all reports as wrappers
+        
+        Returns:
+            List of ReportWrapper objects
+        """
+        all_reports = central_registry.get_all_reports()
+        return [
+            ReportWrapper(
+                title=title,
+                func=info['func'],
+                inputs=info['inputs'],
+                description=info.get('description', '')
+            )
+            for title, info in all_reports.items()
+        ]
 
 
 class ReportWrapper:
     """Wrapper around report function"""
 
-    def __init__(self, title: str, func: Callable, inputs: List[Any]):
+    def __init__(self, title: str, func: Callable, inputs: List[Any], description: str = ""):
         self.title = title
         self.func = func
         self.inputs = inputs
+        self.description = description
 
     def generate(self, **kwargs):
         """Generate the report"""

@@ -3,29 +3,33 @@ from productivity_app.data_pipeline.parameters.input_parameters import (
     Parameter,
     PrimitiveParameter,
     CollectedParameter,
-    ChoiceParameter,
-    DataSource
+    ChoiceParameter
 )
 from productivity_app.data_pipeline.parameters.parameter_enum import ParameterEnum
-from productivity_app.data_pipeline.parameters.parameter_registry import parameter_registry
+from productivity_app.data_pipeline.parameters.parameter_registry import ParameterRegistry
 
-# Populate DataSource with ParameterEnum attributes for backwards compatibility
-DataSource.FilePath = ParameterEnum.FilePath
-DataSource.InputPath = ParameterEnum.InputPath
-DataSource.OutputPath = ParameterEnum.OutputPath
-DataSource.PartsList = ParameterEnum.PartsList
-DataSource.Strictness = ParameterEnum.Strictness
+# Main export - clearer name for users
+Variables = ParameterEnum
 
 # For backwards compatibility
 InputParameter = Parameter
+ParameterEnum = ParameterEnum  # Keep old name working
+
+# For convenience - type aliases to PrimitiveParameter
+FilePath = PrimitiveParameter
+InputPath = PrimitiveParameter
+OutputPath = PrimitiveParameter
 
 __all__ = [
+    'Variables',  # Primary interface
     'Parameter',
     'PrimitiveParameter',
     'CollectedParameter',
     'ChoiceParameter',
-    'DataSource',
-    'ParameterEnum',
-    'parameter_registry',
-    'InputParameter'  # Backwards compat
+    'ParameterEnum',  # Backwards compat
+    'ParameterRegistry',
+    'InputParameter',  # Backwards compat
+    'FilePath',  # Convenience
+    'InputPath',  # Convenience
+    'OutputPath',  # Convenience
 ]
