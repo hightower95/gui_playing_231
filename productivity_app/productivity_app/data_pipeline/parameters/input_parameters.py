@@ -10,9 +10,12 @@ Usage:
     
     # Optional filepath
     inputs=[DataSource.FilePath(required=False)]
+    
+    # Choice parameter
+    inputs=[DataSource.Strictness]
 """
 from dataclasses import dataclass, replace
-from typing import Optional
+from typing import Optional, List, Any
 
 
 @dataclass(frozen=True)
@@ -33,6 +36,23 @@ class InputParameter:
         return replace(self, **kwargs)
 
 
+@dataclass(frozen=True)
+class ChoiceParameter(InputParameter):
+    """Parameter with predefined choices (dropdown/select)"""
+    choices: Optional[List[Any]] = None
+    multiselect: bool = False
+    default: Optional[Any] = None
+
+    def __post_init__(self):
+        """Validate default is in choices"""
+        super().__post_init__()
+        if self.default is not None and self.choices is not None:
+            if self.default not in self.choices:
+                raise ValueError(
+                    f"Default value '{self.default}' not in choices {self.choices}"
+                )
+
+
 class DataSource:
     """Namespace for common input parameter types"""
 
@@ -44,14 +64,25 @@ class DataSource:
 
     InputPath = InputParameter(
         name="input_path",
+        title="Input File Path",
         required=True,
         description="Path to input file"
     )
 
     OutputPath = InputParameter(
         name="output_path",
-        required=True,
+        title="Output File Path",
+        required=False,
         description="Path to output file"
+    )
+
+    Strictness = ChoiceParameter(
+        name="strictness",
+        required=False,
+        description="Validation strictness level",
+        title="Strictness Level",
+        choices=["strict", "moderate", "lenient"],
+        default="moderate"
     )
 
     # Add more common inputs here

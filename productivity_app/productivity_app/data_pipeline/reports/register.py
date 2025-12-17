@@ -3,6 +3,8 @@ Report registry - tracks registered reports
 """
 from typing import Dict, Any, Callable, List
 
+from productivity_app.data_pipeline.parameters.input_parameters import InputParameter
+
 
 class ReportRegistry:
     """Registry for reports"""
@@ -10,7 +12,7 @@ class ReportRegistry:
     def __init__(self):
         self._reports: Dict[str, Dict[str, Any]] = {}
 
-    def register(self, title: str, func: Callable, description: str, inputs: List[Any]):
+    def register(self, title: str, func: Callable, description: str, inputs: List[InputParameter]):
         """Register a report"""
         self._reports[title] = {
             'func': func,
