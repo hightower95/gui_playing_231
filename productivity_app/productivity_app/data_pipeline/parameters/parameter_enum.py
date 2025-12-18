@@ -10,6 +10,7 @@ from productivity_app.data_pipeline.parameters.input_path import parameter as In
 from productivity_app.data_pipeline.parameters.output_path import parameter as OutputPath
 from productivity_app.data_pipeline.parameters.parts_list import parameter as PartsList
 from productivity_app.data_pipeline.parameters.strictness import parameter as Strictness
+from productivity_app.data_pipeline.parameters.street_price_list import parameter as StreetPriceList
 
 
 class ParameterEnum:
@@ -36,6 +37,7 @@ class ParameterEnum:
 
     # Collected parameters (from collectors)
     PartsList = PartsList
+    StreetPriceList = StreetPriceList
 
     # Add new parameters here as they are created
     # Each should be imported above and assigned as a class attribute

@@ -6,7 +6,7 @@ from typing import List, Any, Callable
 from productivity_app.data_pipeline.registry import registry
 
 
-def report(title: str, description: str, inputs: List[Any]):
+def report(title: str, description: str, inputs: List[Any], **kwargs) -> Callable:
     """Decorator to register a report"""
     def decorator(func: Callable) -> Callable:
         # Validate inputs match function signature

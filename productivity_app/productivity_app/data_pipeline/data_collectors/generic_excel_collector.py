@@ -13,7 +13,7 @@ from productivity_app.data_pipeline.parameters import Variables
     inputs=[Variables.FilePath],
     outputs=[DataTypes.DataFrame]
 )
-def generic_excel_collector(filepath: str, schema: DataSchema = None) -> pd.DataFrame:
+def generic_excel_collector(filepath: str, sheet_name=None) -> pd.DataFrame:
     """Read Excel file and optionally validate against schema
 
     Args:
@@ -26,11 +26,6 @@ def generic_excel_collector(filepath: str, schema: DataSchema = None) -> pd.Data
     Raises:
         ValueError: If schema provided and validation fails
     """
-    df = pd.read_excel(filepath)
-
-    if schema is not None:
-        is_valid, errors = schema.validate(df)
-        if not is_valid:
-            raise ValueError(f"Schema validation failed: {errors}")
+    df = pd.read_excel(filepath, sheet_name=sheet_name)
 
     return df

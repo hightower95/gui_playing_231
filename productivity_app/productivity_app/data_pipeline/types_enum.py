@@ -9,6 +9,8 @@ class DataTypes(Enum):
     FilePath = "FilePath"
     DataFrame = "DataFrame"
 
+    StreetPriceList = "StreetPriceList"
+
 
 class FileTypes(Enum):
     """Enumeration of file types that can be used as sources"""

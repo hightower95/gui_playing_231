@@ -1,4 +1,5 @@
 """Data pipeline reports module"""
+from productivity_app.data_pipeline.reports import compare_house_prices
 from productivity_app.data_pipeline.reports import csv_columns
 from productivity_app.data_pipeline.reports.register import report_registry
 from productivity_app.data_pipeline.reports.decorator import report

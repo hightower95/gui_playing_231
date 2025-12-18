@@ -1,6 +1,7 @@
 """
 Report registry - tracks registered reports
 """
+import inspect
 from typing import Dict, Any, Callable, List
 
 from productivity_app.data_pipeline.parameters.input_parameters import Parameter
@@ -57,8 +58,22 @@ class ReportWrapper:
         self.description = description
 
     def generate(self, **kwargs):
-        """Generate the report"""
-        return self.func(**kwargs)
+        """Generate the report
+
+        Filters kwargs to only include parameters that the function accepts.
+        This allows the caller to pass extra parameters without causing errors.
+        """
+        # Get function signature
+        sig = inspect.signature(self.func)
+
+        # Filter kwargs to only include parameters the function accepts
+        filtered_kwargs = {
+            key: value
+            for key, value in kwargs.items()
+            if key in sig.parameters
+        }
+
+        return self.func(**filtered_kwargs)
 
     def get_dependency_tree(self) -> str:
         """Get dependency tree showing report and inputs"""
