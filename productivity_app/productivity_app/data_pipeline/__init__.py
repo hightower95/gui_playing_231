@@ -5,6 +5,7 @@ Recommended usage:
     from productivity_app.data_pipeline import ParameterEnum, DataTypes
     from productivity_app.data_pipeline.reports.decorator import report
     from productivity_app.data_pipeline.data_collectors.decorator import data_collector
+    from productivity_app.data_pipeline.data_transformers.decorator import data_transformer
 
 Example report:
     @report(
@@ -18,5 +19,10 @@ Example report:
 from productivity_app.data_pipeline.parameters import ParameterEnum
 from productivity_app.data_pipeline.types_enum import DataTypes, FileTypes
 from productivity_app.data_pipeline.registry import registry
+
+# Import collectors and transformers to trigger registration
+import productivity_app.data_pipeline.data_collectors
+import productivity_app.data_pipeline.data_transformers.dataframe_to_parts_list
+import productivity_app.data_pipeline.data_transformers.dataframe_to_street_price_list
 
 __all__ = ['ParameterEnum', 'DataTypes', 'FileTypes', 'registry']

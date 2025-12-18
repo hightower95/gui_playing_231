@@ -8,6 +8,8 @@ class DataTypes(Enum):
     TestResults = "TestResults"
     FilePath = "FilePath"
     DataFrame = "DataFrame"
+    QueryID = "QueryID"
+    ComparisonResult = "ComparisonResult"
 
     StreetPriceList = "StreetPriceList"
 
