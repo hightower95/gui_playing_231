@@ -4,7 +4,7 @@ Parameter Enum - Central access point for all parameters
 Provides IDE-friendly autocomplete by explicitly importing and exposing
 all registered parameters as class attributes.
 """
-from productivity_app.data_pipeline.parameters.input_parameters import PrimitiveParameter
+from productivity_app.data_pipeline.parameters.input_parameters import CollectedParameter, PrimitiveParameter
 from productivity_app.data_pipeline.parameters.file_path import parameter as FilePath
 from productivity_app.data_pipeline.parameters.input_path import parameter as InputPath
 from productivity_app.data_pipeline.parameters.output_path import parameter as OutputPath
@@ -37,7 +37,7 @@ class ParameterEnum:
 
     # Collected parameters (from collectors)
     PartsList = PartsList
-    StreetPriceList = StreetPriceList
+    StreetPriceList: CollectedParameter = StreetPriceList
 
     # Add new parameters here as they are created
     # Each should be imported above and assigned as a class attribute

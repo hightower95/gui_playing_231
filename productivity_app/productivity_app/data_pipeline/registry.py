@@ -23,6 +23,7 @@ class CentralRegistry:
             return
         self._initialized = True
         self._collectors: Dict[str, Dict[str, Any]] = {}
+        self._transformers: Dict[str, Dict[str, Any]] = {}
         self._reports: Dict[str, Dict[str, Any]] = {}
 
     # ==================== Collector Methods ====================
@@ -81,6 +82,78 @@ class CentralRegistry:
     def get_all_collectors(self) -> Dict[str, Dict[str, Any]]:
         """Get all registered collectors"""
         return self._collectors.copy()
+
+    # ==================== Transformer Methods ====================
+
+    def register_transformer(self,
+                            name: str,
+                            func: Callable,
+                            input_type: DataTypes,
+                            output_type: DataTypes):
+        """Register a data transformer
+
+        Args:
+            name: Transformer name
+            func: The transformer function
+            input_type: DataType this transformer consumes
+            output_type: DataType this transformer produces
+        """
+        self._transformers[name] = {
+            'func': func,
+            'input_type': input_type,
+            'output_type': output_type
+        }
+
+    def get_transformers_for_input(self, input_type: DataTypes) -> List[str]:
+        """Find transformers that accept a specific input type
+
+        Args:
+            input_type: The input DataType to search for
+
+        Returns:
+            List of transformer names that accept this type
+        """
+        return [
+            name for name, info in self._transformers.items()
+            if info['input_type'] == input_type
+        ]
+
+    def get_transformers_for_output(self, output_type: DataTypes) -> List[str]:
+        """Find transformers that produce a specific output type
+
+        Args:
+            output_type: The output DataType to search for
+
+        Returns:
+            List of transformer names that produce this type
+        """
+        return [
+            name for name, info in self._transformers.items()
+            if info['output_type'] == output_type
+        ]
+transformers.clear()
+        self._
+    def get_transformer(self, name: str) -> Dict[str, Any]:
+        """Get transformer info by name"""
+        return self._transformers.get(name)
+
+    def get_transformer_by_name(self, name: str) -> Callable:
+        """Get the actual transformer function by name
+
+        Args:
+            name: Transformer name
+
+        Returns:
+            The transformer function that can be called
+        """
+        transformer_info = self._transformers.get(name)
+        if transformer_info:
+            return transformer_info['func']
+        return None
+
+    def get_all_transformers(self) -> Dict[str, Dict[str, Any]]:
+        """Get all registered transformers"""
+        return self._transformers.copy()
 
     # ==================== Report Methods ====================
 

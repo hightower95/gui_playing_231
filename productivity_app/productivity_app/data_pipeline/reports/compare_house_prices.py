@@ -14,6 +14,7 @@ from productivity_app.data_pipeline.models.street_price import StreetPrice
         ParameterEnum.StreetPriceList(
             name="comparison_price_list",
             description="List of street prices to compare against",)
+
     ],
 )
 def compare_house_prices_report(
