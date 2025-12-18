@@ -4,7 +4,7 @@ Central Registry for Reports and Data Collectors
 Unified singleton registry for the data pipeline system.
 """
 from typing import Dict, List, Any, Callable, Optional
-from productivity_app.data_pipeline.types_enum import DataTypes
+from productivity_app.data_pipeline.parameters.input_parameters import Parameter
 from productivity_app.data_pipeline.pipeline_graph import (
     TransformationGraph,
     TransformationPath
@@ -36,15 +36,15 @@ class CentralRegistry:
     def register_collector(self,
                            name: str,
                            func: Callable,
-                           inputs: List[Any],
-                           outputs: List[DataTypes]):
+                           inputs: List[Parameter],
+                           outputs: List[Parameter]):
         """Register a data collector
 
         Args:
             name: Collector name
             func: The collector function
-            inputs: List of input parameter types
-            outputs: List of DataTypes this collector provides
+            inputs: List of input parameters
+            outputs: List of Parameters this collector provides
         """
         self._collectors[name] = {
             'func': func,
@@ -52,18 +52,18 @@ class CentralRegistry:
             'outputs': outputs
         }
 
-    def get_collectors_for_type(self, data_type: DataTypes) -> List[str]:
-        """Find collectors that provide a specific data type
+    def get_collectors_for_type(self, param_type: Parameter) -> List[str]:
+        """Find collectors that provide a compatible parameter type
 
         Args:
-            data_type: The DataType to search for
+            param_type: The Parameter type to search for
 
         Returns:
-            List of collector names that provide this type
+            List of collector names that provide compatible type
         """
         return [
             name for name, info in self._collectors.items()
-            if data_type in info['outputs']
+            if any(output.matches(param_type) for output in info['outputs'])
         ]
 
     def get_collector(self, name: str) -> Dict[str, Any]:
@@ -93,15 +93,15 @@ class CentralRegistry:
     def register_transformer(self,
                              name: str,
                              func: Callable,
-                             input_type: DataTypes,
-                             output_type: DataTypes):
+                             input_type: Parameter,
+                             output_type: Parameter):
         """Register a data transformer
 
         Args:
             name: Transformer name
             func: The transformer function
-            input_type: DataType this transformer consumes
-            output_type: DataType this transformer produces
+            input_type: Parameter this transformer consumes
+            output_type: Parameter this transformer produces
         """
         self._transformers[name] = {
             'func': func,
@@ -109,32 +109,32 @@ class CentralRegistry:
             'output_type': output_type
         }
 
-    def get_transformers_for_input(self, input_type: DataTypes) -> List[str]:
-        """Find transformers that accept a specific input type
+    def get_transformers_for_input(self, input_param: Parameter) -> List[str]:
+        """Find transformers that accept a compatible input type
 
         Args:
-            input_type: The input DataType to search for
+            input_param: The input Parameter to search for
 
         Returns:
-            List of transformer names that accept this type
+            List of transformer names that accept compatible type
         """
         return [
             name for name, info in self._transformers.items()
-            if info['input_type'] == input_type
+            if info['input_type'].matches(input_param)
         ]
 
-    def get_transformers_for_output(self, output_type: DataTypes) -> List[str]:
-        """Find transformers that produce a specific output type
+    def get_transformers_for_output(self, output_param: Parameter) -> List[str]:
+        """Find transformers that produce a compatible output type
 
         Args:
-            output_type: The output DataType to search for
+            output_param: The output Parameter to search for
 
         Returns:
-            List of transformer names that produce this type
+            List of transformer names that produce compatible type
         """
         return [
             name for name, info in self._transformers.items()
-            if info['output_type'] == output_type
+            if info['output_type'].matches(output_param)
         ]
 
     def get_transformer(self, name: str) -> Dict[str, Any]:
@@ -235,26 +235,26 @@ class CentralRegistry:
             self.build_graph()
         return self._graph
 
-    def get_paths_for_parameter(self, target_type: DataTypes,
+    def get_paths_for_parameter(self, target_param: Parameter,
                                 max_depth: int = 10) -> List[TransformationPath]:
-        """Get all transformation paths from any primitive to target type
+        """Get all transformation paths from any primitive to target parameter
 
         Args:
-            target_type: The data type needed by report parameter
+            target_param: The parameter type needed by report
             max_depth: Maximum path length
 
         Returns:
             List of paths sorted by length (shortest first)
         """
         graph = self.get_graph()
-        return graph.find_paths_to_target(target_type, max_depth)
+        return graph.find_paths_to_target(target_param, max_depth)
 
-    def get_shortest_path(self, source: DataTypes, target: DataTypes) -> Optional[TransformationPath]:
+    def get_shortest_path(self, source: Parameter, target: Parameter) -> Optional[TransformationPath]:
         """Get the shortest transformation path from source to target
 
         Args:
-            source: Starting data type (usually a primitive)
-            target: Target data type
+            source: Starting parameter (usually a primitive)
+            target: Target parameter
 
         Returns:
             Shortest path, or None if no path exists

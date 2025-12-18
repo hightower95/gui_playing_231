@@ -53,7 +53,10 @@ class SummaryTab(QWidget):
             self.summary_table.setItem(i, 0, status_item)
 
             # Input name
+            # Store base_input_name without '*' for later retrieval
+            base_input_name = input_name
             name_item = QTableWidgetItem(input_name + " *")
+            name_item.setData(Qt.ItemDataRole.UserRole, base_input_name)  # Store base name
             self.summary_table.setItem(i, 1, name_item)
 
             # Description

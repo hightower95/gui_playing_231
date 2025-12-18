@@ -3,11 +3,26 @@ Tests for the transformation graph system that routes data from primitives
 (FilePath, QueryID) through transformers to report parameters.
 """
 import pytest
-from productivity_app.data_pipeline.types_enum import DataTypes
+from productivity_app.data_pipeline.parameters import Variables
+from productivity_app.data_pipeline.parameters.input_parameters import PrimitiveParameter, CollectedParameter
 from productivity_app.data_pipeline.pipeline_graph import (
     TransformationStep,
     TransformationPath,
     TransformationGraph
+)
+
+
+# Create test-only parameters
+QueryID = PrimitiveParameter(
+    name='query_id',
+    description='Database query identifier',
+    title='Query ID'
+)
+
+ComparisonResult = CollectedParameter(
+    name='comparison_result',
+    description='Comparison analysis result',
+    title='Comparison Result'
 )
 
 
@@ -54,16 +69,16 @@ class TestTransformationGraph:
         graph.add_collector(
             name="CSVCollector",
             func=mock_csv_collector,
-            inputs=[DataTypes.FilePath],
-            outputs=[DataTypes.DataFrame]
+            inputs=[Variables.FilePath],
+            outputs=[Variables.DataFrame]
         )
 
         # Add DataFrame to PartsList transformer
         graph.add_transformer(
             name="DataFrameToPartsList",
             func=mock_df_to_parts,
-            input_type=DataTypes.DataFrame,
-            output_type=DataTypes.PartsList
+            input_type=Variables.DataFrame,
+            output_type=Variables.PartsList
         )
 
         return graph
@@ -77,22 +92,22 @@ class TestTransformationGraph:
         graph.add_collector(
             name="CSVCollector",
             func=mock_csv_collector,
-            inputs=[DataTypes.FilePath],
-            outputs=[DataTypes.DataFrame]
+            inputs=[Variables.FilePath],
+            outputs=[Variables.DataFrame]
         )
         graph.add_collector(
             name="ExcelCollector",
             func=mock_excel_collector,
-            inputs=[DataTypes.FilePath],
-            outputs=[DataTypes.DataFrame]
+            inputs=[Variables.FilePath],
+            outputs=[Variables.DataFrame]
         )
 
         # Transformer: DataFrame -> PartsList
         graph.add_transformer(
             name="DataFrameToPartsList",
             func=mock_df_to_parts,
-            input_type=DataTypes.DataFrame,
-            output_type=DataTypes.PartsList
+            input_type=Variables.DataFrame,
+            output_type=Variables.PartsList
         )
 
         return graph
@@ -106,22 +121,22 @@ class TestTransformationGraph:
         graph.add_collector(
             name="CSVCollector",
             func=mock_csv_collector,
-            inputs=[DataTypes.FilePath],
-            outputs=[DataTypes.DataFrame]
+            inputs=[Variables.FilePath],
+            outputs=[Variables.DataFrame]
         )
 
         # Transformer chain: DataFrame -> PartsList -> ComparisonResult
         graph.add_transformer(
             name="DataFrameToPartsList",
             func=mock_df_to_parts,
-            input_type=DataTypes.DataFrame,
-            output_type=DataTypes.PartsList
+            input_type=Variables.DataFrame,
+            output_type=Variables.PartsList
         )
         graph.add_transformer(
             name="PartsListToComparison",
             func=mock_parts_to_comparison,
-            input_type=DataTypes.PartsList,
-            output_type=DataTypes.ComparisonResult
+            input_type=Variables.PartsList,
+            output_type=ComparisonResult
         )
 
         return graph
@@ -131,15 +146,15 @@ class TestTransformationGraph:
     def test_single_route_found(self, basic_graph):
         """Test finding a single transformation route from FilePath to PartsList"""
         paths = basic_graph.find_all_paths(
-            source=DataTypes.FilePath,
-            target=DataTypes.PartsList
+            source=Variables.FilePath,
+            target=Variables.PartsList
         )
 
         assert len(paths) == 1, "Should find exactly one path"
 
         path = paths[0]
-        assert path.source_type == DataTypes.FilePath
-        assert path.target_type == DataTypes.PartsList
+        assert path.source_type.matches(Variables.FilePath)
+        assert path.target_type.matches(Variables.PartsList)
         assert path.length == 2, "Path should have 2 steps: collector + transformer"
 
         # Verify steps
@@ -151,8 +166,8 @@ class TestTransformationGraph:
     def test_single_route_execution(self, basic_graph):
         """Test executing a single transformation path"""
         paths = basic_graph.find_all_paths(
-            source=DataTypes.FilePath,
-            target=DataTypes.PartsList
+            source=Variables.FilePath,
+            target=Variables.PartsList
         )
 
         path = paths[0]
@@ -168,8 +183,8 @@ class TestTransformationGraph:
     def test_no_route_to_unreachable_target(self, basic_graph):
         """Test that no paths are found for unreachable target type"""
         paths = basic_graph.find_all_paths(
-            source=DataTypes.FilePath,
-            target=DataTypes.StreetPriceList  # Not in graph
+            source=Variables.FilePath,
+            target=Variables.StreetPriceList  # Not in graph
         )
 
         assert len(paths) == 0, "Should find no paths to unreachable target"
@@ -177,8 +192,8 @@ class TestTransformationGraph:
     def test_no_route_from_invalid_source(self, basic_graph):
         """Test that no paths are found from invalid source"""
         paths = basic_graph.find_all_paths(
-            source=DataTypes.QueryID,  # Not a primitive in this graph
-            target=DataTypes.PartsList
+            source=QueryID,  # Not a primitive in this graph
+            target=Variables.PartsList
         )
 
         assert len(paths) == 0, "Should find no paths from non-existent source"
@@ -186,8 +201,8 @@ class TestTransformationGraph:
     def test_empty_graph_no_routes(self, empty_graph):
         """Test that empty graph returns no routes"""
         paths = empty_graph.find_all_paths(
-            source=DataTypes.FilePath,
-            target=DataTypes.PartsList
+            source=Variables.FilePath,
+            target=Variables.PartsList
         )
 
         assert len(paths) == 0, "Empty graph should have no paths"
@@ -197,8 +212,8 @@ class TestTransformationGraph:
     def test_no_duplicate_steps_in_path(self, complex_graph):
         """Test that paths never contain the same step twice (loop prevention)"""
         paths = complex_graph.find_all_paths(
-            source=DataTypes.FilePath,
-            target=DataTypes.ComparisonResult
+            source=Variables.FilePath,
+            target=ComparisonResult
         )
 
         for path in paths:
@@ -213,16 +228,16 @@ class TestTransformationGraph:
 
         # Create a cycle: A -> B -> C -> A
         graph.add_transformer("AtoB", lambda x: x,
-                              DataTypes.DataFrame, DataTypes.PartsList)
+                              Variables.DataFrame, Variables.PartsList)
         graph.add_transformer("BtoC", lambda x: x,
-                              DataTypes.PartsList, DataTypes.StreetPriceList)
+                              Variables.PartsList, Variables.StreetPriceList)
         graph.add_transformer("CtoA", lambda x: x,
-                              DataTypes.StreetPriceList, DataTypes.DataFrame)
+                              Variables.StreetPriceList, Variables.DataFrame)
 
         # Should not infinite loop
         paths = graph.find_all_paths(
-            source=DataTypes.DataFrame,
-            target=DataTypes.StreetPriceList,
+            source=Variables.DataFrame,
+            target=Variables.StreetPriceList,
             max_depth=10
         )
 
@@ -238,19 +253,19 @@ class TestTransformationGraph:
         complex_graph.add_transformer(
             name="DataFrameToStreetPrice",
             func=mock_df_to_street_price,
-            input_type=DataTypes.DataFrame,
-            output_type=DataTypes.StreetPriceList
+            input_type=Variables.DataFrame,
+            output_type=Variables.StreetPriceList
         )
         complex_graph.add_transformer(
             name="StreetPriceToPartsList",
             func=lambda x: x,
-            input_type=DataTypes.StreetPriceList,
-            output_type=DataTypes.PartsList
+            input_type=Variables.StreetPriceList,
+            output_type=Variables.PartsList
         )
 
         paths = complex_graph.find_all_paths(
-            source=DataTypes.FilePath,
-            target=DataTypes.PartsList
+            source=Variables.FilePath,
+            target=Variables.PartsList
         )
 
         # Should find 2 paths:
@@ -269,19 +284,19 @@ class TestTransformationGraph:
         complex_graph.add_transformer(
             name="DataFrameToStreetPrice",
             func=mock_df_to_street_price,
-            input_type=DataTypes.DataFrame,
-            output_type=DataTypes.StreetPriceList
+            input_type=Variables.DataFrame,
+            output_type=Variables.StreetPriceList
         )
         complex_graph.add_transformer(
             name="StreetPriceToPartsList",
             func=lambda x: x,
-            input_type=DataTypes.StreetPriceList,
-            output_type=DataTypes.PartsList
+            input_type=Variables.StreetPriceList,
+            output_type=Variables.PartsList
         )
 
         paths = complex_graph.find_all_paths(
-            source=DataTypes.FilePath,
-            target=DataTypes.PartsList
+            source=Variables.FilePath,
+            target=Variables.PartsList
         )
 
         # First path should be shortest
@@ -293,8 +308,8 @@ class TestTransformationGraph:
     def test_prune_longer_paths_from_same_primitive(self, multi_path_graph):
         """Test that when multiple collectors exist, all paths have same length"""
         paths = multi_path_graph.find_all_paths(
-            source=DataTypes.FilePath,
-            target=DataTypes.PartsList
+            source=Variables.FilePath,
+            target=Variables.PartsList
         )
 
         # Both CSV and Excel collectors should produce paths of length 2
@@ -312,7 +327,7 @@ class TestTransformationGraph:
 
     def test_primitives_identified_from_collectors(self, basic_graph):
         """Test that primitives are correctly identified from collector inputs"""
-        assert DataTypes.FilePath in basic_graph.primitives
+        assert Variables.FilePath.get_type_key() in basic_graph.primitives
         assert len(basic_graph.primitives) == 1
 
     def test_multiple_primitives_identified(self):
@@ -322,27 +337,28 @@ class TestTransformationGraph:
         graph.add_collector(
             name="CSVCollector",
             func=mock_csv_collector,
-            inputs=[DataTypes.FilePath],
-            outputs=[DataTypes.DataFrame]
+            inputs=[Variables.FilePath],
+            outputs=[Variables.DataFrame]
         )
         graph.add_collector(
             name="QueryCollector",
             func=lambda x: x,
-            inputs=[DataTypes.QueryID],
-            outputs=[DataTypes.DataFrame]
+            inputs=[QueryID],
+            outputs=[Variables.DataFrame]
         )
 
-        assert DataTypes.FilePath in graph.primitives
-        assert DataTypes.QueryID in graph.primitives
+        assert Variables.FilePath.get_type_key() in graph.primitives
+        assert QueryID.get_type_key() in graph.primitives
         assert len(graph.primitives) == 2
 
     def test_filter_paths_by_primitive(self, multi_path_graph):
         """Test filtering paths that start from specific primitive"""
         all_paths = multi_path_graph.find_all_paths(
-            source=DataTypes.FilePath,
-            target=DataTypes.PartsList
+            source=Variables.FilePath,
+            target=Variables.PartsList
         )
 
         # All paths should start from FilePath
         for path in all_paths:
-            assert path.source_type == DataTypes.FilePath
+            assert path.source_type.matches(Variables.FilePath)
+

@@ -1,40 +1,42 @@
 """
 Schema Registry
 
-Centralized registry for data schemas mapped to data types.
+Centralized registry for data schemas mapped to parameter types.
 """
 from typing import Optional
-from productivity_app.data_pipeline.types_enum import DataTypes
+from productivity_app.data_pipeline.parameters.input_parameters import Parameter
 from productivity_app.data_pipeline.data_sources.schema_base_classes.data_schema import DataSchema
 
 
 class _SchemaRegister:
-    """Registry for mapping DataTypes to their schemas"""
+    """Registry for mapping Parameters to their schemas"""
 
     def __init__(self):
         self._registry = {}
 
-    def register(self, data_type: DataTypes, schema: DataSchema):
-        """Register a schema for a data type
+    def register(self, param_type: Parameter, schema: DataSchema):
+        """Register a schema for a parameter type
 
         Args:
-            data_type: The data type enum value
+            param_type: The parameter type
             schema: The schema definition
         """
-        self._registry[data_type] = schema
+        type_key = param_type.get_type_key()
+        self._registry[type_key] = schema
 
-    def get_schema(self, data_type: DataTypes) -> Optional[DataSchema]:
-        """Get schema for a data type
+    def get_schema(self, param_type: Parameter) -> Optional[DataSchema]:
+        """Get schema for a parameter type
 
         Args:
-            data_type: The data type enum value
+            param_type: The parameter type
 
         Returns:
             The schema if registered, None otherwise
         """
-        return self._registry.get(data_type)
+        type_key = param_type.get_type_key()
+        return self._registry.get(type_key)
 
-    def list_schemas(self) -> dict[DataTypes, DataSchema]:
+    def list_schemas(self) -> dict[str, DataSchema]:
         """Get all registered schemas"""
         return self._registry.copy()
 

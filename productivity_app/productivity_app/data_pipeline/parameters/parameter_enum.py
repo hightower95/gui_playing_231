@@ -8,9 +8,11 @@ from productivity_app.data_pipeline.parameters.input_parameters import Collected
 from productivity_app.data_pipeline.parameters.file_path import parameter as FilePath
 from productivity_app.data_pipeline.parameters.input_path import parameter as InputPath
 from productivity_app.data_pipeline.parameters.output_path import parameter as OutputPath
-from productivity_app.data_pipeline.parameters.parts_list import parameter as PartsList
+from productivity_app.data_pipeline.parameters.dataframe import parameter as DataFrame
 from productivity_app.data_pipeline.parameters.strictness import parameter as Strictness
-from productivity_app.data_pipeline.parameters.street_price_list import parameter as StreetPriceList
+# Import model parameters lazily to avoid circular imports
+from productivity_app.data_pipeline.models.part import PartsList
+from productivity_app.data_pipeline.models.alt_street_price import StreetPriceList
 
 
 class ParameterEnum:
@@ -36,6 +38,7 @@ class ParameterEnum:
     Strictness: PrimitiveParameter = Strictness
 
     # Collected parameters (from collectors)
+    DataFrame: CollectedParameter = DataFrame
     PartsList = PartsList
     StreetPriceList: CollectedParameter = StreetPriceList
 

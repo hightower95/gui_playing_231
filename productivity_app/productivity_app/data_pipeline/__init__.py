@@ -22,7 +22,7 @@ from productivity_app.data_pipeline.registry import registry
 
 # Import collectors and transformers to trigger registration
 import productivity_app.data_pipeline.data_collectors
+import productivity_app.data_pipeline.models.alt_street_price  # Includes transformer
 import productivity_app.data_pipeline.data_transformers.dataframe_to_parts_list
-import productivity_app.data_pipeline.data_transformers.dataframe_to_street_price_list
 
 __all__ = ['ParameterEnum', 'DataTypes', 'FileTypes', 'registry']

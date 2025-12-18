@@ -2,7 +2,7 @@
 Input Parameters - Parameter Hierarchy
 
 Defines parameter types for the data pipeline:
-- Parameter: Base class
+- Parameter: Base class with version support
 - PrimitiveParameter: User-provided inputs (FilePath, URL, etc.)
 - CollectedParameter: Derived from collectors (PartsList, DataFrame, etc.)
 - ChoiceParameter: Parameters with predefined choices
@@ -11,17 +11,17 @@ Individual parameters are defined in separate files and auto-register on import.
 """
 from dataclasses import dataclass, replace
 from typing import Optional, List, Any
-from productivity_app.data_pipeline.types_enum import DataTypes
 
 
 @dataclass(frozen=True)
 class Parameter:
-    """Base class for all input parameters"""
+    """Base class for all input parameters with version support"""
     name: str
     required: bool = True
     description: str = ""
     title: Optional[str] = None
     is_root: bool = False  # Overridden by subclasses
+    version: Optional[str] = None  # Version metadata for compatibility tracking
 
     def __post_init__(self):
         """Set title to name if not provided"""
@@ -34,8 +34,41 @@ class Parameter:
         Usage:
             FilePath(required=False)
             FilePath(title="Input File")
+            PartsList(version="5")
         """
         return replace(self, **kwargs)
+    
+    def matches(self, other: 'Parameter') -> bool:
+        """Check if this parameter matches another (for routing)
+        
+        Matches if names are the same and versions are compatible.
+        None version matches any version.
+        
+        Args:
+            other: Parameter to compare against
+            
+        Returns:
+            True if parameters are compatible
+        """
+        if self.name != other.name:
+            return False
+        
+        # If either has no version requirement, they match
+        if self.version is None or other.version is None:
+            return True
+        
+        # For now, exact version match (can extend with semver later)
+        return self.version == other.version
+    
+    def get_type_key(self) -> str:
+        """Get unique type key for registry lookups
+        
+        Returns:
+            String key like 'PartsList' or 'PartsList_v5'
+        """
+        if self.version:
+            return f"{self.name}_v{self.version}"
+        return self.name
 
 
 @dataclass(frozen=True)
@@ -52,12 +85,10 @@ class PrimitiveParameter(Parameter):
 class CollectedParameter(Parameter):
     """Parameter for data derived from collectors (PartsList, DataFrame, etc.)
 
-    These inputs come from running data collectors. The output_type field
-    links to the DataType that collectors produce.
+    These inputs come from running data collectors.
     is_root is False by default.
     """
     is_root: bool = False  # Collected parameters are derived
-    output_type: Optional[DataTypes] = None  # Maps to collector output
 
 
 @dataclass(frozen=True)

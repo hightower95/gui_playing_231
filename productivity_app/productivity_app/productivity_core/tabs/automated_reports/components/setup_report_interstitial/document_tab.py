@@ -13,7 +13,8 @@ class DocumentTab(QWidget):
 
     def __init__(self, input_name: str, is_required: bool = True, parent=None):
         super().__init__(parent)
-        self.input_name = input_name
+        self.base_input_name = input_name  # Store original name for parameter key
+        self.input_name = input_name  # Display name (may have '*' added)
         self.is_required = is_required
         self.selected_file = ""
         self._setup_ui()
@@ -107,7 +108,7 @@ class DocumentTab(QWidget):
         self.selected_file = file_path
         self.selected_file_label.setText(f"✓ Selected: {file_path}")
         self.selected_file_label.show()
-        self.file_selected.emit(self.input_name, file_path)
+        self.file_selected.emit(self.base_input_name, file_path)  # Use base name without '*'
 
     def _get_detailed_description(self) -> str:
         """Get detailed description for this input"""

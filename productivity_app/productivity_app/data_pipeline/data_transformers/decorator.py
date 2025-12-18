@@ -5,11 +5,11 @@ Transformers convert data from one type to another, enabling automatic
 chain discovery for data pipeline execution.
 """
 from typing import Callable
-from productivity_app.data_pipeline.types_enum import DataTypes
+from productivity_app.data_pipeline.parameters.input_parameters import Parameter
 from productivity_app.data_pipeline.registry import registry
 
 
-def data_transformer(name: str, input_type: DataTypes, output_type: DataTypes):
+def data_transformer(name: str, input_type: Parameter, output_type: Parameter):
     """Decorator to register a data transformer
 
     Transformers convert data from one type to another (e.g., DataFrame → PartsList).
@@ -17,8 +17,8 @@ def data_transformer(name: str, input_type: DataTypes, output_type: DataTypes):
 
     Args:
         name: Transformer name (should be descriptive, e.g., "DataFrameToPartsList")
-        input_type: DataType this transformer consumes
-        output_type: DataType this transformer produces
+        input_type: Parameter this transformer consumes
+        output_type: Parameter this transformer produces
 
     Example:
         @data_transformer(
