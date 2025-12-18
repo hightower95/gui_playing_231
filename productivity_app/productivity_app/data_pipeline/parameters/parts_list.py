@@ -15,7 +15,7 @@ from productivity_app.data_pipeline.parameters.resolution import resolve_collect
 
 class PartsListParameter(CollectedParameter):
     """Extended CollectedParameter with resolution capability"""
-    
+
     def __init__(self, **kwargs):
         # Set defaults if not provided
         kwargs.setdefault('name', 'parts')
@@ -23,20 +23,20 @@ class PartsListParameter(CollectedParameter):
         kwargs.setdefault('title', 'Parts List')
         kwargs.setdefault('output_type', DataTypes.PartsList)
         super().__init__(**kwargs)
-    
+
     def resolve_from_file(self, filepath: str) -> List[Any]:
         """Resolve PartsList from a file path
-        
+
         Composes:
         1. Transport collector (CSV/Excel → DataFrame)
         2. Schema converter (DataFrame → List[Part])
-        
+
         Args:
             filepath: Path to CSV or Excel file
-            
+
         Returns:
             List of Part objects
-            
+
         Example:
             param = ParameterEnum.PartsList
             parts = param.resolve_from_file("parts.csv")

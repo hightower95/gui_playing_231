@@ -22,7 +22,7 @@ def test_excel_to_parts_list_collector_is_registered():
     pass
 
 
-@pytest.mark.skip(reason="ExcelToPartsListCollector deprecated - use parameter resolution")  
+@pytest.mark.skip(reason="ExcelToPartsListCollector deprecated - use parameter resolution")
 def test_excel_to_parts_list_collector_has_filepath_input():
     """DEPRECATED: ExcelToPartsListCollector no longer exists"""
     pass

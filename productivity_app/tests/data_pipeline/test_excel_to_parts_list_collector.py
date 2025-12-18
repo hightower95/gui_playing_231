@@ -61,4 +61,3 @@ def test_resolve_parts_list_validates_schema(tmp_path):
 
     with pytest.raises(ValueError):
         resolve_parts_list_from_file(str(filepath))
-
