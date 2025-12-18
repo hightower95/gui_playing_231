@@ -43,8 +43,8 @@ def sample_csv_files(tmp_path):
 def test_compare_two_csvs_basic(sample_csv_files):
     """Test basic comparison of two CSV parts lists"""
 
-    # Import collectors and reports (schema auto-registers)
-    from productivity_app.data_pipeline.data_collectors import csv_to_parts_list
+    # Import parameter resolution and reports (schema auto-registers)
+    from productivity_app.data_pipeline.parameters.resolution import resolve_parts_list_from_file
     from productivity_app.data_pipeline.reports import compare_parts
     from productivity_app.data_pipeline.registry import registry
 
@@ -55,8 +55,8 @@ def test_compare_two_csvs_basic(sample_csv_files):
     assert report is not None, "Compare Two Parts Lists report not found"
 
     # Load both CSVs as Part objects
-    old_parts = csv_to_parts_list.csv_to_parts_list_collector(str(csv1))
-    new_parts = csv_to_parts_list.csv_to_parts_list_collector(str(csv2))
+    old_parts = resolve_parts_list_from_file(str(csv1))
+    new_parts = resolve_parts_list_from_file(str(csv2))
 
     # Run the comparison
     result = report.generate(old_parts=old_parts, new_parts=new_parts)
@@ -89,7 +89,7 @@ def test_compare_csvs_with_field_changes(sample_csv_files):
     """Test detailed comparison that detects field-level changes"""
 
     # Import collectors and reports (schema auto-registers)
-    from productivity_app.data_pipeline.data_collectors import csv_to_parts_list
+    from productivity_app.data_pipeline.parameters.resolution import resolve_parts_list_from_file
     from productivity_app.data_pipeline.reports import compare_parts
     from productivity_app.data_pipeline.registry import registry
 
@@ -99,8 +99,8 @@ def test_compare_csvs_with_field_changes(sample_csv_files):
     assert report is not None, "Parts Comparison - Detailed report not found"
 
     # Load CSVs
-    baseline = csv_to_parts_list.csv_to_parts_list_collector(str(csv1))
-    current = csv_to_parts_list.csv_to_parts_list_collector(str(csv2))
+    baseline = resolve_parts_list_from_file(str(csv1))
+    current = resolve_parts_list_from_file(str(csv2))
 
     # Run comparison
     result = report.generate(baseline=baseline, current=current)
@@ -129,7 +129,7 @@ def test_compare_identical_csvs(tmp_path):
     """Test comparison of identical files shows no differences"""
 
     # Import collectors and reports (schema auto-registers)
-    from productivity_app.data_pipeline.data_collectors import csv_to_parts_list
+    from productivity_app.data_pipeline.parameters.resolution import resolve_parts_list_from_file
     from productivity_app.data_pipeline.reports import compare_parts
     from productivity_app.data_pipeline.registry import registry
 
@@ -147,8 +147,8 @@ def test_compare_identical_csvs(tmp_path):
 
     # Load and compare
     report = registry.get_report("Compare Two Parts Lists")
-    old_parts = csv_to_parts_list.csv_to_parts_list_collector(str(csv1))
-    new_parts = csv_to_parts_list.csv_to_parts_list_collector(str(csv2))
+    old_parts = resolve_parts_list_from_file(str(csv1))
+    new_parts = resolve_parts_list_from_file(str(csv2))
 
     result = report.generate(old_parts=old_parts, new_parts=new_parts)
 
@@ -164,7 +164,7 @@ def test_compare_completely_different_csvs(tmp_path):
     """Test comparison where files have no parts in common"""
 
     # Import collectors and reports (schema auto-registers)
-    from productivity_app.data_pipeline.data_collectors import csv_to_parts_list
+    from productivity_app.data_pipeline.parameters.resolution import resolve_parts_list_from_file
     from productivity_app.data_pipeline.reports import compare_parts
     from productivity_app.data_pipeline.registry import registry
 
@@ -186,8 +186,8 @@ def test_compare_completely_different_csvs(tmp_path):
 
     # Load and compare
     report = registry.get_report("Compare Two Parts Lists")
-    old_parts = csv_to_parts_list.csv_to_parts_list_collector(str(csv1))
-    new_parts = csv_to_parts_list.csv_to_parts_list_collector(str(csv2))
+    old_parts = resolve_parts_list_from_file(str(csv1))
+    new_parts = resolve_parts_list_from_file(str(csv2))
 
     result = report.generate(old_parts=old_parts, new_parts=new_parts)
 

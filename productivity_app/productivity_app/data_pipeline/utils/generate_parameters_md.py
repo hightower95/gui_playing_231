@@ -166,7 +166,7 @@ if __name__ == "__main__":
     
     # Load collectors for dependency info
     try:
-        from productivity_app.data_pipeline.data_collectors import csv_to_parts_list
+        from productivity_app.data_pipeline.parameters.resolution import resolve_parts_list_from_file
         print("✓ Collectors loaded\n")
     except ImportError:
         pass

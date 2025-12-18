@@ -12,7 +12,7 @@ def test_compare_two_csv_parts_lists_end_to_end(tmp_path):
     """Verify we can compare two CSV files with parts"""
 
     # Import to register collectors and reports
-    from productivity_app.data_pipeline.data_collectors import csv_to_parts_list
+    from productivity_app.data_pipeline.parameters.resolution import resolve_parts_list_from_file
     from productivity_app.data_pipeline.reports import compare_parts
     from productivity_app.data_pipeline.registry import registry
 
@@ -41,10 +41,10 @@ def test_compare_two_csv_parts_lists_end_to_end(tmp_path):
 
     assert report is not None, "Compare Two Parts Lists report not found"
 
-    # Generate comparison (this should auto-load both CSVs)
-    result = report['func'](
-        old_parts=csv_to_parts_list.csv_to_parts_list_collector(str(csv1)),
-        new_parts=csv_to_parts_list.csv_to_parts_list_collector(str(csv2))
+    # Generate comparison using parameter resolution
+    result = report.generate(
+        old_parts=resolve_parts_list_from_file(str(csv1)),
+        new_parts=resolve_parts_list_from_file(str(csv2))
     )
 
     # Verify results
@@ -66,7 +66,7 @@ def test_compare_two_csv_parts_lists_end_to_end(tmp_path):
 def test_detailed_comparison_with_field_changes(tmp_path):
     """Test detailed comparison that detects field-level changes"""
 
-    from productivity_app.data_pipeline.data_collectors import csv_to_parts_list
+    from productivity_app.data_pipeline.parameters.resolution import resolve_parts_list_from_file
     from productivity_app.data_pipeline.reports import compare_parts
     from productivity_app.data_pipeline.registry import registry
 
@@ -94,8 +94,8 @@ def test_detailed_comparison_with_field_changes(tmp_path):
 
     # Run comparison
     result = report['func'](
-        baseline=csv_to_parts_list.csv_to_parts_list_collector(str(csv1)),
-        current=csv_to_parts_list.csv_to_parts_list_collector(str(csv2))
+        baseline=resolve_parts_list_from_file(str(csv1)),
+        current=resolve_parts_list_from_file(str(csv2))
     )
 
     # Should detect modifications

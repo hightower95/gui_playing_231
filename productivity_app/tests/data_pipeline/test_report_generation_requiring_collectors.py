@@ -7,8 +7,8 @@ from productivity_app.data_pipeline.reports.register import report_registry
 from productivity_app.data_pipeline.parameters.input_parameters import DataSource
 from productivity_app.data_pipeline.models.part import Part
 
-# Import collectors to ensure they are registered
-from productivity_app.data_pipeline.data_collectors import excel_to_parts_list
+# Note: Collectors are no longer model-specific.
+# Parameter resolution handles collector + schema composition.
 
 
 def test_report_without_input_provider():

@@ -74,8 +74,9 @@ def test_report_with_derived_input_with_collector():
     """Reports with derived inputs and collectors can generate"""
 
     # Import collectors to register them
-    # from productivity_app.data_pipeline.data_collectors import excel_to_parts_list
-    from productivity_app.data_pipeline.data_collectors import csv_to_parts_list
+    # Note: No longer using model-specific collectors.
+    # Parameter resolution handles collector + schema composition.
+    from productivity_app.data_pipeline.parameters.resolution import resolve_parts_list_from_file
 
     @report(
         title="Parts Report With Collector",

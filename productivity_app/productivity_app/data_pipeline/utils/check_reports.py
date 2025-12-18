@@ -169,7 +169,7 @@ if __name__ == "__main__":
 
     # Also load collectors for dependency checking
     try:
-        from productivity_app.data_pipeline.data_collectors import csv_to_parts_list
+        from productivity_app.data_pipeline.parameters.resolution import resolve_parts_list_from_file
         print("✓ Loaded: csv_to_parts_list collector")
     except ImportError as e:
         print(f"⚠️  Could not load collectors: {e}")

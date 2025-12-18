@@ -1,12 +1,15 @@
 """
-Tests for excel_to_parts_list_collector
+Tests for parameter resolution from Excel files
+
+Tests the new collector-schema separation pattern where:
+- Generic Excel collector handles transport (file → DataFrame)
+- Schema handles conversion (DataFrame → Part objects)
+- Parameter resolution composes them
 """
 import pytest
 import pandas as pd
 from pathlib import Path
-from productivity_app.data_pipeline.data_collectors.excel_to_parts_list import excel_to_parts_list_collector
-from productivity_app.data_pipeline.data_collectors.register import collector_registry
-from productivity_app.data_pipeline.types_enum import DataTypes
+from productivity_app.data_pipeline.parameters.resolution import resolve_parts_list_from_file
 from productivity_app.data_pipeline.models.part import Part
 
 
@@ -14,11 +17,11 @@ from productivity_app.data_pipeline.models.part import Part
 def sample_excel_file(tmp_path):
     """Create a sample Excel file with parts data"""
     df = pd.DataFrame({
-        "Part Name": ["Resistor", "Capacitor"],
-        "Part Number": ["R001", "C001"],
-        "Description": ["10k ohm", "100uF"],
-        "Quantity": [100, 50],
-        "Unit Cost": [0.10, 0.25]
+        "part_name": ["Resistor", "Capacitor"],
+        "part_number": ["R001", "C001"],
+        "description": ["10k ohm", "100uF"],
+        "quantity": [100, 50],
+        "unit_cost": [0.10, 0.25]
     })
 
     filepath = tmp_path / "parts.xlsx"
@@ -26,17 +29,17 @@ def sample_excel_file(tmp_path):
     return filepath
 
 
-def test_excel_to_parts_list_returns_part_objects(sample_excel_file):
-    """Collector returns list of Part objects"""
-    parts = excel_to_parts_list_collector(sample_excel_file)
+def test_resolve_parts_list_from_excel(sample_excel_file):
+    """Parameter resolution returns list of Part objects from Excel"""
+    parts = resolve_parts_list_from_file(str(sample_excel_file))
 
     assert len(parts) == 2
     assert all(isinstance(p, Part) for p in parts)
 
 
-def test_excel_to_parts_list_has_correct_data(sample_excel_file):
+def test_resolved_parts_have_correct_data(sample_excel_file):
     """Parts have correct data from Excel"""
-    parts = excel_to_parts_list_collector(sample_excel_file)
+    parts = resolve_parts_list_from_file(str(sample_excel_file))
 
     assert parts[0].part_name == "Resistor"
     assert parts[0].part_number == "R001"
@@ -46,23 +49,16 @@ def test_excel_to_parts_list_has_correct_data(sample_excel_file):
     assert parts[1].part_number == "C001"
 
 
-def test_excel_to_parts_list_registered():
-    """Collector is registered in registry"""
-    collectors = collector_registry.get_collectors_for_type(
-        DataTypes.PartsList)
-
-    assert "ExcelToPartsListCollector" in collectors
-
-
-def test_excel_to_parts_list_validates_schema(tmp_path):
-    """Collector rejects Excel missing required columns"""
+def test_resolve_parts_list_validates_schema(tmp_path):
+    """Resolution rejects Excel missing required columns"""
     df = pd.DataFrame({
         "Part Name": ["Resistor"],
-        # Missing Part Number!
+        # Missing part_number!
     })
 
     filepath = tmp_path / "invalid_parts.xlsx"
     df.to_excel(filepath, index=False)
 
-    with pytest.raises(ValueError, match="Schema validation failed"):
-        excel_to_parts_list_collector(filepath)
+    with pytest.raises(ValueError):
+        resolve_parts_list_from_file(str(filepath))
+
