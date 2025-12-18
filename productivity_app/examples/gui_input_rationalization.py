@@ -55,16 +55,17 @@ print("="*60)
 
 for primitive_type, paths in input_options.items():
     print(f"\n{primitive_type} options:")
-    
+
     # Group by first step (collector)
     collector_groups = defaultdict(list)
     for path in paths:
         collector_name = path.steps[0].name
         collector_groups[collector_name].append(path)
-    
+
     for collector_name, collector_paths in collector_groups.items():
         print(f"  - {collector_name}")
-        print(f"      Leads to: {[p.target_type.value for p in collector_paths]}")
+        print(
+            f"      Leads to: {[p.target_type.value for p in collector_paths]}")
         # In real GUI, this would check metadata for file extensions
         print(f"      File types: [detect from metadata]")
 
@@ -115,19 +116,20 @@ for primitive_type, paths in input_options.items():
     if primitive_type == DataTypes.FilePath:
         print(f"\nWidget: File Picker for '{parameter_name}'")
         print(f"Label: 'Select {parameter_name.replace('_', ' ').title()}'")
-        
+
         # Extract file extensions from all collectors
         collector_names = [p.steps[0].name for p in paths]
         print(f"\nSupported collectors: {collector_names}")
-        
+
         # In real implementation, metadata would have extensions
         print(f"File filter: 'All supported (*.csv *.xlsx *.xls)'")
         print(f"             'CSV Files (*.csv)'")
         print(f"             'Excel Files (*.xlsx *.xls)'")
-        
+
         print(f"\nWhen user selects file:")
         print(f"  1. Detect extension: '.csv'")
-        print(f"  2. Filter paths to matching collectors: [CSVCollector → ...]")
+        print(
+            f"  2. Filter paths to matching collectors: [CSVCollector → ...]")
         print(f"  3. Execute shortest filtered path")
 
 # ============================================================

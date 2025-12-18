@@ -206,60 +206,62 @@ class CentralRegistry:
 
     def build_graph(self) -> TransformationGraph:
         """Construct transformation graph from registered collectors and transformers
-        
+
         Returns:
             TransformationGraph with all registered transformations
         """
         graph = TransformationGraph()
-        
+
         # Add collectors to graph
         for name, info in self._collectors.items():
-            graph.add_collector(name, info['func'], info['inputs'], info['outputs'])
-        
+            graph.add_collector(
+                name, info['func'], info['inputs'], info['outputs'])
+
         # Add transformers to graph
         for name, info in self._transformers.items():
-            graph.add_transformer(name, info['func'], info['input_type'], info['output_type'])
-        
+            graph.add_transformer(
+                name, info['func'], info['input_type'], info['output_type'])
+
         self._graph = graph
         return graph
-    
+
     def get_graph(self) -> TransformationGraph:
         """Get the transformation graph, building it if necessary
-        
+
         Returns:
             TransformationGraph instance
         """
         if self._graph is None:
             self.build_graph()
         return self._graph
-    
-    def get_paths_for_parameter(self, target_type: DataTypes, 
+
+    def get_paths_for_parameter(self, target_type: DataTypes,
                                 max_depth: int = 10) -> List[TransformationPath]:
         """Get all transformation paths from any primitive to target type
-        
+
         Args:
             target_type: The data type needed by report parameter
             max_depth: Maximum path length
-            
+
         Returns:
             List of paths sorted by length (shortest first)
         """
         graph = self.get_graph()
         return graph.find_paths_to_target(target_type, max_depth)
-    
+
     def get_shortest_path(self, source: DataTypes, target: DataTypes) -> Optional[TransformationPath]:
         """Get the shortest transformation path from source to target
-        
+
         Args:
             source: Starting data type (usually a primitive)
             target: Target data type
-            
+
         Returns:
             Shortest path, or None if no path exists
         """
         graph = self.get_graph()
         return graph.get_shortest_path(source, target)
-    
+
     def invalidate_graph(self):
         """Invalidate cached graph (call after registering new collectors/transformers)"""
         self._graph = None

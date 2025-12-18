@@ -18,18 +18,18 @@ from ..data_transformers.decorator import data_transformer
 )
 def dataframe_to_street_price_list(df: pd.DataFrame) -> List:
     """Transform DataFrame to StreetPriceList using registered schema
-    
+
     Args:
         df: DataFrame with street price data
-        
+
     Returns:
         List of StreetPrice objects
-        
+
     Raises:
         ValueError: If no schema is registered for StreetPriceList
     """
     schema = data_schemas.get_schema(DataTypes.StreetPriceList)
     if schema is None:
         raise ValueError("No schema registered for StreetPriceList")
-    
+
     return schema.convert(df)

@@ -325,7 +325,7 @@ class AutomatedReportsPresenter(QObject):
             # Get the actual report from data_pipeline registry
             from productivity_app.data_pipeline.registry import registry
             from productivity_app.data_pipeline.types_enum import DataTypes
-            
+
             report_wrapper = registry.get_report(title)
 
             if not report_wrapper:
@@ -335,43 +335,48 @@ class AutomatedReportsPresenter(QObject):
 
             # Transform file paths to typed data using transformation paths
             transformed_params = {}
-            
+
             for param_name, file_path in parameters.items():
                 # Get report's expected type for this parameter
                 report_inputs = report_wrapper.inputs
-                
+
                 # Find the parameter definition
                 param_def = None
                 for input_param in report_inputs:
                     if input_param.name == param_name:
                         param_def = input_param
                         break
-                
+
                 if param_def is None:
-                    print(f"[AutomatedReportsPresenter] Unknown parameter: {param_name}")
+                    print(
+                        f"[AutomatedReportsPresenter] Unknown parameter: {param_name}")
                     continue
-                
+
                 # Get transformation path from FilePath to parameter's output_type
                 try:
                     path = registry.get_shortest_path(
                         source=DataTypes.FilePath,
                         target=param_def.output_type
                     )
-                    
+
                     if path is None:
-                        print(f"[AutomatedReportsPresenter] No transformation path for {param_name}")
-                        print(f"  From: FilePath -> To: {param_def.output_type}")
+                        print(
+                            f"[AutomatedReportsPresenter] No transformation path for {param_name}")
+                        print(
+                            f"  From: FilePath -> To: {param_def.output_type}")
                         continue
-                    
+
                     # Execute transformation path
-                    print(f"[AutomatedReportsPresenter] Transforming {param_name} via {len(path.steps)} steps")
+                    print(
+                        f"[AutomatedReportsPresenter] Transforming {param_name} via {len(path.steps)} steps")
                     transformed_data = path.execute(file_path)
                     transformed_params[param_name] = transformed_data
-                    
+
                 except Exception as transform_error:
-                    print(f"[AutomatedReportsPresenter] Transformation error for {param_name}: {transform_error}")
+                    print(
+                        f"[AutomatedReportsPresenter] Transformation error for {param_name}: {transform_error}")
                     continue
-            
+
             # Execute report with transformed data
             result = report_wrapper.generate(**transformed_params)
             print(f"[AutomatedReportsPresenter] Report result: {result}")
