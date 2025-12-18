@@ -86,10 +86,10 @@ class CentralRegistry:
     # ==================== Transformer Methods ====================
 
     def register_transformer(self,
-                            name: str,
-                            func: Callable,
-                            input_type: DataTypes,
-                            output_type: DataTypes):
+                             name: str,
+                             func: Callable,
+                             input_type: DataTypes,
+                             output_type: DataTypes):
         """Register a data transformer
 
         Args:
@@ -131,8 +131,7 @@ class CentralRegistry:
             name for name, info in self._transformers.items()
             if info['output_type'] == output_type
         ]
-transformers.clear()
-        self._
+
     def get_transformer(self, name: str) -> Dict[str, Any]:
         """Get transformer info by name"""
         return self._transformers.get(name)

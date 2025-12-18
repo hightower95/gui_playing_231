@@ -11,15 +11,15 @@ from productivity_app.data_pipeline.registry import registry
 
 def data_transformer(name: str, input_type: DataTypes, output_type: DataTypes):
     """Decorator to register a data transformer
-    
+
     Transformers convert data from one type to another (e.g., DataFrame → PartsList).
     The registry uses these to automatically discover transformation chains.
-    
+
     Args:
         name: Transformer name (should be descriptive, e.g., "DataFrameToPartsList")
         input_type: DataType this transformer consumes
         output_type: DataType this transformer produces
-        
+
     Example:
         @data_transformer(
             name="DataFrameToPartsList",
