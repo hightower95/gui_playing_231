@@ -21,7 +21,8 @@ class Parameter:
     description: str = ""
     title: Optional[str] = None
     is_root: bool = False  # Overridden by subclasses
-    version: Optional[str] = None  # Version metadata for compatibility tracking
+    # Version metadata for compatibility tracking
+    version: Optional[str] = None
 
     def __post_init__(self):
         """Set title to name if not provided"""
@@ -37,32 +38,32 @@ class Parameter:
             PartsList(version="5")
         """
         return replace(self, **kwargs)
-    
+
     def matches(self, other: 'Parameter') -> bool:
         """Check if this parameter matches another (for routing)
-        
+
         Matches if names are the same and versions are compatible.
         None version matches any version.
-        
+
         Args:
             other: Parameter to compare against
-            
+
         Returns:
             True if parameters are compatible
         """
         if self.name != other.name:
             return False
-        
+
         # If either has no version requirement, they match
         if self.version is None or other.version is None:
             return True
-        
+
         # For now, exact version match (can extend with semver later)
         return self.version == other.version
-    
+
     def get_type_key(self) -> str:
         """Get unique type key for registry lookups
-        
+
         Returns:
             String key like 'PartsList' or 'PartsList_v5'
         """

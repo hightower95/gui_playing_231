@@ -1,5 +1,5 @@
 """Setup Report Panel - Main panel for configuring report inputs"""
-from typing import List, Dict
+from typing import List, Dict, Any
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QTabWidget
 from PySide6.QtCore import Signal
 from .header import ReportHeader
@@ -17,12 +17,12 @@ class SetupReportPanel(QWidget):
     cancelled = Signal()
 
     def __init__(self, report_title: str, report_description: str,
-                 required_inputs: List[str], parent=None):
+                 required_inputs: List[Any], parent=None):
         super().__init__(parent)
         self.report_title = report_title
         self.report_description = report_description
-        self.required_inputs = required_inputs
-        self.input_values: Dict[str, str] = {}
+        self.required_inputs = required_inputs  # List of Parameter objects
+        self.input_values: Dict[str, str] = {}  # Maps param.name -> file_path
         self._setup_ui()
 
     def _setup_ui(self):
@@ -48,11 +48,13 @@ class SetupReportPanel(QWidget):
 
         # Document tabs
         self.document_tabs = {}
-        for input_name in self.required_inputs:
-            doc_tab = DocumentTab(input_name, is_required=True)
+        for input_param in self.required_inputs:
+            param_name = input_param.name if hasattr(input_param, 'name') else str(input_param)
+            param_title = input_param.title if hasattr(input_param, 'title') else param_name
+            doc_tab = DocumentTab(input_param, is_required=input_param.required if hasattr(input_param, 'required') else True)
             doc_tab.file_selected.connect(self._on_file_selected)
-            self.document_tabs[input_name] = doc_tab
-            self.tabs.addTab(doc_tab, input_name)
+            self.document_tabs[param_name] = doc_tab
+            self.tabs.addTab(doc_tab, param_title)
 
         # Settings tab
         self.settings_tab = SettingsTab()
@@ -76,11 +78,13 @@ class SetupReportPanel(QWidget):
 
     def _update_footer_state(self):
         """Update footer based on input completion"""
+        # Extract param names for lookups
+        param_names = [p.name if hasattr(p, 'name') else str(p) for p in self.required_inputs]
         all_filled = all(
-            self.input_values.get(inp, "") for inp in self.required_inputs
+            self.input_values.get(inp, "") for inp in param_names
         )
         missing_count = sum(
-            1 for inp in self.required_inputs
+            1 for inp in param_names
             if not self.input_values.get(inp, "")
         )
         self.footer.set_ready_state(all_filled, missing_count)

@@ -13,6 +13,7 @@ from ..data_transformers.decorator import data_transformer
 # Delay decorator application until after module init
 _decorator_params = None
 
+
 def dataframe_to_parts_list(df: pd.DataFrame) -> List:
     """Transform DataFrame to PartsList using registered schema
 

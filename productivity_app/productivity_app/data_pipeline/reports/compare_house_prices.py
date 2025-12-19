@@ -9,10 +9,12 @@ from productivity_app.data_pipeline.models.street_price import StreetPrice
     inputs=[
         ParameterEnum.StreetPriceList(
             name="street_price_list",
+            title="First Street Price List",
             description="List of street prices to compare",
         ),
         ParameterEnum.StreetPriceList(
             name="comparison_price_list",
+            title="Second Street Price List",
             description="List of street prices to compare against",)
 
     ],

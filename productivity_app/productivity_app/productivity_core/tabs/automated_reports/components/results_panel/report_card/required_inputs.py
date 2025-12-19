@@ -37,7 +37,9 @@ class RequiredInputs(QWidget):
             badges_layout.setContentsMargins(0, 0, 0, 0)
             badges_layout.setSpacing(8)
 
-            for input_name in self.inputs:
+            for input_param in self.inputs:
+                # Extract name from Parameter object or use as-is if string
+                input_name = input_param.name if hasattr(input_param, 'name') else str(input_param)
                 badge = self._create_badge(input_name)
                 badges_layout.addWidget(badge)
 

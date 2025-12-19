@@ -49,13 +49,13 @@ data_schemas.register(StreetPriceList, _STREET_PRICE_SCHEMA)
 # Define transformer function (decorator applied lazily at first use)
 def dataframe_to_street_price_list(df: pd.DataFrame) -> List[StreetPrice]:
     """Transform DataFrame to StreetPriceList using registered schema
-    
+
     Args:
         df: DataFrame with street price data
-        
+
     Returns:
         List of StreetPrice objects
-        
+
     Raises:
         ValueError: If no schema is registered for StreetPriceList
     """
@@ -63,7 +63,7 @@ def dataframe_to_street_price_list(df: pd.DataFrame) -> List[StreetPrice]:
     schema = data_schemas.get_schema(Variables.StreetPriceList)
     if schema is None:
         raise ValueError("No schema registered for StreetPriceList")
-    
+
     return schema.convert(df)
 
 

@@ -1,5 +1,5 @@
 """Summary tab - Shows input requirements and status"""
-from typing import List, Dict
+from typing import List, Dict, Any
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QTableWidget, QTableWidgetItem
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
@@ -9,9 +9,10 @@ from .styles import TABLE_STYLE
 class SummaryTab(QWidget):
     """Summary tab showing report configuration status"""
 
-    def __init__(self, required_inputs: List[str], parent=None):
+    def __init__(self, required_inputs: List[Any], parent=None):
+        """Initialize summary tab with Parameter objects"""
         super().__init__(parent)
-        self.required_inputs = required_inputs
+        self.required_inputs = required_inputs  # List of Parameter objects
         self.input_values: Dict[str, str] = {}
         self._setup_ui()
 
@@ -46,22 +47,26 @@ class SummaryTab(QWidget):
 
         # Add required inputs
         self.summary_table.setRowCount(len(self.required_inputs))
-        for i, input_name in enumerate(self.required_inputs):
+        for i, param in enumerate(self.required_inputs):
             # Status circle
             status_item = QTableWidgetItem("⭕")
             status_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             self.summary_table.setItem(i, 0, status_item)
 
-            # Input name
-            # Store base_input_name without '*' for later retrieval
-            base_input_name = input_name
-            name_item = QTableWidgetItem(input_name + " *")
-            name_item.setData(Qt.ItemDataRole.UserRole, base_input_name)  # Store base name
+            # Input name - use title for display, store name for lookup
+            display_title = param.title if hasattr(
+                param, 'title') else param.name
+            if param.required:
+                display_title += " *"
+            name_item = QTableWidgetItem(display_title)
+            # Store param.name for lookups
+            name_item.setData(Qt.ItemDataRole.UserRole, param.name)
             self.summary_table.setItem(i, 1, name_item)
 
-            # Description
-            desc_item = QTableWidgetItem(
-                self._get_input_description(input_name))
+            # Description - use param.description
+            desc_text = param.description if hasattr(
+                param, 'description') else ""
+            desc_item = QTableWidgetItem(desc_text)
             self.summary_table.setItem(i, 2, desc_item)
 
             # Value (initially "Not selected")
@@ -83,8 +88,9 @@ class SummaryTab(QWidget):
         self.input_values[input_name] = value
 
         # Find row for this input
-        for i, req_input in enumerate(self.required_inputs):
-            if req_input == input_name:
+        for i, param in enumerate(self.required_inputs):
+            param_name = param.name if hasattr(param, 'name') else str(param)
+            if param_name == input_name:
                 # Update status
                 status_item = self.summary_table.item(i, 0)
                 status_item.setText("✅" if value else "⭕")

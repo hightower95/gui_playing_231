@@ -361,4 +361,3 @@ class TestTransformationGraph:
         # All paths should start from FilePath
         for path in all_paths:
             assert path.source_type.matches(Variables.FilePath)
-

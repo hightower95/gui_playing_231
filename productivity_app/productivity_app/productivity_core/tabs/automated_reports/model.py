@@ -7,7 +7,7 @@ Handles:
 - Report categorization
 - Integration with data_pipeline registry
 """
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Any
 from dataclasses import dataclass
 
 
@@ -22,7 +22,7 @@ class ReportMetadata:
     report_type: str  # "single" or "group"
     scope: str  # "local" or "shared"
     tags: List[str]
-    required_inputs: List[str] = None
+    required_inputs: List[Any] = None  # List of Parameter objects
     contained_reports: List[str] = None  # For report groups
     topics: List[str] = None  # Associated topic groups
 
@@ -58,16 +58,9 @@ class AutomatedReportsModel:
         registry_reports = registry.get_all_reports()
 
         for i, (title, report_info) in enumerate(registry_reports.items()):
-            # Extract input types
+            # Extract input parameters (keep full objects for title/description)
             inputs = report_info.get('inputs', [])
-            required_inputs = []
-
-            for inp in inputs:
-                if isinstance(inp, PrimitiveParameter):
-                    required_inputs.append(inp.name)
-                elif isinstance(inp, CollectedParameter):
-                    # This represents a document/data source
-                    required_inputs.append(f"{inp.name} (from collector)")
+            required_inputs = inputs  # Store full Parameter objects
 
             # Create ReportMetadata
             reports.append(ReportMetadata(
@@ -259,7 +252,10 @@ class AutomatedReportsModel:
         """Get list of unique required inputs across all reports"""
         inputs_set = set()
         for report in self.reports:
-            inputs_set.update(report.required_inputs)
+            # Extract parameter names from Parameter objects
+            for inp in report.required_inputs:
+                param_name = inp.name if hasattr(inp, 'name') else str(inp)
+                inputs_set.add(param_name)
         return sorted(list(inputs_set))
 
     def get_scopes(self) -> List[str]:

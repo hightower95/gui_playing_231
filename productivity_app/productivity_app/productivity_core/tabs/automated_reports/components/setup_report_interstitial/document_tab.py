@@ -2,6 +2,7 @@
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QLabel, QFrame,
                                QFileDialog)
 from PySide6.QtCore import Qt, Signal
+from typing import Any
 from .source_selector import SourceSelector
 from .file_drop_area import FileDropArea
 
@@ -11,10 +12,12 @@ class DocumentTab(QWidget):
 
     file_selected = Signal(str, str)  # Emits (input_name, file_path)
 
-    def __init__(self, input_name: str, is_required: bool = True, parent=None):
+    def __init__(self, input_param: Any, is_required: bool = True, parent=None):
         super().__init__(parent)
-        self.base_input_name = input_name  # Store original name for parameter key
-        self.input_name = input_name  # Display name (may have '*' added)
+        # Extract name and title from parameter
+        self.input_name = input_param.name if hasattr(input_param, 'name') else str(input_param)
+        self.display_title = input_param.title if hasattr(input_param, 'title') else self.input_name
+        self.base_input_name = self.input_name  # Store for parameter key
         self.is_required = is_required
         self.selected_file = ""
         self._setup_ui()
@@ -27,7 +30,7 @@ class DocumentTab(QWidget):
 
         # Title with required indicator
         title_label = QLabel(
-            self.input_name + (" *" if self.is_required else ""))
+            self.display_title + (" *" if self.is_required else ""))
         title_label.setStyleSheet(
             "font-size: 14px; font-weight: bold; color: #e3e3e3;")
         layout.addWidget(title_label)
@@ -108,7 +111,8 @@ class DocumentTab(QWidget):
         self.selected_file = file_path
         self.selected_file_label.setText(f"✓ Selected: {file_path}")
         self.selected_file_label.show()
-        self.file_selected.emit(self.base_input_name, file_path)  # Use base name without '*'
+        # Use base name without '*'
+        self.file_selected.emit(self.base_input_name, file_path)
 
     def _get_detailed_description(self) -> str:
         """Get detailed description for this input"""

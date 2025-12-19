@@ -7,7 +7,7 @@ Matches the design from the UI mockup with:
 - File browse buttons for document inputs
 - Run Report / Save as Draft / Cancel buttons
 """
-from typing import Optional, Dict, List
+from typing import Optional, Dict, List, Any
 from PySide6.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel,
                                QPushButton, QLineEdit, QTabWidget, QWidget,
                                QTableWidget, QTableWidgetItem, QFileDialog,
@@ -22,7 +22,7 @@ class ReportConfigDialog(QDialog):
     report_executed = Signal(str, dict)  # Emits (report_title, parameters)
 
     def __init__(self, report_title: str, report_description: str,
-                 required_inputs: List[str], optional_inputs: List[str] = None,
+                 required_inputs: List[Any], optional_inputs: List[Any] = None,
                  parent: Optional[QWidget] = None):
         """Initialize report configuration dialog
 
@@ -216,7 +216,8 @@ class ReportConfigDialog(QDialog):
             # Store base_input_name without '*' for parameter retrieval
             base_input_name = input_name
             name_item = QTableWidgetItem(input_name + " *")
-            name_item.setData(Qt.ItemDataRole.UserRole, base_input_name)  # Store base name
+            name_item.setData(Qt.ItemDataRole.UserRole,
+                              base_input_name)  # Store base name
             self.summary_table.setItem(i, 1, name_item)
 
             # Description
@@ -456,7 +457,8 @@ class ReportConfigDialog(QDialog):
             }
         """)
         browse_btn.clicked.connect(
-            lambda: self._browse_for_file_enhanced(base_input_name, selected_file_label))  # Use base name
+            # Use base name
+            lambda: self._browse_for_file_enhanced(base_input_name, selected_file_label))
         drop_layout.addWidget(
             browse_btn, alignment=Qt.AlignmentFlag.AlignCenter)
 

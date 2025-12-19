@@ -59,7 +59,8 @@ class TransformationGraph:
         self.nodes: Set[str] = set()  # Store parameter type keys
         self.edges: Dict[str, List[TransformationStep]] = defaultdict(list)
         self.primitives: Set[str] = set()  # Store primitive type keys
-        self.primitive_groups: Dict[str, Set[str]] = {}  # Store groups by type key
+        # Store groups by type key
+        self.primitive_groups: Dict[str, Set[str]] = {}
 
     def add_collector(self, name: str, func: Callable,
                       inputs: List[Parameter], outputs: List[Parameter]):
@@ -77,7 +78,7 @@ class TransformationGraph:
             input_key = input_param.get_type_key()
             self.primitives.add(input_key)
             self.nodes.add(input_key)
-            
+
             for output_param in outputs:
                 output_key = output_param.get_type_key()
                 self.nodes.add(output_key)
@@ -102,7 +103,7 @@ class TransformationGraph:
         """
         input_key = input_type.get_type_key()
         output_key = output_type.get_type_key()
-        
+
         self.nodes.add(input_key)
         self.nodes.add(output_key)
         step = TransformationStep(
@@ -129,7 +130,7 @@ class TransformationGraph:
         all_paths = []
         visited_steps = set()
         source_key = source.get_type_key()
-        
+
         def dfs(current_key: str, path: List[TransformationStep], depth: int):
             # Base case: check if current type matches target
             if path and path[-1].output_type.matches(target):
@@ -182,7 +183,7 @@ class TransformationGraph:
                     if step.input_type.get_type_key() == prim_key:
                         primitive_params.add(step.input_type)
                         break
-        
+
         for primitive in primitive_params:
             paths = self.find_all_paths(primitive, target, max_depth)
             all_paths.extend(paths)
@@ -210,4 +211,5 @@ class TransformationGraph:
             group_name: Name of the group
             primitives: Set of primitive parameter types in this group
         """
-        self.primitive_groups[group_name] = {p.get_type_key() for p in primitives}
+        self.primitive_groups[group_name] = {
+            p.get_type_key() for p in primitives}
